@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOUR JOGJA MANAJEMEN</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Notifikasi / Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Dialog Konfirmasi Global -->
+    <div id="modal-confirm" class="modal">
+        <div class="modal-content modal-sm">
+            <h3 id="confirm-title">Konfirmasi</h3>
+            <p id="confirm-message">Apakah Anda yakin?</p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" id="btn-confirm-cancel">Batal</button>
+                <button type="button" class="btn btn-danger" id="btn-confirm-ok">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REVISI 3: Modal Ringkasan (Pengganti Modal WhatsApp) -->
+    <div id="modal-ringkasan" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3>Ringkasan Pembayaran</h3>
+                <button class="btn-close" id="btn-close-ringkasan">&times;</button>
+            </div>
+            <div class="modal-body" style="background: #e2e8f0;">
+                <p class="help-text mb-10 text-center">Pratinjau ringkasan di bawah ini siap diunduh menjadi gambar (JPEG).</p>
+                
+                <!-- Area yang akan dirender menjadi gambar JPEG -->
+                <!-- Penambahan overflow-x: auto agar bisa discroll di mobile tanpa merusak ukuran -->
+                <div id="ringkasan-print-area" style="background:#fff; padding:30px; border-radius:8px; color:#000; font-family:sans-serif; overflow-x: auto;">
+                    <!-- Data disuntikkan via JS -->
+                </div>
+
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" id="btn-close-ringkasan-footer">Tutup</button>
+                <button type="button" class="btn btn-primary" id="btn-download-jpeg">Download JPEG</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REVISI 2: Pindah Modal Edit Biaya Individu ke Global Root (Luar tag view-section) -->
+    <div id="modal-edit-cost" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="edit-cost-title">Edit Rincian Biaya</h3>
+                <button class="btn-close" id="btn-close-edit-cost">&times;</button>
+            </div>
+            <form id="form-edit-cost">
+                <div class="modal-body">
+                    <input type="hidden" id="edit-cost-id">
+                    <div class="form-group">
+                        <label for="edit-cost-cat">Kategori Biaya *</label>
+                        <select id="edit-cost-cat" class="form-control" required>
+                            <!-- JS Injection -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-cost-price">Total (Rp) *</label>
+                        <input type="number" id="edit-cost-price" class="form-control form-control-lg text-bold text-danger" required step="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-cost-notes">Catatan Tambahan (Opsional)</label>
+                        <input type="text" id="edit-cost-notes" class="form-control" placeholder="Contoh: Upgrade fasilitas">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-edit-cost">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Overlay Sidebar Mobile -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- Sidebar Navigasi -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>TOUR JOGJA</h2>
+                <p>MANAJEMEN</p>
+            </div>
+            <ul class="nav-list">
+                <li><a href="#" class="nav-link active" data-target="view-dashboard">Dashboard</a></li>
+                <li><a href="#" class="nav-link" data-target="view-participants">Peserta & Keluarga</a></li>
+                <li><a href="#" class="nav-link" data-target="view-costs">Rincian Biaya Peserta</a></li>
+                <li><a href="#" class="nav-link" data-target="view-payments">Pembayaran & Cicilan</a></li>
+                <li><a href="#" class="nav-link" data-target="view-expenses">Pengeluaran Operasional</a></li>
+                <li><a href="#" class="nav-link" data-target="view-reports">Laporan Keuangan</a></li>
+            </ul>
+        </nav>
+
+        <!-- Area Konten Utama -->
+        <main class="main-content">
+            <header class="topbar">
+                <button id="btn-mobile-menu" class="btn-mobile-menu">&#9776;</button>
+                <h1 id="page-title">DASHBOARD TOUR DAVKA TRAVEL</h1>
+            </header>
+
+            <div class="content-body">
+                
+                <!-- VIEW: DASHBOARD -->
+                <section id="view-dashboard" class="view-section active">
+                    <div class="card-grid dashboard-summary-grid mb-15">
+                        <div class="card summary-card summary-card-sm">
+                            <h3>Total Peserta</h3>
+                            <p id="dash-total-peserta" class="stat-value">0</p>
+                        </div>
+                        <div class="card summary-card summary-card-sm">
+                            <h3>Total Keluarga</h3>
+                            <p id="dash-total-keluarga" class="stat-value">0</p>
+                        </div>
+                    </div>
+
+                    <div class="card mb-20">
+                        <div class="card-header">
+                            <h3>Total per Kategori Biaya</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="dash-summary-categories" class="category-summary-grid">
+                                <!-- Data disuntikkan via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-20">
+                        <div class="card-header flex-between align-center">
+                            <h3>Status Peserta</h3>
+                            <select id="dash-filter-keluarga" class="form-control input-sm" style="max-width: 250px;">
+                                <option value="none">None</option>
+                                <option value="">Semua Keluarga</option>
+                                <!-- Opsi via JS -->
+                            </select>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table" id="table-dash-peserta">
+                                <thead>
+                                    <tr id="dash-table-header">
+                                        <th>Nama</th>
+                                        <th>Keluarga</th>
+                                        <!-- Kolom Kategori Biaya akan disuntikkan di sini via JS -->
+                                        <th>Total Biaya</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data disuntikkan via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW: PESERTA & KELUARGA -->
+                <section id="view-participants" class="view-section">
+                    <div class="card">
+                        <div class="card-header flex-between align-center">
+                            <h3>Daftar Peserta</h3>
+                            <button class="btn btn-primary" id="btn-add-participant">+ Tambah Peserta</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="filter-bar flex-between">
+                                <div class="filter-group">
+                                    <input type="text" id="filter-participant-name" placeholder="Cari nama..." class="form-control">
+                                    <select id="filter-participant-family" class="form-control">
+                                        <option value="none">None</option>
+                                        <option value="">Semua Keluarga</option>
+                                        <!-- Opsi via JS -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-responsive mt-15">
+                                <table class="table" id="table-participants">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nama Lengkap</th>
+                                            <th>Keluarga/Grup</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Tambah/Edit Peserta -->
+                    <div id="modal-participant-form" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 id="participant-form-title">Tambah Peserta</h3>
+                                <button class="btn-close" id="btn-close-participant-form">&times;</button>
+                            </div>
+                            <form id="form-participant">
+                                <div class="modal-body">
+                                    <input type="hidden" id="part-id">
+                                    
+                                    <div class="form-group border-bottom pb-15 mb-15" style="border-bottom: 1px solid var(--border-color);">
+                                        <label for="part-family">Nama Keluarga / Grup *</label>
+                                        <input type="text" id="part-family" list="family-datalist" class="form-control" required placeholder="Pilih atau ketik nama keluarga baru...">
+                                        <datalist id="family-datalist">
+                                            <!-- Opsi via JS -->
+                                        </datalist>
+                                        <small class="help-text">Gunakan nama keluarga yang persis sama untuk mengelompokkan anggota.</small>
+                                    </div>
+
+                                    <div id="participant-dynamic-container">
+                                        <!-- Row dinamis disuntikkan via JS -->
+                                    </div>
+
+                                    <button type="button" class="btn btn-sm btn-outline-primary w-100 mb-15" id="btn-add-participant-row">+ Tambah Nama Peserta</button>
+
+                                </div>
+                                <div class="modal-actions">
+                                    <button type="button" class="btn btn-secondary" id="btn-cancel-participant">Batal</button>
+                                    <button type="submit" class="btn btn-primary">Simpan Peserta</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW: DETAIL PESERTA (Sub-view) -->
+                <section id="view-participant-detail" class="view-section">
+                    <div class="mb-15">
+                        <button class="btn btn-secondary" id="btn-back-to-participants">&larr; Kembali ke Daftar</button>
+                    </div>
+                    
+                    <div class="card profile-header mb-20">
+                        <div class="flex-between align-start">
+                            <div>
+                                <h2 id="detail-part-name">Nama Peserta</h2>
+                                <p class="text-muted"><span id="detail-part-family">Keluarga</span> | ID: <span id="detail-part-id"></span></p>
+                                <div class="mt-10">
+                                    <span class="badge" id="detail-part-status-badge">Status</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <!-- REVISI 3: Mengubah tombol cetak ringkasan -->
+                                <button class="btn btn-outline-primary mb-10" id="btn-print-individual">Cetak Ringkasan Individu</button>
+                                <br>
+                                <button class="btn btn-outline-secondary" id="btn-print-family">Cetak Ringkasan Keluarga</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-grid mb-20">
+                        <div class="card summary-card">
+                            <h3>Total Tagihan</h3>
+                            <p id="detail-total-tagihan" class="stat-value">Rp0</p>
+                        </div>
+                        <div class="card summary-card">
+                            <h3>Total Dibayar</h3>
+                            <p id="detail-total-dibayar" class="stat-value text-success">Rp0</p>
+                        </div>
+                        <div class="card summary-card">
+                            <h3>Sisa Tagihan</h3>
+                            <p id="detail-sisa-tagihan" class="stat-value text-danger">Rp0</p>
+                        </div>
+                    </div>
+
+                    <div class="card mb-20">
+                        <div class="card-header flex-between align-center">
+                            <h3>Rincian Biaya Individu</h3>
+                            <button class="btn btn-sm btn-primary" id="btn-add-cost-from-detail">+ Tambah Biaya</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table" id="table-detail-costs">
+                                <thead>
+                                    <tr>
+                                        <th>Kategori</th>
+                                        <th>Harga</th>
+                                        <th>Qty</th>
+                                        <th>Total</th>
+                                        <th>Catatan</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody><!-- JS injection --></tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer text-right">
+                            <p class="text-muted">Total Biaya: <strong id="detail-sum-costs">Rp0</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Riwayat Pembayaran (Alokasi)</h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table" id="table-detail-payments">
+                                <thead>
+                                    <!-- REVISI 2: Menghapus <th> ID Transaksi -->
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Nominal Alokasi</th>
+                                        <th>Metode</th>
+                                        <th>Catatan</th>
+                                    </tr>
+                                </thead>
+                                <tbody><!-- JS injection --></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW: RINCIAN BIAYA PESERTA (Manajemen Biaya Master) -->
+                <section id="view-costs" class="view-section">
+                    <div class="card mb-20">
+                        <div class="card-header">
+                            <h3>Alokasi Biaya ke Peserta</h3>
+                            <p class="help-text">Gunakan menu ini untuk menambahkan biaya secara spesifik ke satu orang, atau membagi biaya bersama (misal sewa kamar) ke beberapa orang.</p>
+                        </div>
+                        <div class="card-body form-grid-2">
+                            <button class="btn btn-primary btn-lg" id="btn-open-cost-individual">Input Biaya Individu</button>
+                            <button class="btn btn-secondary btn-lg" id="btn-open-cost-shared">Input Biaya Bersama (Split)</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Kategori Biaya Tersedia</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="cost-category-tags" class="tag-container mb-15">
+                                <!-- JS Injection -->
+                            </div>
+                            <form id="form-add-category" class="flex-row">
+                                <input type="text" id="new-category-name" class="form-control" placeholder="Kategori baru..." required>
+                                <button type="submit" class="btn btn-outline-primary">Tambah Kategori</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Modal Biaya Individu -->
+                    <div id="modal-cost-individual" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 id="cost-ind-title">Formulir Biaya Individu</h3>
+                                <button class="btn-close" id="btn-close-cost-ind">&times;</button>
+                            </div>
+                            <form id="form-cost-ind">
+                                <div class="modal-body">
+                                    <input type="hidden" id="cost-ind-id">
+                                    
+                                    <div class="form-group">
+                                        <label for="cost-ind-family">Pilih Keluarga/Grup *</label>
+                                        <select id="cost-ind-family" class="form-control" required>
+                                            <option value="">-- Pilih Keluarga --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group border-bottom pb-15 mb-15" style="border-bottom: 1px solid var(--border-color);">
+                                        <label for="cost-ind-participant">Pilih Peserta *</label>
+                                        <select id="cost-ind-participant" class="form-control" required disabled>
+                                            <option value="">-- Pilih Peserta --</option>
+                                        </select>
+                                    </div>
+
+                                    <div id="cost-ind-dynamic-container">
+                                        <!-- Container untuk row kategori & harga yang disuntikkan via JS -->
+                                    </div>
+
+                                    <button type="button" class="btn btn-sm btn-outline-primary w-100 mb-15" id="btn-add-cost-row">+ Tambah Kategori Biaya</button>
+                                    
+                                    <div class="bg-light p-10 box-rounded text-right mt-10">
+                                        <p>Total Harga: <strong id="cost-ind-total-sum" class="text-danger text-bold" style="font-size: 18px;">Rp0</strong></p>
+                                    </div>
+                                    
+                                </div>
+                                <div class="modal-actions">
+                                    <button type="button" class="btn btn-secondary" id="btn-cancel-cost-ind">Batal</button>
+                                    <button type="submit" class="btn btn-primary">Simpan Biaya</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- REVISI 2: Modal Edit Biaya dipindahkan ke luar section ini untuk memperbaiki bug z-index / display:none -->
+
+                    <!-- Modal Biaya Bersama (Split) -->
+                    <div id="modal-cost-shared" class="modal">
+                        <div class="modal-content modal-lg">
+                            <div class="modal-header">
+                                <h3>Alokasi Biaya Bersama</h3>
+                                <button class="btn-close" id="btn-close-cost-shared">&times;</button>
+                            </div>
+                            <form id="form-cost-shared">
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="cost-shared-category">Kategori Biaya *</label>
+                                        <select id="cost-shared-category" class="form-control" required></select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cost-shared-total">Total Biaya Keseluruhan (Rp) *</label>
+                                        <input type="number" id="cost-shared-total" class="form-control" required min="1" step="1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Metode Pembagian</label>
+                                        <select id="cost-shared-method" class="form-control">
+                                            <option value="sama_rata">Bagi Sama Rata</option>
+                                            <option value="manual">Bagi Nominal Manual</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group mt-15">
+                                        <label>Pilih Peserta yang Menanggung Biaya:</label>
+                                        <div class="search-box mb-10">
+                                            <input type="text" id="cost-shared-search" class="form-control input-sm" placeholder="Cari peserta/keluarga...">
+                                        </div>
+                                        <div class="table-responsive max-h-300">
+                                            <table class="table" id="table-shared-participants">
+                                                <thead>
+                                                    <tr>
+                                                        <th><input type="checkbox" id="chk-all-shared"></th>
+                                                        <th>Nama Peserta</th>
+                                                        <th>Keluarga</th>
+                                                        <th>Alokasi (Rp)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody><!-- JS Injection --></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="summary-box bg-light p-10 mt-10 text-right">
+                                        <p>Total Dialokasikan: <strong id="shared-allocated-sum">Rp0</strong></p>
+                                        <p id="shared-diff-alert" class="text-danger" style="display:none;">Terdapat selisih pembagian!</p>
+                                    </div>
+                                </div>
+                                <div class="modal-actions">
+                                    <button type="button" class="btn btn-secondary" id="btn-cancel-cost-shared">Batal</button>
+                                    <button type="submit" class="btn btn-primary" id="btn-submit-cost-shared">Proses Pembagian Biaya</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- VIEW: PEMBAYARAN & CICILAN -->
+                <section id="view-payments" class="view-section">
+                    <div class="card mb-20">
+                        <div class="card-header flex-between align-center">
+                            <h3>Riwayat Penerimaan Kas & Pembayaran Peserta</h3>
+                            <button class="btn btn-success" id="btn-add-payment">+ Catat Penerimaan Uang</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-warning mb-15" id="alert-unallocated-funds" style="display:none;">
+                                <strong>Perhatian:</strong> Terdapat dana masuk yang belum dialokasikan ke peserta sebesar <strong id="text-unallocated-funds">Rp0</strong>. Klik baris transaksi terkait untuk melakukan alokasi.
+                            </div>
+                            
+                            <div class="filter-bar flex-between mb-15">
+                                <input type="text" id="filter-payment" placeholder="Cari nama pembayar/referensi..." class="form-control">
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table" id="table-payments">
+                                    <thead>
+                                        <tr>
+                                            <th>Tgl</th>
+                                            <th>Pembayar</th>
+                                            <th>Penerimaan (Rp)</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody><!-- JS Injection --></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Modal Penerimaan Uang & Alokasi -->
+                    <div id="modal-payment-form" class="modal">
+                        <div class="modal-content modal-lg">
+                            <div class="modal-header">
+                                <h3 id="payment-form-title">Penerimaan Uang Baru</h3>
+                                <button class="btn-close" id="btn-close-payment">&times;</button>
+                            </div>
+                            <form id="form-payment">
+                                <div class="modal-body row-flex">
+                                    <div class="col-half pr-15 border-right-desk">
+                                        <h4 class="mb-10">Data Transaksi (Kas Masuk)</h4>
+                                        <input type="hidden" id="pay-id">
+                                        <div class="form-group">
+                                            <label for="pay-date">Tanggal Terima *</label>
+                                            <input type="date" id="pay-date" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="pay-name">Nama Pembayar (Keluarga/Grup) *</label>
+                                            <select id="pay-name" class="form-control" required>
+                                                <!-- JS Injection: Opsi keluarga otomatis -->
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="pay-amount">Nominal Uang Diterima (Rp) *</label>
+                                            <input type="number" id="pay-amount" class="form-control form-control-lg text-bold" required min="1" step="1">
+                                            <small class="help-text">Uang riil yang masuk ke kas/rekening.</small>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="pay-method">Metode Pembayaran *</label>
+                                            <select id="pay-method" class="form-control" required>
+                                                <option value="Transfer">Transfer</option>
+                                                <option value="Tunai">Tunai</option>
+                                                <option value="E-Wallet">E-Wallet</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-grid-2" id="pay-bank-details">
+                                            <div class="form-group">
+                                                <label for="pay-bank-name">Nama Bank / E-Wallet</label>
+                                                <input type="text" id="pay-bank-name" class="form-control" placeholder="BCA / GoPay / Dll">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="pay-bank-acc">No. Rekening / No. E-Wallet</label>
+                                                <input type="text" id="pay-bank-acc" class="form-control" placeholder="123456789">
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    
+                                    <div class="col-half pl-15 mt-mobile-20">
+                                        <h4 class="mb-10">Alokasi Tagihan Peserta</h4>
+                                        <p class="help-text mb-10">Tentukan uang ini digunakan untuk membayar tagihan siapa saja.</p>
+                                        
+                                        <div class="form-group">
+                                            <label>Metode Alokasi</label>
+                                            <select id="pay-alloc-method" class="form-control">
+                                                <option value="manual">Manual per Peserta</option>
+                                                <option value="rata">Bagi Rata ke Peserta Terpilih</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <select id="pay-filter-family" class="form-control input-sm mb-5">
+                                                <option value="none">None</option>
+                                                <option value="">Semua Keluarga</option>
+                                                <!-- Opsi via JS -->
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="table-responsive max-h-250">
+                                            <table class="table table-sm" id="table-pay-allocation">
+                                                <thead>
+                                                    <tr>
+                                                        <th><input type="checkbox" id="chk-all-alloc"></th>
+                                                        <th>Peserta</th>
+                                                        <th>Sisa Tagihan</th>
+                                                        <th>Alokasi (Rp)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody><!-- JS Injection --></tbody>
+                                            </table>
+                                        </div>
+                                        
+                                        <div class="mt-15 bg-light p-10 box-rounded">
+                                            <div class="flex-between mb-5">
+                                                <span>Total Diterima:</span>
+                                                <strong id="summary-pay-received">Rp0</strong>
+                                            </div>
+                                            <div class="flex-between mb-5">
+                                                <span>Total Dialokasikan:</span>
+                                                <strong id="summary-pay-allocated">Rp0</strong>
+                                            </div>
+                                            <div class="flex-between border-top pt-5">
+                                                <span>Sisa Belum Dialokasikan:</span>
+                                                <strong id="summary-pay-unallocated" class="text-warning">Rp0</strong>
+                                            </div>
+                                            <p id="pay-alloc-error" class="text-danger mt-5" style="display:none;font-size:12px;">Alokasi tidak boleh melebihi total penerimaan!</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-actions">
+                                    <button type="button" class="btn btn-secondary" id="btn-cancel-payment">Batal</button>
+                                    <button type="submit" class="btn btn-primary" id="btn-submit-payment">Simpan Transaksi & Alokasi</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW: PENGELUARAN OPERASIONAL -->
+                <section id="view-expenses" class="view-section">
+                    <div class="card mb-20">
+                        <div class="card-header flex-between align-center">
+                            <h3>Pengeluaran Operasional Perjalanan</h3>
+                            <button class="btn btn-danger" id="btn-add-expense">+ Catat Pengeluaran Kas</button>
+                        </div>
+                        <div class="card-body">
+                            <p class="help-text mb-15">Gunakan menu ini untuk mencatat uang yang benar-benar keluar (dibayarkan ke vendor/supplier) untuk membiayai perjalanan.</p>
+                            
+                            <div class="filter-bar flex-between mb-15">
+                                <input type="text" id="filter-expense" placeholder="Cari keterangan/vendor..." class="form-control">
+                                <select id="filter-expense-category" class="form-control">
+                                    <option value="">Semua Kategori</option>
+                                    <!-- JS Injection -->
+                                </select>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table" id="table-expenses">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>Kategori</th>
+                                            <th>Keterangan</th>
+                                            <th>Vendor/Penerima</th>
+                                            <th>Nominal Aktual (Rp)</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody><!-- JS Injection --></tbody>
+                                </table>
+                            </div>
+                            <div class="text-right mt-10">
+                                <h4>Total Pengeluaran: <strong id="expense-total-display" class="text-danger">Rp0</strong></h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Pengeluaran -->
+                    <div id="modal-expense-form" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 id="expense-form-title">Catat Pengeluaran Baru</h3>
+                                <button class="btn-close" id="btn-close-expense">&times;</button>
+                            </div>
+                            <form id="form-expense">
+                                <div class="modal-body">
+                                    <input type="hidden" id="exp-id">
+                                    <div class="form-grid-2">
+                                        <div class="form-group">
+                                            <label for="exp-date">Tanggal Transaksi *</label>
+                                            <input type="date" id="exp-date" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="exp-category">Kategori Pengeluaran *</label>
+                                            <select id="exp-category" class="form-control" required>
+                                                <option value="Tiket Kereta/Pesawat">Tiket Kereta/Pesawat</option>
+                                                <option value="Sewa Bus/Transportasi">Sewa Bus/Transportasi</option>
+                                                <option value="Penginapan/Hotel">Penginapan/Hotel</option>
+                                                <option value="Pembelian Kaos">Pembelian Kaos</option>
+                                                <option value="Tiket Wisata">Tiket Wisata</option>
+                                                <option value="Konsumsi/Makan Minum">Konsumsi/Makan Minum</option>
+                                                <option value="Parkir & Tol">Parkir & Tol</option>
+                                                <option value="Administrasi">Administrasi</option>
+                                                <option value="Lain-lain">Lain-lain</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="exp-desc">Keterangan Pengeluaran *</label>
+                                        <input type="text" id="exp-desc" class="form-control" required placeholder="Contoh: DP Sewa Bus Pariwisata">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="exp-vendor">Penerima Dana / Vendor *</label>
+                                        <input type="text" id="exp-vendor" class="form-control" required placeholder="Contoh: PO Harapan Jaya">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="exp-amount">Nominal Aktual Keluar (Rp) *</label>
+                                        <input type="number" id="exp-amount" class="form-control form-control-lg text-bold text-danger" required min="1" step="1">
+                                        <small class="help-text">Jumlah uang riil yang dibayarkan dan mengurangi kas.</small>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="exp-method">Metode Pembayaran</label>
+                                        <select id="exp-method" class="form-control">
+                                            <option value="Transfer Bank">Transfer Bank</option>
+                                            <option value="Tunai">Tunai</option>
+                                            <option value="Lainnya">Lainnya</option>
+                                        </select>
+                                    </div>
+                                    
+                                </div>
+                                <div class="modal-actions">
+                                    <button type="button" class="btn btn-secondary" id="btn-cancel-expense">Batal</button>
+                                    <button type="submit" class="btn btn-danger">Simpan Pengeluaran</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW: LAPORAN KEUANGAN -->
+                <section id="view-reports" class="view-section">
+                    <div class="card no-print">
+                        <div class="card-header">
+                            <h3>Pengaturan Laporan</h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- REVISI 1: Menghapus input tanggal periode -->
+                            <div class="form-group" style="max-width: 300px;">
+                                <label>Jenis Laporan</label>
+                                <select id="report-type" class="form-control">
+                                    <option value="rekap">Rekapitulasi Seluruh Perjalanan</option>
+                                    <option value="peserta">Laporan Tagihan Peserta</option>
+                                    <option value="keluarga">Laporan Tagihan Per Keluarga</option>
+                                    <option value="penerimaan">Laporan Penerimaan Kas (Pembayaran)</option>
+                                    <option value="pengeluaran">Laporan Pengeluaran Operasional</option>
+                                    <option value="buku_kas">Laporan Buku Kas (Arus Kas)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mt-15 flex-between align-center flex-wrap" style="gap: 15px;">
+                                <div class="flex-row flex-wrap" style="gap: 10px;">
+                                    <button class="btn btn-primary" id="btn-generate-report">Tampilkan Laporan</button>
+                                    <button class="btn btn-secondary" id="btn-print-report" style="display:none;">Cetak (Print)</button>
+                                    <button class="btn btn-outline-primary" id="btn-export-csv-report" style="display:none;">Ekspor CSV</button>
+                                </div>
+                                <div>
+                                    <button class="btn btn-danger" id="btn-delete-all-data" type="button">Hapus Semua Data</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Area Hasil Laporan untuk Dicetak -->
+                    <div class="card mt-20" id="report-print-area" style="display:none;">
+                        <div class="report-header text-center mb-20 print-only-show">
+                            <h2>TOUR JOGJA MANAJEMEN</h2>
+                            <h3 id="report-print-title">Judul Laporan</h3>
+                            <p id="report-print-period">Periode: -</p>
+                        </div>
+                        <div class="card-body" id="report-output-container">
+                            <!-- Tabel Laporan disuntikkan via JS -->
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
