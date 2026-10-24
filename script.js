@@ -1,10 +1,9 @@
 /* ==========================================================================
    KONEKSI SUPABASE
    ========================================================================== */
-const supabaseUrl = 'https://wdhfthzuihakjlygticw.supabase.co';
-const supabaseKey = 'sb_publishable_8U8NeSn4aOZiRzLRS3KmxA_oz84fUAL';
-
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = 'https://wdhfthzuihakjlygttcw.supabase.co'; // Sudah diperbaiki sesuai dashboard
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkaGZ0aHp1aWhha2pseWd0dGN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2NzUxMTEsImV4cCI6MjA4NDI1MTExMX0.GFQfFILjDekr0ugH9-Ux3GhV9Zi3jmnzY5z4YtqV_Bw'; 
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 /* ==========================================================================
    INISIALISASI & MANAJEMEN DATA (FULL ONLINE SUPABASE)
