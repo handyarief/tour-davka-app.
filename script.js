@@ -110,7 +110,9 @@ async function saveData() {
         // Sinkronisasi Kategori ke Supabase jika tabel 'categories' ada
         if (db.categories && db.categories.length > 0) {
             const catPayload = db.categories.map(c => ({ name: c }));
-            supabaseClient.from('categories').upsert(catPayload, { onConflict: 'name' }).then();
+            // UPDATE: Menambahkan deteksi error untuk operasi di background
+            const { error } = await supabaseClient.from('categories').upsert(catPayload, { onConflict: 'name' });
+            if (error) console.error('Gagal sinkronisasi background kategori:', error.message);
         }
     } catch (e) {
         console.error('Gagal sinkronisasi background', e);
@@ -739,7 +741,7 @@ window.deleteParticipant = function(id) {
         const { error: errCost } = await supabaseClient.from('costs').delete().eq('participantId', id);
         
         if (errPart || errCost) {
-            showToast('Gagal menghapus dari Supabase.', 'danger');
+            showToast('Gagal menghapus dari Supabase. Silakan coba lagi.', 'danger');
             return;
         }
 
@@ -867,12 +869,22 @@ document.getElementById('form-edit-cost').addEventListener('submit', async (e) =
 
     const costIndex = db.costs.findIndex(c => c.id === costId);
     if(costIndex > -1) {
-        db.costs[costIndex].category = newCat;
-        db.costs[costIndex].price = newPrice;
-        db.costs[costIndex].total = newPrice * (db.costs[costIndex].qty || 1);
-        db.costs[costIndex].notes = newNotes;
+        // UPDATE: Gunakan object baru dan cek error sebelum mengubah state lokal 'db'
+        const updatedCost = {
+            ...db.costs[costIndex],
+            category: newCat,
+            price: newPrice,
+            total: newPrice * (db.costs[costIndex].qty || 1),
+            notes: newNotes
+        };
 
-        await supabaseClient.from('costs').upsert([db.costs[costIndex]]);
+        const { error } = await supabaseClient.from('costs').upsert([updatedCost]);
+        if (error) {
+            showToast('Gagal memperbarui rincian biaya: ' + error.message, 'danger');
+            return;
+        }
+
+        db.costs[costIndex] = updatedCost;
         showToast('Rincian biaya berhasil diperbarui.');
         closeModal('modal-edit-cost');
         refreshAll();
@@ -1133,19 +1145,31 @@ document.getElementById('form-add-category').addEventListener('submit', async (e
     const input = document.getElementById('new-category-name');
     const val = input.value.trim();
     if(val && !db.categories.includes(val)) {
+        // UPDATE: Tambahkan error handling
+        const { error } = await supabaseClient.from('categories').upsert([{ name: val }]);
+        if (error) {
+            showToast('Gagal menambahkan kategori: ' + error.message, 'danger');
+            return;
+        }
+
         db.categories.push(val);
         input.value = '';
         renderCategoryTags();
-        await supabaseClient.from('categories').upsert([{ name: val }]);
         saveData();
     }
 });
 
 window.deleteCategory = async function(cat) {
     if(confirm(`Hapus kategori "${cat}"?`)) {
+        // UPDATE: Tambahkan error handling
+        const { error } = await supabaseClient.from('categories').delete().eq('name', cat);
+        if (error) {
+            showToast('Gagal menghapus kategori: ' + error.message, 'danger');
+            return;
+        }
+
         db.categories = db.categories.filter(c => c !== cat);
         renderCategoryTags();
-        await supabaseClient.from('categories').delete().eq('name', cat);
         saveData();
     }
 }
@@ -1307,7 +1331,13 @@ document.getElementById('form-cost-ind').addEventListener('submit', async (e) =>
 
 window.deleteCost = async function(id, isFromDetail = false) {
     confirmAction('Hapus Biaya', 'Hapus komponen tagihan ini dari peserta?', async () => {
-        await supabaseClient.from('costs').delete().eq('id', id);
+        // UPDATE: Tambahkan error handling
+        const { error } = await supabaseClient.from('costs').delete().eq('id', id);
+        if (error) {
+            showToast('Gagal menghapus biaya dari cloud: ' + error.message, 'danger');
+            return;
+        }
+
         db.costs = db.costs.filter(c => c.id !== id);
         showToast('Biaya berhasil dihapus.');
         refreshAll();
@@ -1469,9 +1499,14 @@ document.getElementById('form-cost-shared').addEventListener('submit', async (e)
         notes: 'Biaya Bersama'
     }));
 
-    await supabaseClient.from('costs').insert(newCosts);
+    // UPDATE: Tambahkan error handling
+    const { error } = await supabaseClient.from('costs').insert(newCosts);
+    if (error) {
+        showToast('Gagal membagi dan menyimpan biaya: ' + error.message, 'danger');
+        return;
+    }
+
     db.costs.push(...newCosts);
-    
     showToast(`Berhasil membagi biaya ke ${allocs.length} peserta.`);
     closeModal('modal-cost-shared');
     refreshAll();
@@ -1722,13 +1757,27 @@ document.getElementById('form-payment').addEventListener('submit', async (e) => 
     if (id) {
         data.id = id;
         const index = db.payments.findIndex(x => x.id === id);
+        
+        // UPDATE: Tambahkan error handling
+        const { error } = await supabaseClient.from('payments').upsert([data]);
+        if (error) {
+            showToast('Gagal memperbarui transaksi: ' + error.message, 'danger');
+            return;
+        }
+
         db.payments[index] = data;
-        await supabaseClient.from('payments').upsert([data]);
         showToast('Data pembayaran diperbarui.');
     } else {
         data.id = generateId('PAY');
+        
+        // UPDATE: Tambahkan error handling
+        const { error } = await supabaseClient.from('payments').insert([data]);
+        if (error) {
+            showToast('Gagal mencatat transaksi kas: ' + error.message, 'danger');
+            return;
+        }
+
         db.payments.push(data);
-        await supabaseClient.from('payments').insert([data]);
         showToast('Penerimaan kas berhasil dicatat.');
     }
     
@@ -1775,13 +1824,18 @@ window.editPaymentAllocation = function(id) {
 
 window.deletePayment = async function(id) {
     confirmAction('Hapus Transaksi Penerimaan', 'Hapus penerimaan kas ini dari database cloud?', async () => {
-        await supabaseClient.from('payments').delete().eq('id', id);
+        // UPDATE: Tambahkan error handling
+        const { error } = await supabaseClient.from('payments').delete().eq('id', id);
+        if (error) {
+            showToast('Gagal menghapus transaksi: ' + error.message, 'danger');
+            return;
+        }
+
         db.payments = db.payments.filter(p => p.id !== id);
         showToast('Transaksi berhasil dihapus.');
         refreshAll();
     });
 }
-
 /* ==========================================================================
    MODUL 7: PENGELUARAN OPERASIONAL
    ========================================================================== */
@@ -1868,13 +1922,27 @@ document.getElementById('form-expense').addEventListener('submit', async (e) => 
     if (id) {
         data.id = id;
         const index = db.expenses.findIndex(x => x.id === id);
+        
+        // UPDATE: Tambahkan error handling
+        const { error } = await supabaseClient.from('expenses').upsert([data]);
+        if (error) {
+            showToast('Gagal memperbarui pengeluaran: ' + error.message, 'danger');
+            return;
+        }
+
         db.expenses[index] = data;
-        await supabaseClient.from('expenses').upsert([data]);
         showToast('Data pengeluaran diperbarui.');
     } else {
         data.id = generateId('EXP');
+        
+        // UPDATE: Tambahkan error handling
+        const { error } = await supabaseClient.from('expenses').insert([data]);
+        if (error) {
+            showToast('Gagal mencatat pengeluaran: ' + error.message, 'danger');
+            return;
+        }
+
         db.expenses.push(data);
-        await supabaseClient.from('expenses').insert([data]);
         showToast('Pengeluaran berhasil dicatat.');
     }
     
@@ -1899,7 +1967,13 @@ window.editExpense = function(id) {
 
 window.deleteExpense = async function(id) {
     confirmAction('Hapus Pengeluaran', 'Hapus pengeluaran ini dari cloud?', async () => {
-        await supabaseClient.from('expenses').delete().eq('id', id);
+        // UPDATE: Tambahkan error handling
+        const { error } = await supabaseClient.from('expenses').delete().eq('id', id);
+        if (error) {
+            showToast('Gagal menghapus pengeluaran: ' + error.message, 'danger');
+            return;
+        }
+
         db.expenses = db.expenses.filter(e => e.id !== id);
         showToast('Pengeluaran dihapus.');
         refreshAll();
@@ -2167,11 +2241,19 @@ document.getElementById('btn-delete-all-data').addEventListener('click', () => {
         'HAPUS SEMUA DATA PERMANEN', 
         'PERINGATAN KRITIS: Apakah Anda yakin ingin menghapus SELURUH data di server Supabase?', 
         async () => {
-            await supabaseClient.from('participants').delete().neq('id', '0');
-            await supabaseClient.from('costs').delete().neq('id', '0');
-            await supabaseClient.from('payments').delete().neq('id', '0');
-            await supabaseClient.from('expenses').delete().neq('id', '0');
+            // UPDATE: Tambahkan penangkapan error secara paralel (menghindari aplikasi ter-reset jika koneksi putus)
+            const [res1, res2, res3, res4] = await Promise.all([
+                supabaseClient.from('participants').delete().neq('id', '0'),
+                supabaseClient.from('costs').delete().neq('id', '0'),
+                supabaseClient.from('payments').delete().neq('id', '0'),
+                supabaseClient.from('expenses').delete().neq('id', '0')
+            ]);
             
+            if (res1.error || res2.error || res3.error || res4.error) {
+                showToast('Gagal menghapus sebagian/seluruh data dari server. Silakan coba lagi.', 'danger');
+                return;
+            }
+
             db = {
                 participants: [],
                 costs: [],
