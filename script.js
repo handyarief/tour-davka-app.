@@ -455,15 +455,96 @@ function applyParticipantFilter() {
     });
 }
 
+// REVISI 1: Single-Input Custom Dropdown untuk Nama Keluarga / Grup
 function populateFamilyDatalist() {
-    const families = [...new Set(db.participants.map(p => p.family))].sort();
-    const datalist = document.getElementById('family-datalist');
-    datalist.innerHTML = '';
+    const families = [...new Set(db.participants.map(p => p.family).filter(Boolean))].sort();
+    const dropdownList = document.getElementById('family-dropdown-list');
+    if (!dropdownList) return;
     
+    dropdownList.innerHTML = '';
+    
+    // 1. Opsi Default: None
+    const liNone = document.createElement('li');
+    liNone.className = 'opt-default-none';
+    liNone.textContent = 'None';
+    liNone.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectFamilyOption('None', false);
+    });
+    dropdownList.appendChild(liNone);
+
+    // 2. Opsi Buat Keluarga / Grup Baru (Langsung mengetik di kolom yang sama)
+    const liNew = document.createElement('li');
+    liNew.className = 'opt-new-family';
+    liNew.textContent = '+ Buat Keluarga / Grup Baru...';
+    liNew.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectFamilyOption('', true);
+    });
+    dropdownList.appendChild(liNew);
+
+    // 3. Daftar Keluarga yang Sudah Tersimpan
     families.forEach(f => {
-        datalist.innerHTML += `<option value="${escapeHTML(f)}">`;
+        const li = document.createElement('li');
+        li.textContent = f;
+        li.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectFamilyOption(f, false);
+        });
+        dropdownList.appendChild(li);
     });
 }
+
+function selectFamilyOption(val, isNewMode) {
+    const familyInput = document.getElementById('part-family');
+    const dropdownList = document.getElementById('family-dropdown-list');
+    if (!familyInput || !dropdownList) return;
+
+    dropdownList.classList.remove('show');
+
+    if (isNewMode) {
+        familyInput.readOnly = false;
+        familyInput.value = '';
+        familyInput.placeholder = 'Ketik nama keluarga/grup baru...';
+        familyInput.focus();
+    } else {
+        familyInput.readOnly = true;
+        familyInput.value = val;
+    }
+}
+
+// Interaksi Klik Kolom & Panah Dropdown Keluarga
+(function setupFamilyComboEvents() {
+    const familyInput = document.getElementById('part-family');
+    const familyArrow = document.getElementById('family-combo-arrow');
+    const dropdownList = document.getElementById('family-dropdown-list');
+    const comboWrapper = document.getElementById('family-combo-wrapper');
+
+    if (!familyInput || !dropdownList) return;
+
+    familyInput.addEventListener('click', (e) => {
+        // Jika sedang dalam mode pilih (readOnly), klik kolom langsung membuka/menutup list
+        if (familyInput.readOnly) {
+            e.stopPropagation();
+            populateFamilyDatalist();
+            dropdownList.classList.toggle('show');
+        }
+    });
+
+    if (familyArrow) {
+        familyArrow.addEventListener('click', (e) => {
+            e.stopPropagation();
+            populateFamilyDatalist();
+            dropdownList.classList.toggle('show');
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        if (comboWrapper && !comboWrapper.contains(e.target)) {
+            dropdownList.classList.remove('show');
+        }
+    });
+})();
 
 function addParticipantRow(name = '', shirt = '') {
     const container = document.getElementById('participant-dynamic-container');
@@ -519,6 +600,8 @@ document.getElementById('btn-add-participant').addEventListener('click', () => {
     document.getElementById('participant-form-title').textContent = 'Tambah Peserta';
     
     populateFamilyDatalist();
+    // Set default ke "None" dan mode pilih
+    selectFamilyOption('None', false);
     
     document.getElementById('participant-dynamic-container').innerHTML = '';
     addParticipantRow();
@@ -532,8 +615,8 @@ document.getElementById('form-participant').addEventListener('submit', (e) => {
     const id = document.getElementById('part-id').value;
     
     const finalFamily = document.getElementById('part-family').value.trim();
-    if (!finalFamily) {
-        showToast('Nama keluarga atau grup harus diisi!', 'warning');
+    if (!finalFamily || finalFamily.toLowerCase() === 'none') {
+        showToast('Silakan pilih nama keluarga/grup atau buat keluarga baru!', 'warning');
         return;
     }
 
@@ -583,7 +666,7 @@ window.editParticipant = function(id) {
     populateFamilyDatalist();
     
     document.getElementById('part-id').value = p.id;
-    document.getElementById('part-family').value = p.family;
+    selectFamilyOption(p.family, false);
     
     document.getElementById('participant-dynamic-container').innerHTML = '';
     addParticipantRow(p.name, p.shirt);
@@ -1081,7 +1164,7 @@ function addCostRow() {
     });
 
     const rowHTML = `
-        <div class="dynamic-row" id="${rowId}">
+        <div class="dynamic-row cost-dynamic-row" id="${rowId}">
             <div class="form-group">
                 <label>Kategori Biaya</label>
                 <select class="form-control cost-ind-cat-input" required>
@@ -1115,33 +1198,58 @@ window.removeCostRow = function(rowId) {
 
 function calculateIndTotal() {
     let sum = 0;
-    const inputs = document.querySelectorAll('.cost-ind-price-input');
+    const inputs = document.querySelectorAll('#cost-ind-dynamic-container .cost-ind-price-input');
     inputs.forEach(inp => {
         sum += parseFloat(inp.value) || 0;
     });
     document.getElementById('cost-ind-total-sum').textContent = formatRp(sum);
 }
 
+// REVISI 2: Perbaikan Bug Selektor & Validasi pada Simpan Biaya Individu
 document.getElementById('form-cost-ind').addEventListener('submit', (e) => {
     e.preventDefault();
+    const familyVal = document.getElementById('cost-ind-family').value;
     const pId = document.getElementById('cost-ind-participant').value;
     
+    if(!familyVal) {
+        showToast('Silakan pilih Keluarga/Grup terlebih dahulu!', 'warning');
+        return;
+    }
+
     if(!pId) {
-        showToast('Silakan pilih peserta terlebih dahulu!', 'warning');
+        showToast('Silakan pilih Peserta terlebih dahulu!', 'warning');
         return;
     }
     
-    const rows = document.querySelectorAll('.dynamic-row');
+    // Spesifik hanya mengambil baris di dalam #cost-ind-dynamic-container agar tidak bentrok dengan .dynamic-row milik form peserta
+    const rows = document.querySelectorAll('#cost-ind-dynamic-container .dynamic-row');
     if(rows.length === 0) {
         showToast('Minimal harus ada 1 kategori biaya!', 'danger');
         return;
     }
     
     let addedCount = 0;
+    let emptyPriceFound = false;
+
+    rows.forEach(row => {
+        const priceEl = row.querySelector('.cost-ind-price-input');
+        if (priceEl && (priceEl.value === '' || isNaN(parseFloat(priceEl.value)))) {
+            emptyPriceFound = true;
+        }
+    });
+
+    if (emptyPriceFound) {
+        showToast('Mohon isi nominal Harga (Rp) pada seluruh kategori biaya!', 'warning');
+        return;
+    }
     
     rows.forEach(row => {
-        const cat = row.querySelector('.cost-ind-cat-input').value;
-        const price = parseFloat(row.querySelector('.cost-ind-price-input').value) || 0;
+        const catEl = row.querySelector('.cost-ind-cat-input');
+        const priceEl = row.querySelector('.cost-ind-price-input');
+        if (!catEl || !priceEl) return;
+
+        const cat = catEl.value;
+        const price = parseFloat(priceEl.value) || 0;
         
         if (cat) {
             db.costs.push({

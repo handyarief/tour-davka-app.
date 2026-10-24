@@ -475,6 +475,84 @@ input[type="checkbox"] {
     cursor: pointer;
 }
 
+/* CUSTOM COMBO / SINGLE-INPUT DROPDOWN KELUARGA */
+.custom-combo-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.custom-combo-wrapper .combo-input {
+    padding-right: 36px;
+    cursor: pointer;
+}
+
+.custom-combo-wrapper .combo-input:not([readonly]) {
+    cursor: text;
+    border-color: var(--primary);
+}
+
+.custom-combo-wrapper .combo-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #334155;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px;
+}
+
+.custom-dropdown-list {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    max-height: 220px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    list-style: none;
+    z-index: 2500;
+}
+
+.custom-dropdown-list.show {
+    display: block;
+}
+
+.custom-dropdown-list li {
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--text-main);
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.custom-dropdown-list li:last-child {
+    border-bottom: none;
+}
+
+.custom-dropdown-list li:hover,
+.custom-dropdown-list li:active {
+    background-color: var(--primary-light);
+    color: var(--primary);
+}
+
+.custom-dropdown-list li.opt-new-family {
+    color: var(--primary);
+    font-weight: 700;
+    background-color: #f8fafc;
+}
+
+.custom-dropdown-list li.opt-default-none {
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
 /* DYNAMIC ROW (REVISI 2 & 3: FORM BIAYA INDIVIDU & FORM PESERTA BARU) */
 .dynamic-row {
     display: flex;
