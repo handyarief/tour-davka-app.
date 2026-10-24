@@ -2,17 +2,14 @@
    KONEKSI SUPABASE
    ========================================================================== */
 const supabaseUrl = 'https://wdhfthzuihakjlygticw.supabase.co';
-const supabaseKey = 'sb_publishable_8U8NeSn4aOZiRzLRS3KmxA_oz84fUAL'; // Ganti dengan kunci sb_publishable Anda
+const supabaseKey = 'sb_publishable_8U8NeSn4aOZiRzLRS3KmxA_oz84fUAL';
 
-// REVISI: Mengganti nama variabel inisialisasi agar tidak bentrok dengan library global browser
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 /* ==========================================================================
-   INISIALISASI & MANAJEMEN DATA LOKAL
+   INISIALISASI & MANAJEMEN DATA (FULL ONLINE SUPABASE)
    ========================================================================== */
-const STORAGE_KEY = 'tour_jogja_data';
-
-// Struktur Data Dasar
+// Struktur Data Dasar di Memori
 let db = {
     participants: [],
     costs: [],
@@ -25,50 +22,99 @@ let db = {
     ]
 };
 
-// Memuat data dari Supabase
+// Memuat data dari Supabase Cloud
 async function loadData() {
     try {
-        // Ambil data dari ke-4 tabel secara bersamaan (REVISI: Menggunakan supabaseClient)
-        const [resPart, resCost, resPay, resExp] = await Promise.all([
+        const [resPart, resCost, resPay, resExp, resCat] = await Promise.all([
             supabaseClient.from('participants').select('*'),
             supabaseClient.from('costs').select('*'),
             supabaseClient.from('payments').select('*'),
-            supabaseClient.from('expenses').select('*')
+            supabaseClient.from('expenses').select('*'),
+            supabaseClient.from('categories').select('*') // REVISI: Menghapus .catch() yang memicu TypeError
         ]);
 
-        if (resPart.data) db.participants = resPart.data;
-        if (resCost.data) db.costs = resCost.data;
-        if (resPay.data) db.payments = resPay.data;
-        if (resExp.data) db.expenses = resExp.data;
+        if (resPart.error) console.error('Error load participants:', resPart.error.message);
+        if (resCost.error) console.error('Error load costs:', resCost.error.message);
+        if (resPay.error) console.error('Error load payments:', resPay.error.message);
+        if (resExp.error) console.error('Error load expenses:', resExp.error.message);
 
-        // Kategori biaya tetap ambil dari LocalStorage
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            if (parsed.categories) db.categories = parsed.categories;
+        if (resPart.data && resPart.data.length > 0) {
+            db.participants = resPart.data.map(p => ({
+                id: p.id,
+                name: p.name || p.nama || '',
+                family: p.family || p.keluarga || 'None',
+                shirt: p.shirt || p.ukuran_kaos || '',
+                status: p.status || 'Aktif',
+                regDate: p.regDate || p.reg_date || p.created_at || new Date().toISOString()
+            }));
         }
 
-        console.log("Data berhasil dimuat dari database awan!");
+        if (resCost.data && resCost.data.length > 0) {
+            db.costs = resCost.data.map(c => ({
+                id: c.id,
+                participantId: c.participantId || c.participant_id || '',
+                category: c.category || c.kategori || '',
+                price: Number(c.price || c.harga || 0),
+                qty: Number(c.qty || 1),
+                total: Number(c.total || c.harga || 0),
+                notes: c.notes || c.catatan || ''
+            }));
+        }
+
+        if (resPay.data && resPay.data.length > 0) {
+            db.payments = resPay.data.map(p => {
+                let parsedAlloc = p.allocations || p.alokasi || [];
+                if (typeof parsedAlloc === 'string') {
+                    try { parsedAlloc = JSON.parse(parsedAlloc); } catch(e) { parsedAlloc = []; }
+                }
+                return {
+                    id: p.id,
+                    date: p.date || p.tanggal || '',
+                    name: p.name || p.pembayar || '',
+                    amount: Number(p.amount || p.nominal || 0),
+                    method: p.method || p.metode || 'Transfer',
+                    ref: p.ref || p.referensi || '',
+                    notes: p.notes || p.catatan || '',
+                    allocations: parsedAlloc
+                };
+            });
+        }
+
+        if (resExp.data && resExp.data.length > 0) {
+            db.expenses = resExp.data.map(e => ({
+                id: e.id,
+                date: e.date || e.tanggal || '',
+                category: e.category || e.kategori || '',
+                desc: e.desc || e.keterangan || '',
+                vendor: e.vendor || e.penerima || '',
+                amount: Number(e.amount || e.nominal || 0),
+                method: e.method || e.metode || 'Transfer',
+                ref: e.ref || '',
+                notes: e.notes || ''
+            }));
+        }
+
+        if (resCat.data && resCat.data.length > 0) {
+            db.categories = resCat.data.map(cat => cat.name || cat.kategori);
+        }
+
+        console.log("Data berhasil dimuat 100% dari Supabase Cloud!");
     } catch (e) {
         showToast('Gagal memuat data dari internet.', 'danger');
-        console.error(e);
+        console.error('Load Data Exception:', e);
     }
 }
 
-// Menyimpan data ke Supabase
+// Menyimpan data secara otomatis ke Supabase Cloud (Full Online)
 async function saveData() {
     try {
-        // Simpan kategori ke Local Storage (sebagai cadangan)
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ categories: db.categories }));
-
-        // Kirim data ke Supabase (Upsert = update jika ada, insert jika baru) (REVISI: Menggunakan supabaseClient)
-        if (db.participants.length > 0) supabaseClient.from('participants').upsert(db.participants).then();
-        if (db.costs.length > 0) supabaseClient.from('costs').upsert(db.costs).then();
-        if (db.payments.length > 0) supabaseClient.from('payments').upsert(db.payments).then();
-        if (db.expenses.length > 0) supabaseClient.from('expenses').upsert(db.expenses).then();
-
+        // Sinkronisasi Kategori ke Supabase jika tabel 'categories' ada
+        if (db.categories && db.categories.length > 0) {
+            const catPayload = db.categories.map(c => ({ name: c }));
+            supabaseClient.from('categories').upsert(catPayload, { onConflict: 'name' }).then();
+        }
     } catch (e) {
-        console.error('Gagal menyimpan ke Supabase', e);
+        console.error('Gagal sinkronisasi background', e);
     }
 }
 
@@ -93,8 +139,6 @@ function formatDate(dateStr) {
 /* ==========================================================================
    PERHITUNGAN INTI (CORE CALCULATOR)
    ========================================================================== */
-
-// Hitung statistik untuk satu peserta
 function calcParticipantStats(participantId) {
     const pCosts = db.costs.filter(c => c.participantId === participantId);
     const totalTagihan = pCosts.reduce((sum, c) => sum + c.total, 0);
@@ -134,7 +178,6 @@ function calcParticipantStats(participantId) {
     return { totalTagihan, totalDibayar, sisa: sisaTagihanAktif, kelebihan, status, badgeClass, rawSisa: sisa };
 }
 
-// Hitung ringkasan seluruh keluarga
 function calcFamilyStats(familyName) {
     const members = db.participants.filter(p => p.family === familyName);
     let fTagihan = 0, fDibayar = 0, fSisa = 0, fKelebihan = 0;
@@ -153,7 +196,6 @@ function calcFamilyStats(familyName) {
 /* ==========================================================================
    KOMPONEN UI & NAVIGASI
    ========================================================================== */
-
 function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -171,7 +213,6 @@ function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('show');
 }
 
-// Konfirmasi Global
 let confirmCallback = null;
 function confirmAction(title, message, callback) {
     document.getElementById('confirm-title').textContent = title;
@@ -190,7 +231,6 @@ document.getElementById('btn-confirm-ok').addEventListener('click', () => {
     if (confirmCallback) confirmCallback();
 });
 
-// Setup Penutup Modal
 document.querySelectorAll('.btn-close, .btn-secondary').forEach(btn => {
     if(btn.id !== 'btn-confirm-cancel' && btn.id !== 'btn-close-ringkasan-footer') {
         btn.addEventListener('click', (e) => {
@@ -199,10 +239,8 @@ document.querySelectorAll('.btn-close, .btn-secondary').forEach(btn => {
         });
     }
 });
-// REVISI 3: ID Close Footer Modal Ringkasan
 document.getElementById('btn-close-ringkasan-footer').addEventListener('click', () => closeModal('modal-ringkasan'));
 
-// Navigasi Sidebar
 const sidebar = document.getElementById('sidebar');
 const mobileMenuBtn = document.getElementById('btn-mobile-menu');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
@@ -244,7 +282,6 @@ if (sidebarOverlay) {
     sidebarOverlay.addEventListener('click', closeSidebarMobile);
 }
 
-// Router
 function refreshActiveView(viewId) {
     switch(viewId) {
         case 'view-dashboard': renderDashboard(); break;
@@ -271,7 +308,6 @@ function escapeHTML(str) {
     div.textContent = str;
     return div.innerHTML;
 }
-
 /* ==========================================================================
    MODUL 1: DASHBOARD
    ========================================================================== */
@@ -299,9 +335,9 @@ function renderDashboard() {
     });
     
     const usedCatArray = Array.from(usedCategories).sort();
-    
     const catContainer = document.getElementById('dash-summary-categories');
     catContainer.innerHTML = '';
+    
     if (usedCatArray.length === 0) {
         catContainer.innerHTML = '<p class="text-muted" style="grid-column: 1/-1;">Belum ada data rincian biaya peserta.</p>';
     } else {
@@ -348,7 +384,6 @@ function renderDashboard() {
 
     const tbody = document.querySelector('#table-dash-peserta tbody');
     tbody.innerHTML = '';
-    
     const activeFilter = filterSelect.value; 
 
     activeParticipants.forEach(p => {
@@ -399,8 +434,9 @@ document.getElementById('dash-filter-keluarga').addEventListener('change', funct
         }
     });
 });
+
 /* ==========================================================================
-   MODUL 3: PESERTA & KELUARGA
+   MODUL 3: PESERTA & KELUARGA (DENGAN SUPABASE SYNC)
    ========================================================================== */
 function renderParticipants() {
     const tbody = document.querySelector('#table-participants tbody');
@@ -455,7 +491,6 @@ function applyParticipantFilter() {
     });
 }
 
-// REVISI 1: Single-Input Custom Dropdown untuk Nama Keluarga / Grup
 function populateFamilyDatalist() {
     const families = [...new Set(db.participants.map(p => p.family).filter(Boolean))].sort();
     const dropdownList = document.getElementById('family-dropdown-list');
@@ -463,7 +498,6 @@ function populateFamilyDatalist() {
     
     dropdownList.innerHTML = '';
     
-    // 1. Opsi Default: None
     const liNone = document.createElement('li');
     liNone.className = 'opt-default-none';
     liNone.textContent = 'None';
@@ -473,7 +507,6 @@ function populateFamilyDatalist() {
     });
     dropdownList.appendChild(liNone);
 
-    // 2. Opsi Buat Keluarga / Grup Baru (Langsung mengetik di kolom yang sama)
     const liNew = document.createElement('li');
     liNew.className = 'opt-new-family';
     liNew.textContent = '+ Buat Keluarga / Grup Baru...';
@@ -483,7 +516,6 @@ function populateFamilyDatalist() {
     });
     dropdownList.appendChild(liNew);
 
-    // 3. Daftar Keluarga yang Sudah Tersimpan
     families.forEach(f => {
         const li = document.createElement('li');
         li.textContent = f;
@@ -513,7 +545,6 @@ function selectFamilyOption(val, isNewMode) {
     }
 }
 
-// Interaksi Klik Kolom & Panah Dropdown Keluarga
 (function setupFamilyComboEvents() {
     const familyInput = document.getElementById('part-family');
     const familyArrow = document.getElementById('family-combo-arrow');
@@ -523,7 +554,6 @@ function selectFamilyOption(val, isNewMode) {
     if (!familyInput || !dropdownList) return;
 
     familyInput.addEventListener('click', (e) => {
-        // Jika sedang dalam mode pilih (readOnly), klik kolom langsung membuka/menutup list
         if (familyInput.readOnly) {
             e.stopPropagation();
             populateFamilyDatalist();
@@ -600,7 +630,6 @@ document.getElementById('btn-add-participant').addEventListener('click', () => {
     document.getElementById('participant-form-title').textContent = 'Tambah Peserta';
     
     populateFamilyDatalist();
-    // Set default ke "None" dan mode pilih
     selectFamilyOption('None', false);
     
     document.getElementById('participant-dynamic-container').innerHTML = '';
@@ -610,11 +639,12 @@ document.getElementById('btn-add-participant').addEventListener('click', () => {
     openModal('modal-participant-form');
 });
 
-document.getElementById('form-participant').addEventListener('submit', (e) => {
+// SUBMIT PESERTA KE SUPABASE CLOUD (DENGAN ASYNC/AWAIT & ERROR HANDLING)
+document.getElementById('form-participant').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('part-id').value;
-    
     const finalFamily = document.getElementById('part-family').value.trim();
+    
     if (!finalFamily || finalFamily.toLowerCase() === 'none') {
         showToast('Silakan pilih nama keluarga/grup atau buat keluarga baru!', 'warning');
         return;
@@ -629,18 +659,32 @@ document.getElementById('form-participant').addEventListener('submit', (e) => {
         
         const index = db.participants.findIndex(p => p.id === id);
         if (index > -1) {
-            db.participants[index].name = nameInput;
-            db.participants[index].family = finalFamily;
-            db.participants[index].shirt = shirtInput;
+            const updatedPart = {
+                id: id,
+                name: nameInput,
+                family: finalFamily,
+                shirt: shirtInput,
+                status: db.participants[index].status || 'Aktif',
+                regDate: db.participants[index].regDate || new Date().toISOString()
+            };
+
+            const { error } = await supabaseClient.from('participants').upsert([updatedPart]);
+            if (error) {
+                showToast('Gagal mengubah ke Supabase: ' + error.message, 'danger');
+                return;
+            }
+
+            db.participants[index] = updatedPart;
             showToast('Data peserta berhasil diubah.');
         }
     } else {
+        let newRecords = [];
         rows.forEach(row => {
             const nameInput = row.querySelector('.part-name-input').value.trim();
             const shirtInput = row.querySelector('.part-shirt-input').value;
             
             if (nameInput) {
-                db.participants.push({
+                newRecords.push({
                     id: generateId('PRT'),
                     name: nameInput,
                     family: finalFamily,
@@ -652,7 +696,15 @@ document.getElementById('form-participant').addEventListener('submit', (e) => {
             }
         });
         
-        if (addedCount > 0) showToast(`${addedCount} Peserta baru berhasil ditambahkan.`);
+        if (newRecords.length > 0) {
+            const { error } = await supabaseClient.from('participants').insert(newRecords);
+            if (error) {
+                showToast('Gagal menyimpan ke Supabase: ' + error.message, 'danger');
+                return;
+            }
+            db.participants.push(...newRecords);
+            showToast(`${addedCount} Peserta baru berhasil disimpan ke server cloud.`);
+        }
     }
     
     closeModal('modal-participant-form');
@@ -683,7 +735,15 @@ window.deleteParticipant = function(id) {
         return;
     }
     
-    confirmAction('Hapus Peserta', 'Yakin ingin menghapus peserta ini? Seluruh rincian biayanya juga akan terhapus permanen.', () => {
+    confirmAction('Hapus Peserta', 'Yakin ingin menghapus peserta ini dari Cloud? Seluruh rincian biayanya juga akan terhapus permanen.', async () => {
+        const { error: errPart } = await supabaseClient.from('participants').delete().eq('id', id);
+        const { error: errCost } = await supabaseClient.from('costs').delete().eq('participantId', id);
+        
+        if (errPart || errCost) {
+            showToast('Gagal menghapus dari Supabase.', 'danger');
+            return;
+        }
+
         db.participants = db.participants.filter(p => p.id !== id);
         db.costs = db.costs.filter(c => c.participantId !== id);
         showToast('Peserta berhasil dihapus.');
@@ -702,7 +762,6 @@ window.openParticipantDetail = function(id) {
     document.getElementById('page-title').textContent = 'Detail Peserta';
     
     document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
-    
     renderDetailParticipant(id);
 }
 
@@ -800,7 +859,7 @@ window.openEditCostModal = function(costId) {
     openModal('modal-edit-cost');
 };
 
-document.getElementById('form-edit-cost').addEventListener('submit', (e) => {
+document.getElementById('form-edit-cost').addEventListener('submit', async (e) => {
     e.preventDefault();
     const costId = document.getElementById('edit-cost-id').value;
     const newCat = document.getElementById('edit-cost-cat').value;
@@ -814,6 +873,7 @@ document.getElementById('form-edit-cost').addEventListener('submit', (e) => {
         db.costs[costIndex].total = newPrice * (db.costs[costIndex].qty || 1);
         db.costs[costIndex].notes = newNotes;
 
+        await supabaseClient.from('costs').upsert([db.costs[costIndex]]);
         showToast('Rincian biaya berhasil diperbarui.');
         closeModal('modal-edit-cost');
         refreshAll();
@@ -824,7 +884,6 @@ document.getElementById('btn-add-cost-from-detail').addEventListener('click', ()
     prepareIndividualCostForm(currentDetailId);
 });
 
-// REVISI UX & KODE: Mengubah .print-wrap width menjadi absolute (800px) agar kanvas tidak tergencet layar HP
 const getPrintStyles = () => `
     <style>
         .print-wrap { width: 800px; margin: 0 auto; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ffffff; color: #334155; box-sizing: border-box; }
@@ -890,7 +949,6 @@ document.getElementById('btn-print-individual').addEventListener('click', () => 
     }
     
     html += `</tbody></table>`;
-    
     html += `<div class="text-bold" style="margin-bottom: 5px; font-size:14px;">B. Riwayat Pembayaran</div>
         <table class="print-table">
             <thead>
@@ -980,7 +1038,6 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
     });
     
     html += `</tbody></table>`;
-    
     html += `
         <div class="print-summary" style="margin-top:20px;">
             <p><strong>TOTAL KELUARGA:</strong></p>
@@ -1005,7 +1062,6 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
 
 document.getElementById('btn-download-jpeg').addEventListener('click', () => {
     const printArea = document.getElementById('ringkasan-print-area');
-    // Memastikan wrapper memiliki padding dan ukuran yang utuh
     const width = printArea.scrollWidth;
     const height = printArea.scrollHeight;
     
@@ -1029,18 +1085,12 @@ document.getElementById('btn-download-jpeg').addEventListener('click', () => {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         
-        // Background putih untuk JPEG
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, width, height);
-        
-        // Draw Image
         ctx.drawImage(img, 0, 0);
         URL.revokeObjectURL(url);
         
-        // Convert to JPEG
         const jpegUrl = canvas.toDataURL('image/jpeg', 1.0);
-        
-        // Auto Download
         const link = document.createElement('a');
         link.download = `Ringkasan_Pembayaran_${Date.now()}.jpg`;
         link.href = jpegUrl;
@@ -1050,11 +1100,11 @@ document.getElementById('btn-download-jpeg').addEventListener('click', () => {
     };
     
     img.onerror = () => {
-        showToast('Gagal memproses gambar. Pastikan browser Anda mendukung fitur ini.', 'danger');
+        showToast('Gagal memproses gambar.', 'danger');
     };
-
     img.src = url;
 });
+
 /* ==========================================================================
    MODUL 5: MANAJEMEN BIAYA & ALOKASI BIAYA
    ========================================================================== */
@@ -1079,7 +1129,7 @@ function renderCategoryTags() {
     document.getElementById('cost-shared-category').innerHTML = optHtml;
 }
 
-document.getElementById('form-add-category').addEventListener('submit', (e) => {
+document.getElementById('form-add-category').addEventListener('submit', async (e) => {
     e.preventDefault();
     const input = document.getElementById('new-category-name');
     const val = input.value.trim();
@@ -1087,19 +1137,20 @@ document.getElementById('form-add-category').addEventListener('submit', (e) => {
         db.categories.push(val);
         input.value = '';
         renderCategoryTags();
+        await supabaseClient.from('categories').upsert([{ name: val }]);
         saveData();
     }
 });
 
-window.deleteCategory = function(cat) {
-    if(confirm(`Hapus kategori "${cat}"? Transaksi yang sudah menggunakan kategori ini tidak akan berubah.`)) {
+window.deleteCategory = async function(cat) {
+    if(confirm(`Hapus kategori "${cat}"?`)) {
         db.categories = db.categories.filter(c => c !== cat);
         renderCategoryTags();
+        await supabaseClient.from('categories').delete().eq('name', cat);
         saveData();
     }
 }
 
-// BIAYA INDIVIDU (Dependent Dropdown & Dynamic Form Rows)
 document.getElementById('btn-open-cost-individual').addEventListener('click', () => prepareIndividualCostForm(null));
 
 function prepareIndividualCostForm(preselectedId) {
@@ -1133,7 +1184,6 @@ function prepareIndividualCostForm(preselectedId) {
             partSelect.value = preselectedId;
         }
     }
-    
     openModal('modal-cost-individual');
 }
 
@@ -1205,44 +1255,23 @@ function calculateIndTotal() {
     document.getElementById('cost-ind-total-sum').textContent = formatRp(sum);
 }
 
-// REVISI 2: Perbaikan Bug Selektor & Validasi pada Simpan Biaya Individu
-document.getElementById('form-cost-ind').addEventListener('submit', (e) => {
+document.getElementById('form-cost-ind').addEventListener('submit', async (e) => {
     e.preventDefault();
     const familyVal = document.getElementById('cost-ind-family').value;
     const pId = document.getElementById('cost-ind-participant').value;
     
-    if(!familyVal) {
-        showToast('Silakan pilih Keluarga/Grup terlebih dahulu!', 'warning');
-        return;
-    }
-
-    if(!pId) {
-        showToast('Silakan pilih Peserta terlebih dahulu!', 'warning');
+    if(!familyVal || !pId) {
+        showToast('Silakan pilih Keluarga dan Peserta terlebih dahulu!', 'warning');
         return;
     }
     
-    // Spesifik hanya mengambil baris di dalam #cost-ind-dynamic-container agar tidak bentrok dengan .dynamic-row milik form peserta
     const rows = document.querySelectorAll('#cost-ind-dynamic-container .dynamic-row');
     if(rows.length === 0) {
         showToast('Minimal harus ada 1 kategori biaya!', 'danger');
         return;
     }
     
-    let addedCount = 0;
-    let emptyPriceFound = false;
-
-    rows.forEach(row => {
-        const priceEl = row.querySelector('.cost-ind-price-input');
-        if (priceEl && (priceEl.value === '' || isNaN(parseFloat(priceEl.value)))) {
-            emptyPriceFound = true;
-        }
-    });
-
-    if (emptyPriceFound) {
-        showToast('Mohon isi nominal Harga (Rp) pada seluruh kategori biaya!', 'warning');
-        return;
-    }
-    
+    let newCosts = [];
     rows.forEach(row => {
         const catEl = row.querySelector('.cost-ind-cat-input');
         const priceEl = row.querySelector('.cost-ind-price-input');
@@ -1251,8 +1280,8 @@ document.getElementById('form-cost-ind').addEventListener('submit', (e) => {
         const cat = catEl.value;
         const price = parseFloat(priceEl.value) || 0;
         
-        if (cat) {
-            db.costs.push({
+        if (cat && price > 0) {
+            newCosts.push({
                 id: generateId('CST'),
                 participantId: pId,
                 category: cat,
@@ -1261,26 +1290,31 @@ document.getElementById('form-cost-ind').addEventListener('submit', (e) => {
                 total: price,
                 notes: "" 
             });
-            addedCount++;
         }
     });
     
-    if (addedCount > 0) {
-        showToast(`Berhasil menambahkan ${addedCount} rincian biaya.`);
+    if (newCosts.length > 0) {
+        const { error } = await supabaseClient.from('costs').insert(newCosts);
+        if (error) {
+            showToast('Gagal menyimpan biaya ke Supabase: ' + error.message, 'danger');
+            return;
+        }
+        db.costs.push(...newCosts);
+        showToast(`Berhasil menambahkan ${newCosts.length} rincian biaya ke cloud.`);
         closeModal('modal-cost-individual');
         refreshAll();
     }
 });
 
-window.deleteCost = function(id, isFromDetail = false) {
-    confirmAction('Hapus Biaya', 'Hapus komponen tagihan ini dari peserta?', () => {
+window.deleteCost = async function(id, isFromDetail = false) {
+    confirmAction('Hapus Biaya', 'Hapus komponen tagihan ini dari peserta?', async () => {
+        await supabaseClient.from('costs').delete().eq('id', id);
         db.costs = db.costs.filter(c => c.id !== id);
         showToast('Biaya berhasil dihapus.');
         refreshAll();
     });
 }
 
-// BIAYA BERSAMA (SPLIT)
 document.getElementById('btn-open-cost-shared').addEventListener('click', () => {
     document.getElementById('form-cost-shared').reset();
     document.getElementById('cost-shared-search').value = '';
@@ -1379,7 +1413,6 @@ function calculateSharedSplit() {
             input.value = base + (idx < remainder ? 1 : 0); 
         });
     }
-    
     calculateSharedManualSum();
 }
 
@@ -1395,7 +1428,6 @@ function calculateSharedManualSum() {
     });
     
     document.getElementById('shared-allocated-sum').textContent = formatRp(sum);
-    
     const targetTotal = parseFloat(document.getElementById('cost-shared-total').value) || 0;
     const alertBox = document.getElementById('shared-diff-alert');
     
@@ -1407,7 +1439,7 @@ function calculateSharedManualSum() {
     }
 }
 
-document.getElementById('form-cost-shared').addEventListener('submit', (e) => {
+document.getElementById('form-cost-shared').addEventListener('submit', async (e) => {
     e.preventDefault();
     const targetTotal = parseFloat(document.getElementById('cost-shared-total').value) || 0;
     let sum = 0;
@@ -1422,29 +1454,24 @@ document.getElementById('form-cost-shared').addEventListener('submit', (e) => {
         }
     });
     
-    if (allocs.length === 0) {
-        showToast('Pilih setidaknya satu peserta!', 'warning');
-        return;
-    }
-    if (sum !== targetTotal) {
-        showToast('Total alokasi harus persis sama dengan Total Biaya!', 'danger');
+    if (allocs.length === 0 || sum !== targetTotal) {
+        showToast('Total alokasi harus pas dengan Total Biaya!', 'danger');
         return;
     }
     
     const cat = document.getElementById('cost-shared-category').value;
-    const notesBase = 'Biaya Bersama';
-    
-    allocs.forEach(a => {
-        db.costs.push({
-            id: generateId('CST'),
-            participantId: a.pId,
-            category: cat,
-            price: a.amount,
-            qty: 1,
-            total: a.amount,
-            notes: notesBase
-        });
-    });
+    let newCosts = allocs.map(a => ({
+        id: generateId('CST'),
+        participantId: a.pId,
+        category: cat,
+        price: a.amount,
+        qty: 1,
+        total: a.amount,
+        notes: 'Biaya Bersama'
+    }));
+
+    await supabaseClient.from('costs').insert(newCosts);
+    db.costs.push(...newCosts);
     
     showToast(`Berhasil membagi biaya ke ${allocs.length} peserta.`);
     closeModal('modal-cost-shared');
@@ -1466,7 +1493,6 @@ function renderPayments() {
         const tr = document.createElement('tr');
         if (unalloc > 0) tr.classList.add('bg-warning-light');
         
-        // REVISI 2: Menghapus <td> untuk ID Transaksi
         tr.innerHTML = `
             <td>${formatDate(pay.date)}</td>
             <td><strong>${escapeHTML(pay.name)}</strong></td>
@@ -1520,7 +1546,6 @@ document.getElementById('btn-add-payment').addEventListener('click', () => {
     selectFilterFamily.value = 'none';
 
     document.getElementById('pay-method').dispatchEvent(new Event('change'));
-    
     renderPaymentAllocTable();
     updatePaymentSummary();
     openModal('modal-payment-form');
@@ -1580,7 +1605,6 @@ function renderPaymentAllocTable(existingAllocations = []) {
         `;
         tbody.appendChild(tr);
     });
-    
     attachPaymentEvents();
 }
 
@@ -1653,7 +1677,6 @@ function updatePaymentSummary() {
     });
     
     const unallocated = received - allocated;
-    
     document.getElementById('summary-pay-received').textContent = formatRp(received);
     document.getElementById('summary-pay-allocated').textContent = formatRp(allocated);
     
@@ -1662,14 +1685,11 @@ function updatePaymentSummary() {
     unallocElem.className = unallocated === 0 ? 'text-success text-bold' : (unallocated > 0 ? 'text-warning text-bold' : 'text-danger text-bold');
     
     const errorBox = document.getElementById('pay-alloc-error');
-    if (unallocated < 0) {
-        errorBox.style.display = 'block';
-    } else {
-        errorBox.style.display = 'none';
-    }
+    if (unallocated < 0) errorBox.style.display = 'block';
+    else errorBox.style.display = 'none';
 }
 
-document.getElementById('form-payment').addEventListener('submit', (e) => {
+document.getElementById('form-payment').addEventListener('submit', async (e) => {
     e.preventDefault();
     const received = parseFloat(document.getElementById('pay-amount').value) || 0;
     
@@ -1685,7 +1705,7 @@ document.getElementById('form-payment').addEventListener('submit', (e) => {
     });
     
     if (allocatedSum > received) {
-        showToast('Total alokasi melebihi jumlah uang yang diterima!', 'danger');
+        showToast('Total alokasi melebihi uang diterima!', 'danger');
         return;
     }
     
@@ -1701,13 +1721,15 @@ document.getElementById('form-payment').addEventListener('submit', (e) => {
     
     const id = document.getElementById('pay-id').value;
     if (id) {
-        const index = db.payments.findIndex(x => x.id === id);
         data.id = id;
+        const index = db.payments.findIndex(x => x.id === id);
         db.payments[index] = data;
+        await supabaseClient.from('payments').upsert([data]);
         showToast('Data pembayaran diperbarui.');
     } else {
         data.id = generateId('PAY');
         db.payments.push(data);
+        await supabaseClient.from('payments').insert([data]);
         showToast('Penerimaan kas berhasil dicatat.');
     }
     
@@ -1739,30 +1761,28 @@ window.editPaymentAllocation = function(id) {
     document.getElementById('pay-name').value = pay.name;
     document.getElementById('pay-amount').value = pay.amount;
     document.getElementById('pay-method').value = pay.method;
-    
     document.getElementById('pay-bank-name').value = pay.ref || '';
     document.getElementById('pay-bank-acc').value = pay.notes || '';
-    
     document.getElementById('payment-form-title').textContent = 'Edit Transaksi & Alokasi';
     
     document.getElementById('pay-alloc-method').value = 'manual'; 
     document.getElementById('pay-method').dispatchEvent(new Event('change'));
     
     renderPaymentAllocTable(pay.allocations);
-    
     document.querySelectorAll('.alloc-input').forEach(input => input.readOnly = false);
-    
     updatePaymentSummary();
     openModal('modal-payment-form');
 }
 
-window.deletePayment = function(id) {
-    confirmAction('Hapus Transaksi Penerimaan', 'Awas! Menghapus ini akan membatalkan status pembayaran peserta yang terkait. Uang kas juga akan berkurang.', () => {
+window.deletePayment = async function(id) {
+    confirmAction('Hapus Transaksi Penerimaan', 'Hapus penerimaan kas ini dari database cloud?', async () => {
+        await supabaseClient.from('payments').delete().eq('id', id);
         db.payments = db.payments.filter(p => p.id !== id);
         showToast('Transaksi berhasil dihapus.');
         refreshAll();
     });
 }
+
 /* ==========================================================================
    MODUL 7: PENGELUARAN OPERASIONAL
    ========================================================================== */
@@ -1794,7 +1814,6 @@ function renderExpenses() {
         `;
         tbody.appendChild(tr);
     });
-    
     document.getElementById('expense-total-display').textContent = formatRp(totalEx);
 }
 
@@ -1833,7 +1852,7 @@ document.getElementById('btn-add-expense').addEventListener('click', () => {
     openModal('modal-expense-form');
 });
 
-document.getElementById('form-expense').addEventListener('submit', (e) => {
+document.getElementById('form-expense').addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = {
         date: document.getElementById('exp-date').value,
@@ -1848,18 +1867,15 @@ document.getElementById('form-expense').addEventListener('submit', (e) => {
     
     const id = document.getElementById('exp-id').value;
     if (id) {
-        const index = db.expenses.findIndex(x => x.id === id);
         data.id = id;
-        
-        const oldData = db.expenses[index];
-        data.ref = oldData.ref || "";
-        data.notes = oldData.notes || "";
-        
+        const index = db.expenses.findIndex(x => x.id === id);
         db.expenses[index] = data;
+        await supabaseClient.from('expenses').upsert([data]);
         showToast('Data pengeluaran diperbarui.');
     } else {
         data.id = generateId('EXP');
         db.expenses.push(data);
+        await supabaseClient.from('expenses').insert([data]);
         showToast('Pengeluaran berhasil dicatat.');
     }
     
@@ -1882,13 +1898,15 @@ window.editExpense = function(id) {
     openModal('modal-expense-form');
 }
 
-window.deleteExpense = function(id) {
-    confirmAction('Hapus Pengeluaran', 'Yakin ingin menghapus transaksi ini? Saldo kas akan otomatis bertambah kembali.', () => {
+window.deleteExpense = async function(id) {
+    confirmAction('Hapus Pengeluaran', 'Hapus pengeluaran ini dari cloud?', async () => {
+        await supabaseClient.from('expenses').delete().eq('id', id);
         db.expenses = db.expenses.filter(e => e.id !== id);
         showToast('Pengeluaran dihapus.');
         refreshAll();
     });
 }
+
 /* ==========================================================================
    MODUL 8: LAPORAN KEUANGAN & PENGATURAN SISTEM
    ========================================================================== */
@@ -1903,7 +1921,6 @@ document.getElementById('btn-generate-report').addEventListener('click', () => {
     const title = document.getElementById('report-print-title');
     const period = document.getElementById('report-print-period');
     
-    // REVISI 1: Menghapus filter periode, menggunakan teks default "Keseluruhan Data"
     period.textContent = 'Periode: Keseluruhan Data';
     
     if (type === 'peserta') {
@@ -1930,8 +1947,6 @@ document.getElementById('btn-generate-report').addEventListener('click', () => {
 document.getElementById('btn-print-report').addEventListener('click', () => {
     window.print();
 });
-
-// REVISI 1: Fungsi isDateInRange dihapus karena tidak lagi diperlukan
 
 function generateReportTablePeserta() {
     let html = `<table class="table"><thead><tr>
@@ -1998,7 +2013,6 @@ function generateReportTableKeluarga() {
     return html;
 }
 
-// REVISI 1: Menghapus Parameter Start/End dan ID Transaksi
 function generateReportTablePenerimaan() {
     let data = db.payments; 
     let total = 0;
@@ -2017,7 +2031,6 @@ function generateReportTablePenerimaan() {
     return html + `</tbody></table>`;
 }
 
-// REVISI 1: Menghapus Parameter Start/End
 function generateReportTablePengeluaran() {
     let data = db.expenses;
     let total = 0;
@@ -2036,7 +2049,6 @@ function generateReportTablePengeluaran() {
     return html + `</tbody></table>`;
 }
 
-// REVISI 1: Menghapus Logika Filter Tanggal
 function generateReportTableBukuKas() {
     let transactions = [];
     db.payments.forEach(p => transactions.push({ date: p.date, type: 'IN', ref: p.name, desc: p.notes, amount: p.amount }));
@@ -2044,7 +2056,7 @@ function generateReportTableBukuKas() {
     
     transactions.sort((a,b) => new Date(a.date) - new Date(b.date));
     
-    let saldoAwal = 0; // Saldo awal otomatis 0 jika dirender semua
+    let saldoAwal = 0;
     let kasMasuk = 0;
     let kasKeluar = 0;
     let htmlRows = '';
@@ -2135,7 +2147,6 @@ document.getElementById('btn-export-csv-report').addEventListener('click', () =>
         }
         csv.push(row.join(','));
     }
-    
     downloadCSV(csv.join('\n'), `Laporan_${type}_${new Date().getTime()}.csv`);
 });
 
@@ -2151,16 +2162,17 @@ function downloadCSV(csvString, filename) {
     document.body.removeChild(link);
 }
 
-// PENAMBAHAN FITUR: Hapus Semua Data (Factory Reset)
+// FACTORY RESET TERHUBUNG KE SUPABASE CLOUD
 document.getElementById('btn-delete-all-data').addEventListener('click', () => {
     confirmAction(
         'HAPUS SEMUA DATA PERMANEN', 
-        'PERINGATAN KRITIS: Apakah Anda yakin ingin menghapus SELURUH data (Peserta, Biaya, Pembayaran, Pengeluaran)? Data yang telah dihapus tidak dapat dikembalikan!', 
-        () => {
-            // Hapus dari Local Storage
-            localStorage.removeItem(STORAGE_KEY);
+        'PERINGATAN KRITIS: Apakah Anda yakin ingin menghapus SELURUH data di server Supabase?', 
+        async () => {
+            await supabaseClient.from('participants').delete().neq('id', '0');
+            await supabaseClient.from('costs').delete().neq('id', '0');
+            await supabaseClient.from('payments').delete().neq('id', '0');
+            await supabaseClient.from('expenses').delete().neq('id', '0');
             
-            // Kembalikan ke State Awal
             db = {
                 participants: [],
                 costs: [],
@@ -2173,12 +2185,8 @@ document.getElementById('btn-delete-all-data').addEventListener('click', () => {
                 ]
             };
             
-            showToast('Seluruh data berhasil dihapus. Memuat ulang sistem...', 'success');
-            
-            // Reload halaman untuk memastikan UI 100% bersih
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
+            showToast('Seluruh data berhasil dihapus dari Cloud.', 'success');
+            setTimeout(() => { location.reload(); }, 1500);
         }
     );
 });
@@ -2192,8 +2200,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 /* ==========================================================================
-   PWA STANDALONE MODE (TANPA SERVICE WORKER) - REVISI 5 (FIX INSTALASI & LOGO)
-   Menggunakan Blob URL ber-origin HTTPS & logo.png yang valid agar bisa diinstal di Chrome
+   PWA STANDALONE MODE (TANPA SERVICE WORKER)
    ========================================================================== */
 (function injectVirtualManifest() {
     const currentPath = window.location.pathname;
@@ -2215,24 +2222,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         "background_color": "#ffffff",
         "theme_color": "#0369a1",
         "icons": [
-            {
-                "src": iconUrl,
-                "sizes": "192x192",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": iconUrl,
-                "sizes": "512x512",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": iconUrl,
-                "sizes": "512x512",
-                "type": "image/png",
-                "purpose": "maskable"
-            }
+            { "src": iconUrl, "sizes": "192x192", "type": "image/png", "purpose": "any" },
+            { "src": iconUrl, "sizes": "512x512", "type": "image/png", "purpose": "any" },
+            { "src": iconUrl, "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
         ]
     };
 
@@ -2244,6 +2236,4 @@ window.addEventListener('DOMContentLoaded', async () => {
     linkTag.rel = 'manifest';
     linkTag.href = manifestBlobUrl;
     document.head.appendChild(linkTag);
-    
-    console.log("Virtual Manifest berhasil disuntikkan dengan logo.png dan Blob URL (Tanpa Service Worker).");
 })();
