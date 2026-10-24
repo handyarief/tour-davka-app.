@@ -3,7 +3,9 @@
    ========================================================================== */
 const supabaseUrl = 'https://wdhfthzuihakjlygticw.supabase.co';
 const supabaseKey = 'sb_publishable_8U8NeSn4aOZiRzLRS3KmxA_oz84fUAL'; // Ganti dengan kunci sb_publishable Anda
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+// REVISI: Mengganti nama variabel inisialisasi agar tidak bentrok dengan library global browser
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 /* ==========================================================================
    INISIALISASI & MANAJEMEN DATA LOKAL
@@ -26,12 +28,12 @@ let db = {
 // Memuat data dari Supabase
 async function loadData() {
     try {
-        // Ambil data dari ke-4 tabel secara bersamaan
+        // Ambil data dari ke-4 tabel secara bersamaan (REVISI: Menggunakan supabaseClient)
         const [resPart, resCost, resPay, resExp] = await Promise.all([
-            supabase.from('participants').select('*'),
-            supabase.from('costs').select('*'),
-            supabase.from('payments').select('*'),
-            supabase.from('expenses').select('*')
+            supabaseClient.from('participants').select('*'),
+            supabaseClient.from('costs').select('*'),
+            supabaseClient.from('payments').select('*'),
+            supabaseClient.from('expenses').select('*')
         ]);
 
         if (resPart.data) db.participants = resPart.data;
@@ -59,11 +61,11 @@ async function saveData() {
         // Simpan kategori ke Local Storage (sebagai cadangan)
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ categories: db.categories }));
 
-        // Kirim data ke Supabase (Upsert = update jika ada, insert jika baru)
-        if (db.participants.length > 0) supabase.from('participants').upsert(db.participants).then();
-        if (db.costs.length > 0) supabase.from('costs').upsert(db.costs).then();
-        if (db.payments.length > 0) supabase.from('payments').upsert(db.payments).then();
-        if (db.expenses.length > 0) supabase.from('expenses').upsert(db.expenses).then();
+        // Kirim data ke Supabase (Upsert = update jika ada, insert jika baru) (REVISI: Menggunakan supabaseClient)
+        if (db.participants.length > 0) supabaseClient.from('participants').upsert(db.participants).then();
+        if (db.costs.length > 0) supabaseClient.from('costs').upsert(db.costs).then();
+        if (db.payments.length > 0) supabaseClient.from('payments').upsert(db.payments).then();
+        if (db.expenses.length > 0) supabaseClient.from('expenses').upsert(db.expenses).then();
 
     } catch (e) {
         console.error('Gagal menyimpan ke Supabase', e);
