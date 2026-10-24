@@ -2082,3 +2082,43 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadData();
     refreshActiveView('view-dashboard');
 });
+
+
+/* ==========================================================================
+   PWA STANDALONE MODE (ZIEDAN LAUNDRY STYLE)
+   Virtual Manifest Injection tanpa Service Worker
+   ========================================================================== */
+(function injectVirtualManifest() {
+    const manifestJSON = {
+        "name": "Tour Jogja Manajemen",
+        "short_name": "Tour Jogja",
+        "description": "Sistem Manajemen Davka Travel",
+        "start_url": "./index.html",
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#0369a1",
+        "icons": [
+            {
+                "src": "logo_2.png",
+                "sizes": "192x192",
+                "type": "image/png"
+            },
+            {
+                "src": "logo_2.png",
+                "sizes": "512x512",
+                "type": "image/png"
+            }
+        ]
+    };
+
+    const stringifiedManifest = JSON.stringify(manifestJSON);
+    const blob = new Blob([stringifiedManifest], { type: 'application/json' });
+    const manifestURL = URL.createObjectURL(blob);
+
+    const linkTag = document.createElement('link');
+    linkTag.rel = 'manifest';
+    linkTag.href = manifestURL;
+    document.head.appendChild(linkTag);
+    
+    console.log("Virtual Manifest berhasil disuntikkan (Ziedan Style).");
+})();
