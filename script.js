@@ -1342,6 +1342,7 @@ document.getElementById('form-cost-shared').addEventListener('submit', (e) => {
     closeModal('modal-cost-shared');
     refreshAll();
 });
+
 /* ==========================================================================
    MODUL 6: PEMBAYARAN KAS & ALOKASI
    ========================================================================== */
@@ -2083,42 +2084,50 @@ window.addEventListener('DOMContentLoaded', async () => {
     refreshActiveView('view-dashboard');
 });
 
-
 /* ==========================================================================
-   PWA STANDALONE MODE (ZIEDAN LAUNDRY STYLE)
-   Virtual Manifest Injection tanpa Service Worker
+   PWA STANDALONE MODE (ZIEDAN LAUNDRY STYLE) - REVISI 4 (FIX INSTALASI)
+   Menggunakan Data URI dan Absolute Path agar kompatibel dengan Vercel & Chrome 
    ========================================================================== */
 (function injectVirtualManifest() {
+    // 1. Dapatkan base URL absolut dari domain tempat web dihosting (menghindari error relatif pada Vercel/Chrome)
+    const currentPath = window.location.pathname;
+    const baseUrl = window.location.origin + (currentPath.endsWith('.html') ? currentPath.substring(0, currentPath.lastIndexOf('/') + 1) : currentPath);
+
     const manifestJSON = {
+        "id": baseUrl, // ID wajib untuk standar PWA terbaru
         "name": "Tour Jogja Manajemen",
         "short_name": "Tour Jogja",
         "description": "Sistem Manajemen Davka Travel",
-        "start_url": "./index.html",
+        "start_url": baseUrl, // URL Absolut, bukan "./index.html"
         "display": "standalone",
         "background_color": "#ffffff",
         "theme_color": "#0369a1",
         "icons": [
             {
-                "src": "logo_2.png",
+                "src": baseUrl + "logo_2.png", // URL Absolut gambar
                 "sizes": "192x192",
-                "type": "image/png"
+                "type": "image/png",
+                "purpose": "any maskable" // Purpose maskable diwajibkan oleh beberapa versi Chrome Mobile
             },
             {
-                "src": "logo_2.png",
+                "src": baseUrl + "logo_2.png",
                 "sizes": "512x512",
-                "type": "image/png"
+                "type": "image/png",
+                "purpose": "any maskable"
             }
         ]
     };
 
+    // 2. Mengubah metode "Blob" menjadi "Data URI"
+    // Blob URL (blob:https://...) terkadang diblokir oleh strict-origin Chrome saat proses instalasi PWA.
+    // Data URI (data:application/manifest+json,...) jauh lebih stabil dan dikenali secara asli.
     const stringifiedManifest = JSON.stringify(manifestJSON);
-    const blob = new Blob([stringifiedManifest], { type: 'application/json' });
-    const manifestURL = URL.createObjectURL(blob);
+    const manifestDataUrl = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(stringifiedManifest);
 
     const linkTag = document.createElement('link');
     linkTag.rel = 'manifest';
-    linkTag.href = manifestURL;
+    linkTag.href = manifestDataUrl;
     document.head.appendChild(linkTag);
     
-    console.log("Virtual Manifest berhasil disuntikkan (Ziedan Style).");
+    console.log("Virtual Manifest berhasil disuntikkan dengan Absolute URL dan Data URI.");
 })();
