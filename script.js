@@ -1076,11 +1076,14 @@ document.getElementById('btn-download-jpeg').addEventListener('click', () => {
     const width = printArea.scrollWidth;
     const height = printArea.scrollHeight;
     
+        // Menggunakan XMLSerializer agar tag HTML otomatis valid sebagai XML (XHTML)
+    const xmlContent = new XMLSerializer().serializeToString(printArea);
+    
     const svgData = `
         <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
             <foreignObject width="100%" height="100%">
                 <div xmlns="http://www.w3.org/1999/xhtml" style="width: ${width}px; height: ${height}px; margin: 0; padding: 0; background: #fff;">
-                    ${printArea.innerHTML}
+                    ${xmlContent}
                 </div>
             </foreignObject>
         </svg>
