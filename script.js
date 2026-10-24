@@ -1071,52 +1071,57 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
     openModal('modal-ringkasan');
 });
 
-document.getElementById('btn-download-jpeg').addEventListener('click', () => {
+document.getElementById('btn-download-jpeg').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-download-jpeg');
     const printArea = document.getElementById('ringkasan-print-area');
-    const width = printArea.scrollWidth;
-    const height = printArea.scrollHeight;
-    
-        // Menggunakan XMLSerializer agar tag HTML otomatis valid sebagai XML (XHTML)
-    const xmlContent = new XMLSerializer().serializeToString(printArea);
-    
-    const svgData = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-            <foreignObject width="100%" height="100%">
-                <div xmlns="http://www.w3.org/1999/xhtml" style="width: ${width}px; height: ${height}px; margin: 0; padding: 0; background: #fff;">
-                    ${xmlContent}
-                </div>
-            </foreignObject>
-        </svg>
-    `;
+    const targetEl = printArea.querySelector('.print-wrap') || printArea;
 
-    const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Memproses...';
 
-    img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, width, height);
-        ctx.drawImage(img, 0, 0);
-        URL.revokeObjectURL(url);
-        
-        const jpegUrl = canvas.toDataURL('image/jpeg', 1.0);
-        const link = document.createElement('a');
-        link.download = `Ringkasan_Pembayaran_${Date.now()}.jpg`;
-        link.href = jpegUrl;
-        link.click();
-        
-        showToast('Berhasil mengunduh gambar JPEG!');
-    };
-    
-    img.onerror = () => {
+    try {
+        if (typeof html2canvas === 'function') {
+            const canvas = await html2canvas(targetEl, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                logging: false,
+                width: 800,
+                windowWidth: 900,
+                onclone: (clonedDoc) => {
+                    const clonedArea = clonedDoc.getElementById('ringkasan-print-area');
+                    if (clonedArea) {
+                        clonedArea.style.overflow = 'visible';
+                        clonedArea.style.width = '860px';
+                    }
+                    const clonedWrap = clonedDoc.querySelector('#ringkasan-print-area .print-wrap');
+                    if (clonedWrap) {
+                        clonedWrap.style.width = '800px';
+                        clonedWrap.style.margin = '0';
+                    }
+                }
+            });
+
+            const jpegUrl = canvas.toDataURL('image/jpeg', 0.95);
+            const link = document.createElement('a');
+            link.download = `Ringkasan_Pembayaran_${Date.now()}.jpg`;
+            link.href = jpegUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast('Berhasil mengunduh gambar JPEG!');
+        } else {
+            throw new Error('Library html2canvas belum siap.');
+        }
+    } catch (err) {
+        console.error('Download JPEG Error:', err);
         showToast('Gagal memproses gambar.', 'danger');
-    };
-    img.src = url;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
 });
 
 /* ==========================================================================
