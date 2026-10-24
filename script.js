@@ -1342,7 +1342,6 @@ document.getElementById('form-cost-shared').addEventListener('submit', (e) => {
     closeModal('modal-cost-shared');
     refreshAll();
 });
-
 /* ==========================================================================
    MODUL 6: PEMBAYARAN KAS & ALOKASI
    ========================================================================== */
@@ -2085,49 +2084,58 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 /* ==========================================================================
-   PWA STANDALONE MODE (ZIEDAN LAUNDRY STYLE) - REVISI 4 (FIX INSTALASI)
-   Menggunakan Data URI dan Absolute Path agar kompatibel dengan Vercel & Chrome 
+   PWA STANDALONE MODE (TANPA SERVICE WORKER) - REVISI 5 (FIX INSTALASI & LOGO)
+   Menggunakan Blob URL ber-origin HTTPS & logo.png yang valid agar bisa diinstal di Chrome
    ========================================================================== */
 (function injectVirtualManifest() {
-    // 1. Dapatkan base URL absolut dari domain tempat web dihosting (menghindari error relatif pada Vercel/Chrome)
     const currentPath = window.location.pathname;
-    const baseUrl = window.location.origin + (currentPath.endsWith('.html') ? currentPath.substring(0, currentPath.lastIndexOf('/') + 1) : currentPath);
+    const basePath = currentPath.endsWith('.html') 
+        ? currentPath.substring(0, currentPath.lastIndexOf('/') + 1) 
+        : (currentPath.endsWith('/') ? currentPath : currentPath + '/');
+    const baseUrl = window.location.origin + basePath;
+    const iconUrl = baseUrl + "logo.png";
 
     const manifestJSON = {
-        "id": baseUrl, // ID wajib untuk standar PWA terbaru
+        "id": baseUrl,
         "name": "Tour Jogja Manajemen",
         "short_name": "Tour Jogja",
         "description": "Sistem Manajemen Davka Travel",
-        "start_url": baseUrl, // URL Absolut, bukan "./index.html"
+        "start_url": baseUrl,
+        "scope": baseUrl,
         "display": "standalone",
+        "orientation": "portrait",
         "background_color": "#ffffff",
         "theme_color": "#0369a1",
         "icons": [
             {
-                "src": baseUrl + "logo_2.png", // URL Absolut gambar
+                "src": iconUrl,
                 "sizes": "192x192",
                 "type": "image/png",
-                "purpose": "any maskable" // Purpose maskable diwajibkan oleh beberapa versi Chrome Mobile
+                "purpose": "any"
             },
             {
-                "src": baseUrl + "logo_2.png",
+                "src": iconUrl,
                 "sizes": "512x512",
                 "type": "image/png",
-                "purpose": "any maskable"
+                "purpose": "any"
+            },
+            {
+                "src": iconUrl,
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "maskable"
             }
         ]
     };
 
-    // 2. Mengubah metode "Blob" menjadi "Data URI"
-    // Blob URL (blob:https://...) terkadang diblokir oleh strict-origin Chrome saat proses instalasi PWA.
-    // Data URI (data:application/manifest+json,...) jauh lebih stabil dan dikenali secara asli.
     const stringifiedManifest = JSON.stringify(manifestJSON);
-    const manifestDataUrl = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(stringifiedManifest);
+    const blob = new Blob([stringifiedManifest], { type: 'application/manifest+json' });
+    const manifestBlobUrl = URL.createObjectURL(blob);
 
     const linkTag = document.createElement('link');
     linkTag.rel = 'manifest';
-    linkTag.href = manifestDataUrl;
+    linkTag.href = manifestBlobUrl;
     document.head.appendChild(linkTag);
     
-    console.log("Virtual Manifest berhasil disuntikkan dengan Absolute URL dan Data URI.");
+    console.log("Virtual Manifest berhasil disuntikkan dengan logo.png dan Blob URL (Tanpa Service Worker).");
 })();
