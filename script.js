@@ -1,4 +1,11 @@
 /* ==========================================================================
+   KONEKSI SUPABASE
+   ========================================================================== */
+const supabaseUrl = 'https://wdhfthzuihakjlygticw.supabase.co';
+const supabaseKey = 'sb_publishable_8U8NeSn4aOZiRzLRS3KmxA_oz84fUAL'; // Ganti dengan kunci sb_publishable Anda
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+/* ==========================================================================
    INISIALISASI & MANAJEMEN DATA LOKAL
    ========================================================================== */
 const STORAGE_KEY = 'tour_jogja_data';
@@ -16,30 +23,50 @@ let db = {
     ]
 };
 
-// Memuat data dari Local Storage
-function loadData() {
+// Memuat data dari Supabase
+async function loadData() {
     try {
+        // Ambil data dari ke-4 tabel secara bersamaan
+        const [resPart, resCost, resPay, resExp] = await Promise.all([
+            supabase.from('participants').select('*'),
+            supabase.from('costs').select('*'),
+            supabase.from('payments').select('*'),
+            supabase.from('expenses').select('*')
+        ]);
+
+        if (resPart.data) db.participants = resPart.data;
+        if (resCost.data) db.costs = resCost.data;
+        if (resPay.data) db.payments = resPay.data;
+        if (resExp.data) db.expenses = resExp.data;
+
+        // Kategori biaya tetap ambil dari LocalStorage
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
             const parsed = JSON.parse(stored);
-            db = { ...db, ...parsed };
-            db.participants = db.participants || [];
-            db.costs = db.costs || [];
-            db.payments = db.payments || [];
-            db.expenses = db.expenses || [];
-            db.categories = db.categories || [];
+            if (parsed.categories) db.categories = parsed.categories;
         }
+
+        console.log("Data berhasil dimuat dari database awan!");
     } catch (e) {
-        showToast('Gagal memuat data lokal. Berkas mungkin korup.', 'danger');
+        showToast('Gagal memuat data dari internet.', 'danger');
+        console.error(e);
     }
 }
 
-// Menyimpan data ke Local Storage
-function saveData() {
+// Menyimpan data ke Supabase
+async function saveData() {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+        // Simpan kategori ke Local Storage (sebagai cadangan)
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ categories: db.categories }));
+
+        // Kirim data ke Supabase (Upsert = update jika ada, insert jika baru)
+        if (db.participants.length > 0) supabase.from('participants').upsert(db.participants).then();
+        if (db.costs.length > 0) supabase.from('costs').upsert(db.costs).then();
+        if (db.payments.length > 0) supabase.from('payments').upsert(db.payments).then();
+        if (db.expenses.length > 0) supabase.from('expenses').upsert(db.expenses).then();
+
     } catch (e) {
-        showToast('Penyimpanan penuh atau gagal menyimpan data!', 'danger');
+        console.error('Gagal menyimpan ke Supabase', e);
     }
 }
 
@@ -2049,7 +2076,7 @@ document.getElementById('btn-delete-all-data').addEventListener('click', () => {
 /* ==========================================================================
    APP LIFECYCLE (MULAI APLIKASI)
    ========================================================================== */
-window.addEventListener('DOMContentLoaded', () => {
-    loadData();
+window.addEventListener('DOMContentLoaded', async () => {
+    await loadData();
     refreshActiveView('view-dashboard');
 });
