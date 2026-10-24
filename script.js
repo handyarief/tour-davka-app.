@@ -225,7 +225,7 @@ document.querySelectorAll('.nav-link').forEach(link => {
         document.getElementById(targetId).classList.add('active');
         
         if(targetId === 'view-dashboard') {
-            document.getElementById('page-title').textContent = 'DASHBOARD TOUR DAVKA TRAVEL';
+            document.getElementById('page-title').innerHTML = '<span class="topbar-title-main">TOUR MANAGEMENT</span><span class="topbar-title-sub">DAVKA TOUR AND TRAVEL</span>';
         } else {
             document.getElementById('page-title').textContent = e.target.textContent;
         }
@@ -2097,8 +2097,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     const manifestJSON = {
         "id": baseUrl,
-        "name": "Tour Jogja Manajemen",
-        "short_name": "Tour Jogja",
+        "name": "Davka tour",
+        "short_name": "Davka tour",
         "description": "Sistem Manajemen Davka Travel",
         "start_url": baseUrl,
         "scope": baseUrl,

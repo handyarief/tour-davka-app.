@@ -96,23 +96,45 @@ strong {
 }
 
 .sidebar-header {
-    padding: 20px;
-    background-color: #0f172a;
+    padding: 24px 20px;
+    background: linear-gradient(145deg, #090e17 0%, #0f172a 60%, #1e293b 100%);
     text-align: center;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.sidebar-header::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #38bdf8, #f59e0b, transparent);
 }
 
 .sidebar-header h2 {
+    background: linear-gradient(135deg, #ffffff 0%, #bae6fd 50%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     color: #fff;
-    font-size: 20px;
+    font-size: 21px;
+    font-weight: 800;
     margin: 0;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
 
 .sidebar-header p {
-    color: var(--primary-light);
-    font-size: 12px;
-    margin: 0;
+    color: #f59e0b;
+    font-size: 11px;
+    font-weight: 700;
+    margin: 4px 0 0 0;
+    letter-spacing: 4.5px;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .nav-list {
@@ -156,7 +178,7 @@ strong {
 
 .topbar {
     background-color: #fff;
-    padding: 15px 20px;
+    padding: 12px 20px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
@@ -180,6 +202,30 @@ strong {
     font-size: 18px;
     margin: 0;
     text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.2;
+}
+
+.topbar-title-main {
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    background: linear-gradient(135deg, #0f172a 0%, #0369a1 60%, #0284c7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: #0f172a;
+    display: block;
+}
+
+.topbar-title-sub {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 2.8px;
+    color: #d97706;
+    margin-top: 2px;
+    display: block;
 }
 
 .content-body {
@@ -869,6 +915,15 @@ input[type="checkbox"] {
     }
     .btn-mobile-menu {
         display: block;
+    }
+
+    .topbar-title-main {
+        font-size: 16px;
+        letter-spacing: 1.2px;
+    }
+    .topbar-title-sub {
+        font-size: 9.5px;
+        letter-spacing: 2px;
     }
 
     /* Grid & Forms */
