@@ -1,14 +1,13 @@
 /* ==========================================================================
    KONEKSI SUPABASE
    ========================================================================== */
-const supabaseUrl = 'https://wdhfthzuihakjlygttcw.supabase.co'; // Sudah diperbaiki sesuai dashboard
+const supabaseUrl = 'https://wdhfthzuihakjlygttcw.supabase.co'; 
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkaGZ0aHp1aWhha2pseWd0dGN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2NzUxMTEsImV4cCI6MjA4NDI1MTExMX0.GFQfFILjDekr0ugH9-Ux3GhV9Zi3jmnzY5z4YtqV_Bw'; 
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 /* ==========================================================================
    INISIALISASI & MANAJEMEN DATA (FULL ONLINE SUPABASE)
    ========================================================================== */
-// Struktur Data Dasar di Memori
 let db = {
     participants: [],
     costs: [],
@@ -21,7 +20,6 @@ let db = {
     ]
 };
 
-// Memuat data dari Supabase Cloud
 async function loadData() {
     try {
         const [resPart, resCost, resPay, resExp, resCat] = await Promise.all([
@@ -29,7 +27,7 @@ async function loadData() {
             supabaseClient.from('costs').select('*'),
             supabaseClient.from('payments').select('*'),
             supabaseClient.from('expenses').select('*'),
-            supabaseClient.from('categories').select('*') // REVISI: Menghapus .catch() yang memicu TypeError
+            supabaseClient.from('categories').select('*')
         ]);
 
         if (resPart.error) console.error('Error load participants:', resPart.error.message);
@@ -104,13 +102,10 @@ async function loadData() {
     }
 }
 
-// Menyimpan data secara otomatis ke Supabase Cloud (Full Online)
 async function saveData() {
     try {
-        // Sinkronisasi Kategori ke Supabase jika tabel 'categories' ada
         if (db.categories && db.categories.length > 0) {
             const catPayload = db.categories.map(c => ({ name: c }));
-            // UPDATE: Menambahkan deteksi error untuk operasi di background
             const { error } = await supabaseClient.from('categories').upsert(catPayload, { onConflict: 'name' });
             if (error) console.error('Gagal sinkronisasi background kategori:', error.message);
         }
@@ -119,18 +114,15 @@ async function saveData() {
     }
 }
 
-// Membuat ID Unik
 function generateId(prefix = 'ID') {
     return prefix + '-' + Date.now().toString() + '-' + Math.floor(Math.random() * 1000);
 }
 
-// Format Rupiah
 function formatRp(angka) {
     if (isNaN(angka) || angka === null || angka === '') return 'Rp0';
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.round(angka));
 }
 
-// Format Tanggal
 function formatDate(dateStr) {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
@@ -195,7 +187,7 @@ function calcFamilyStats(familyName) {
 }
 
 /* ==========================================================================
-   KOMPONEN UI & NAVIGASI
+   KOMPONEN UI, NAVIGASI & HISTORY API (REVISI 4: PWA Native Back Button)
    ========================================================================== */
 function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
@@ -208,10 +200,19 @@ function showToast(message, type = 'success') {
 
 function openModal(modalId) {
     document.getElementById(modalId).classList.add('show');
+    // Mencegah back button langsung keluar aplikasi jika modal terbuka
+    history.pushState({ modal: modalId }, '', '#' + modalId);
 }
 
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('show');
+    const modal = document.getElementById(modalId);
+    if(modal && modal.classList.contains('show')) {
+        modal.classList.remove('show');
+        // Jika hash saat ini adalah modal, kita back agar sinkron
+        if(window.location.hash === '#' + modalId) {
+            history.back();
+        }
+    }
 }
 
 let confirmCallback = null;
@@ -236,7 +237,7 @@ document.querySelectorAll('.btn-close, .btn-secondary').forEach(btn => {
     if(btn.id !== 'btn-confirm-cancel' && btn.id !== 'btn-close-ringkasan-footer') {
         btn.addEventListener('click', (e) => {
             const modal = e.target.closest('.modal');
-            if (modal) modal.classList.remove('show');
+            if (modal) closeModal(modal.id);
         });
     }
 });
@@ -253,24 +254,41 @@ function closeSidebarMobile() {
     }
 }
 
+// Fungsi Navigasi View Sentral dengan History API
+function switchView(targetId, skipHistory = false) {
+    document.querySelectorAll('.nav-link').forEach(nav => {
+        nav.classList.remove('active');
+        if(nav.getAttribute('data-target') === targetId) nav.classList.add('active');
+    });
+
+    document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
+    
+    const targetView = document.getElementById(targetId);
+    if(targetView) targetView.classList.add('active');
+    
+    const activeNav = document.querySelector(`.nav-link[data-target="${targetId}"]`);
+    if(targetId === 'view-dashboard') {
+        document.getElementById('page-title').innerHTML = '<span class="topbar-title-main">TOUR MANAGEMENT</span><span class="topbar-title-sub">DAVKA TOUR AND TRAVEL</span>';
+    } else if (targetId === 'view-participant-detail') {
+        document.getElementById('page-title').textContent = 'Detail Peserta';
+    } else if (activeNav) {
+        document.getElementById('page-title').textContent = activeNav.textContent;
+    }
+    
+    closeSidebarMobile();
+    refreshActiveView(targetId);
+
+    if (!skipHistory) {
+        history.pushState({ view: targetId }, '', '#' + targetId);
+    }
+}
+
+// Event Listener Menu Samping
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
-        document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
-        e.target.classList.add('active');
-
         const targetId = e.target.getAttribute('data-target');
-        document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
-        document.getElementById(targetId).classList.add('active');
-        
-        if(targetId === 'view-dashboard') {
-            document.getElementById('page-title').innerHTML = '<span class="topbar-title-main">TOUR MANAGEMENT</span><span class="topbar-title-sub">DAVKA TOUR AND TRAVEL</span>';
-        } else {
-            document.getElementById('page-title').textContent = e.target.textContent;
-        }
-        
-        closeSidebarMobile();
-        refreshActiveView(targetId);
+        switchView(targetId);
     });
 });
 
@@ -283,6 +301,26 @@ if (sidebarOverlay) {
     sidebarOverlay.addEventListener('click', closeSidebarMobile);
 }
 
+// REVISI 4: Menangani tombol kembali fisik HP Android / Geser iOS (History API Popstate)
+window.addEventListener('popstate', (e) => {
+    // Cek jika yang sedang terbuka adalah modal, maka tutup modalnya saja
+    const openModalEl = document.querySelector('.modal.show');
+    if (openModalEl) {
+        openModalEl.classList.remove('show');
+        return; 
+    }
+
+    if (e.state && e.state.view) {
+        switchView(e.state.view, true);
+        if (e.state.view === 'view-participant-detail' && e.state.detailId) {
+            renderDetailParticipant(e.state.detailId);
+        }
+    } else {
+        // Fallback jika tidak ada state (kembali ke dashboard)
+        switchView('view-dashboard', true);
+    }
+});
+
 function refreshActiveView(viewId) {
     switch(viewId) {
         case 'view-dashboard': renderDashboard(); break;
@@ -290,17 +328,16 @@ function refreshActiveView(viewId) {
         case 'view-costs': renderCostsMaster(); break;
         case 'view-payments': renderPayments(); break;
         case 'view-expenses': renderExpenses(); break;
-        case 'view-participant-detail': renderDetailParticipant(currentDetailId); break;
+        case 'view-participant-detail': 
+            if(currentDetailId) renderDetailParticipant(currentDetailId); 
+            break;
     }
 }
 
 function refreshAll() {
     saveData();
-    const activeNav = document.querySelector('.nav-link.active');
-    if (activeNav) refreshActiveView(activeNav.getAttribute('data-target'));
-    if (document.getElementById('view-participant-detail').classList.contains('active')) {
-        renderDetailParticipant(currentDetailId);
-    }
+    const activeView = document.querySelector('.view-section.active');
+    if (activeView) refreshActiveView(activeView.id);
 }
 
 function escapeHTML(str) {
@@ -437,7 +474,7 @@ document.getElementById('dash-filter-keluarga').addEventListener('change', funct
 });
 
 /* ==========================================================================
-   MODUL 3: PESERTA & KELUARGA (DENGAN SUPABASE SYNC)
+   MODUL 3: PESERTA & KELUARGA
    ========================================================================== */
 function renderParticipants() {
     const tbody = document.querySelector('#table-participants tbody');
@@ -455,11 +492,11 @@ function renderParticipants() {
     document.getElementById('filter-participant-name').value = '';
     filterSelect.value = 'none'; 
 
-    db.participants.forEach((p, index) => {
+    db.participants.forEach((p) => {
         const tr = document.createElement('tr');
         tr.style.display = 'none';
+        // REVISI 3: Menghapus sel kolom ID Peserta dari tampilan HTML
         tr.innerHTML = `
-            <td>${index + 1}</td>
             <td><strong>${escapeHTML(p.name)}</strong></td>
             <td>${escapeHTML(p.family)}</td>
             <td>
@@ -486,8 +523,10 @@ function applyParticipantFilter() {
     }
 
     rows.forEach(row => {
-        const nameMatch = nameTerm === '' || row.children[1].textContent.toLowerCase().includes(nameTerm);
-        const familyMatch = familyTerm === '' || row.children[2].textContent === familyTerm;
+        // REVISI 3: Karena <th>ID</th> dihapus, indeks `.children` bergeser.
+        // children[0] = Nama Lengkap, children[1] = Keluarga.
+        const nameMatch = nameTerm === '' || row.children[0].textContent.toLowerCase().includes(nameTerm);
+        const familyMatch = familyTerm === '' || row.children[1].textContent === familyTerm;
         row.style.display = (nameMatch && familyMatch) ? '' : 'none';
     });
 }
@@ -640,7 +679,6 @@ document.getElementById('btn-add-participant').addEventListener('click', () => {
     openModal('modal-participant-form');
 });
 
-// SUBMIT PESERTA KE SUPABASE CLOUD (DENGAN ASYNC/AWAIT & ERROR HANDLING)
 document.getElementById('form-participant').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('part-id').value;
@@ -756,23 +794,13 @@ window.deleteParticipant = function(id) {
    ========================================================================== */
 let currentDetailId = null;
 
+// REVISI 4: Navigasi ke Detail Peserta Menggunakan History API
 window.openParticipantDetail = function(id) {
     currentDetailId = id;
-    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-    document.getElementById('view-participant-detail').classList.add('active');
-    document.getElementById('page-title').textContent = 'Detail Peserta';
-    
-    document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
+    switchView('view-participant-detail', true); // skip default history
+    history.pushState({ view: 'view-participant-detail', detailId: id }, '', '#detail-' + id);
     renderDetailParticipant(id);
 }
-
-document.getElementById('btn-back-to-participants').addEventListener('click', () => {
-    currentDetailId = null;
-    document.getElementById('view-participant-detail').classList.remove('active');
-    document.getElementById('view-participants').classList.add('active');
-    document.querySelector('[data-target="view-participants"]').classList.add('active');
-    document.getElementById('page-title').textContent = 'Peserta & Keluarga';
-});
 
 function renderDetailParticipant(id) {
     if(!id) return;
@@ -783,7 +811,7 @@ function renderDetailParticipant(id) {
 
     document.getElementById('detail-part-name').textContent = p.name;
     document.getElementById('detail-part-family').textContent = p.family;
-    document.getElementById('detail-part-id').textContent = p.id;
+    // REVISI 3: ID Peserta tidak lagi dirender di UI detail
     
     const badge = document.getElementById('detail-part-status-badge');
     badge.textContent = stats.status;
@@ -869,7 +897,6 @@ document.getElementById('form-edit-cost').addEventListener('submit', async (e) =
 
     const costIndex = db.costs.findIndex(c => c.id === costId);
     if(costIndex > -1) {
-        // UPDATE: Gunakan object baru dan cek error sebelum mengubah state lokal 'db'
         const updatedCost = {
             ...db.costs[costIndex],
             category: newCat,
@@ -895,16 +922,17 @@ document.getElementById('btn-add-cost-from-detail').addEventListener('click', ()
     prepareIndividualCostForm(currentDetailId);
 });
 
+// REVISI 1: Penyederhanaan Desain Cetak menjadi Mobile-Friendly (Portrait Card) 100% width
 const getPrintStyles = () => `
     <style>
-        .print-wrap { width: 800px; margin: 0 auto; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ffffff; color: #334155; box-sizing: border-box; }
+        .print-wrap { width: 100%; max-width: 450px; margin: 0 auto; padding: 15px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ffffff; color: #334155; box-sizing: border-box; }
         .print-header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 15px; }
-        .print-header h2 { margin: 0; color: #0f172a; font-size: 20px; text-transform: uppercase; }
-        .print-header p { margin: 5px 0 0; font-size: 14px; color: #64748b; }
-        .print-info { width: 100%; margin-bottom: 15px; font-size: 14px; }
-        .print-info td { padding: 4px 0; }
+        .print-header h2 { margin: 0; color: #0369a1; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .print-header p { margin: 5px 0 0; font-size: 14px; color: #0f172a; font-weight: 700; text-transform: uppercase; }
+        .print-info { width: 100%; margin-bottom: 15px; font-size: 13px; }
+        .print-info td { padding: 4px 0; vertical-align: top; }
         .print-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px; }
-        .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }
+        .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 6px; text-align: left; }
         .print-table th { background-color: #f1f5f9; font-weight: bold; color: #0f172a; }
         .print-table tr:nth-child(even) { background-color: #f8fafc; }
         .text-right { text-align: right !important; }
@@ -913,9 +941,9 @@ const getPrintStyles = () => `
         .text-danger { color: #dc2626; font-weight: bold; }
         .text-info { color: #0284c7; font-weight: bold; }
         .text-bold { font-weight: bold; }
-        .print-summary { background: #f8fafc; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px; }
-        .print-summary p { margin: 5px 0; font-size: 14px; }
-        .print-footer { margin-top: 20px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px dashed #cbd5e1; padding-top: 10px; }
+        .print-summary { background: #f8fafc; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; }
+        .print-summary p { margin: 4px 0; font-size: 13px; }
+        .print-footer { margin-top: 15px; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px dashed #cbd5e1; padding-top: 10px; }
     </style>
 `;
 
@@ -927,28 +955,28 @@ document.getElementById('btn-print-individual').addEventListener('click', () => 
     let html = getPrintStyles() + `<div class="print-wrap">`;
     html += `
         <div class="print-header">
-            <h2>RINGKASAN PEMBAYARAN</h2>
-            <p>TOUR DAVKA TRAVEL</p>
+            <h2>DAVKA TOUR AND TRAVEL</h2>
+            <p>Rincian Biaya Individu</p>
         </div>
         <table class="print-info">
-            <tr><td style="width: 120px;"><strong>Nama Peserta</strong></td><td>: ${escapeHTML(p.name)}</td></tr>
-            <tr><td><strong>Keluarga/Grup</strong></td><td>: ${escapeHTML(p.family)}</td></tr>
+            <tr><td style="width: 100px;"><strong>Peserta</strong></td><td>: ${escapeHTML(p.name)}</td></tr>
+            <tr><td><strong>Grup/Klg</strong></td><td>: ${escapeHTML(p.family)}</td></tr>
             <tr><td><strong>Status</strong></td><td>: <strong>${stats.status}</strong></td></tr>
         </table>
         
-        <div class="text-bold" style="margin-bottom: 5px; font-size:14px;">A. Rincian Biaya</div>
+        <div class="text-bold" style="margin-bottom: 5px; font-size:13px;">A. Rincian Biaya</div>
         <table class="print-table">
             <thead>
                 <tr>
-                    <th>Deskripsi Kategori</th>
-                    <th class="text-right">Total Biaya (Rp)</th>
+                    <th>Item / Kategori</th>
+                    <th class="text-right">Biaya (Rp)</th>
                 </tr>
             </thead>
             <tbody>
     `;
     
     if(pCosts.length === 0) {
-        html += `<tr><td colspan="2" class="text-center text-muted">Belum ada tagihan biaya</td></tr>`;
+        html += `<tr><td colspan="2" class="text-center text-muted">Belum ada tagihan</td></tr>`;
     } else {
         pCosts.forEach(c => {
             let noteStr = c.notes ? `<br><small style="color:#64748b;">${escapeHTML(c.notes)}</small>` : '';
@@ -960,7 +988,7 @@ document.getElementById('btn-print-individual').addEventListener('click', () => 
     }
     
     html += `</tbody></table>`;
-    html += `<div class="text-bold" style="margin-bottom: 5px; font-size:14px;">B. Riwayat Pembayaran</div>
+    html += `<div class="text-bold" style="margin-bottom: 5px; font-size:13px;">B. Pembayaran</div>
         <table class="print-table">
             <thead>
                 <tr>
@@ -984,24 +1012,24 @@ document.getElementById('btn-print-individual').addEventListener('click', () => 
             }
         }
     });
-    if(payCount === 0) html += `<tr><td colspan="2" class="text-center text-muted">Belum ada riwayat pembayaran</td></tr>`;
+    if(payCount === 0) html += `<tr><td colspan="2" class="text-center text-muted">Belum ada pembayaran</td></tr>`;
     html += `</tbody></table>`;
     
     html += `
         <div class="print-summary">
-            <p>Total Tagihan: <span style="float:right;">${formatRp(stats.totalTagihan)}</span></p>
+            <p>Total Biaya: <span style="float:right;">${formatRp(stats.totalTagihan)}</span></p>
             <p>Total Dibayar: <span style="float:right;" class="text-success">${formatRp(stats.totalDibayar)}</span></p>
-            <hr style="border:0; border-top:1px solid #cbd5e1; margin:10px 0;">
+            <hr style="border:0; border-top:1px solid #cbd5e1; margin:8px 0;">
     `;
     
     if(stats.kelebihan > 0) {
-        html += `<p class="text-bold">Kelebihan Bayar: <span style="float:right;" class="text-info">${formatRp(stats.kelebihan)}</span></p>`;
+        html += `<p class="text-bold">Kelebihan: <span style="float:right;" class="text-info">${formatRp(stats.kelebihan)}</span></p>`;
     } else {
-        html += `<p class="text-bold">Sisa Harus Dibayar: <span style="float:right;" class="text-danger">${formatRp(stats.sisa)}</span></p>`;
+        html += `<p class="text-bold">Sisa Dibayar: <span style="float:right;" class="text-danger">${formatRp(stats.sisa)}</span></p>`;
     }
     
     html += `</div>
-        <div class="print-footer">Dicetak otomatis oleh Sistem Manajemen Davka Travel</div>
+        <div class="print-footer">Sistem Manajemen Davka Tour & Travel</div>
     </div>`;
 
     document.getElementById('ringkasan-print-area').innerHTML = html;
@@ -1015,56 +1043,54 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
     let html = getPrintStyles() + `<div class="print-wrap">`;
     html += `
         <div class="print-header">
-            <h2>RINGKASAN KELUARGA</h2>
-            <p>TOUR DAVKA TRAVEL</p>
+            <h2>DAVKA TOUR AND TRAVEL</h2>
+            <p>Rincian Biaya Keluarga</p>
         </div>
         <table class="print-info">
-            <tr><td style="width: 150px;"><strong>Nama Keluarga/Grup</strong></td><td>: ${escapeHTML(p.family)}</td></tr>
-            <tr><td><strong>Jumlah Anggota</strong></td><td>: ${fStats.members.length} Orang</td></tr>
+            <tr><td style="width: 100px;"><strong>Keluarga</strong></td><td>: ${escapeHTML(p.family)}</td></tr>
+            <tr><td><strong>Anggota</strong></td><td>: ${fStats.members.length} Orang</td></tr>
         </table>
         
         <table class="print-table">
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>Nama Peserta</th>
-                    <th class="text-right">Tagihan</th>
-                    <th class="text-right">Dibayar</th>
-                    <th class="text-right">Sisa/Lebih</th>
+                    <th>Nama & Status</th>
+                    <th class="text-right">Biaya (Rp)</th>
                 </tr>
             </thead>
             <tbody>
     `;
     
-    fStats.members.forEach((m, idx) => {
+    fStats.members.forEach((m) => {
         const stats = calcParticipantStats(m.id);
-        let sisaStr = stats.kelebihan > 0 ? `<span class="text-info">+${formatRp(stats.kelebihan)}</span>` : `<span class="text-danger">${formatRp(stats.sisa)}</span>`;
+        let sisaStr = stats.kelebihan > 0 ? `<span class="text-info">Lebih: ${formatRp(stats.kelebihan)}</span>` : `<span class="text-danger">Sisa: ${formatRp(stats.sisa)}</span>`;
         html += `<tr>
-            <td class="text-center">${idx+1}</td>
             <td><strong>${escapeHTML(m.name)}</strong><br><small style="color:#64748b;">${stats.status}</small></td>
-            <td class="text-right">${formatRp(stats.totalTagihan)}</td>
-            <td class="text-right text-success">${formatRp(stats.totalDibayar)}</td>
-            <td class="text-right">${sisaStr}</td>
+            <td class="text-right">
+                B: ${formatRp(stats.totalTagihan)}<br>
+                P: <span class="text-success">${formatRp(stats.totalDibayar)}</span><br>
+                ${sisaStr}
+            </td>
         </tr>`;
     });
     
     html += `</tbody></table>`;
     html += `
-        <div class="print-summary" style="margin-top:20px;">
-            <p><strong>TOTAL KELUARGA:</strong></p>
-            <p>Total Tagihan: <span style="float:right;">${formatRp(fStats.totalTagihan)}</span></p>
+        <div class="print-summary" style="margin-top:15px;">
+            <p><strong>REKAP KELUARGA:</strong></p>
+            <p>Total Biaya: <span style="float:right;">${formatRp(fStats.totalTagihan)}</span></p>
             <p>Total Dibayar: <span style="float:right;" class="text-success">${formatRp(fStats.totalDibayar)}</span></p>
-            <hr style="border:0; border-top:1px solid #cbd5e1; margin:10px 0;">
+            <hr style="border:0; border-top:1px solid #cbd5e1; margin:8px 0;">
     `;
     
     if(fStats.kelebihan > 0) {
-        html += `<p class="text-bold" style="font-size:16px;">Total Kelebihan: <span style="float:right;" class="text-info">${formatRp(fStats.kelebihan)}</span></p>`;
+        html += `<p class="text-bold" style="font-size:14px;">Total Kelebihan: <span style="float:right;" class="text-info">${formatRp(fStats.kelebihan)}</span></p>`;
     } else {
-        html += `<p class="text-bold" style="font-size:16px;">TOTAL SISA DIBAYAR: <span style="float:right;" class="text-danger">${formatRp(fStats.sisa)}</span></p>`;
+        html += `<p class="text-bold" style="font-size:14px;">TOTAL SISA: <span style="float:right;" class="text-danger">${formatRp(fStats.sisa)}</span></p>`;
     }
     
     html += `</div>
-        <div class="print-footer">Dicetak otomatis oleh Sistem Manajemen Davka Travel</div>
+        <div class="print-footer">Sistem Manajemen Davka Tour & Travel</div>
     </div>`;
 
     document.getElementById('ringkasan-print-area').innerHTML = html;
@@ -1074,6 +1100,7 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
 document.getElementById('btn-download-jpeg').addEventListener('click', async () => {
     const btn = document.getElementById('btn-download-jpeg');
     const printArea = document.getElementById('ringkasan-print-area');
+    // Cari elemen pembungkus .print-wrap
     const targetEl = printArea.querySelector('.print-wrap') || printArea;
 
     const originalText = btn.textContent;
@@ -1082,22 +1109,19 @@ document.getElementById('btn-download-jpeg').addEventListener('click', async () 
 
     try {
         if (typeof html2canvas === 'function') {
+            // REVISI 1: Menyesuaikan setting canvas untuk ukuran Mobile-Friendly
             const canvas = await html2canvas(targetEl, {
-                scale: 2,
+                scale: 2, 
                 backgroundColor: '#ffffff',
                 useCORS: true,
                 logging: false,
-                width: 800,
-                windowWidth: 900,
+                width: targetEl.offsetWidth, 
+                windowWidth: 450, 
                 onclone: (clonedDoc) => {
-                    const clonedArea = clonedDoc.getElementById('ringkasan-print-area');
-                    if (clonedArea) {
-                        clonedArea.style.overflow = 'visible';
-                        clonedArea.style.width = '860px';
-                    }
                     const clonedWrap = clonedDoc.querySelector('#ringkasan-print-area .print-wrap');
                     if (clonedWrap) {
-                        clonedWrap.style.width = '800px';
+                        clonedWrap.style.width = '100%';
+                        clonedWrap.style.maxWidth = '450px';
                         clonedWrap.style.margin = '0';
                     }
                 }
@@ -1123,7 +1147,6 @@ document.getElementById('btn-download-jpeg').addEventListener('click', async () 
         btn.textContent = originalText;
     }
 });
-
 /* ==========================================================================
    MODUL 5: MANAJEMEN BIAYA & ALOKASI BIAYA
    ========================================================================== */
@@ -1153,7 +1176,6 @@ document.getElementById('form-add-category').addEventListener('submit', async (e
     const input = document.getElementById('new-category-name');
     const val = input.value.trim();
     if(val && !db.categories.includes(val)) {
-        // UPDATE: Tambahkan error handling
         const { error } = await supabaseClient.from('categories').upsert([{ name: val }]);
         if (error) {
             showToast('Gagal menambahkan kategori: ' + error.message, 'danger');
@@ -1169,7 +1191,6 @@ document.getElementById('form-add-category').addEventListener('submit', async (e
 
 window.deleteCategory = async function(cat) {
     if(confirm(`Hapus kategori "${cat}"?`)) {
-        // UPDATE: Tambahkan error handling
         const { error } = await supabaseClient.from('categories').delete().eq('name', cat);
         if (error) {
             showToast('Gagal menghapus kategori: ' + error.message, 'danger');
@@ -1339,7 +1360,6 @@ document.getElementById('form-cost-ind').addEventListener('submit', async (e) =>
 
 window.deleteCost = async function(id, isFromDetail = false) {
     confirmAction('Hapus Biaya', 'Hapus komponen tagihan ini dari peserta?', async () => {
-        // UPDATE: Tambahkan error handling
         const { error } = await supabaseClient.from('costs').delete().eq('id', id);
         if (error) {
             showToast('Gagal menghapus biaya dari cloud: ' + error.message, 'danger');
@@ -1507,7 +1527,6 @@ document.getElementById('form-cost-shared').addEventListener('submit', async (e)
         notes: 'Biaya Bersama'
     }));
 
-    // UPDATE: Tambahkan error handling
     const { error } = await supabaseClient.from('costs').insert(newCosts);
     if (error) {
         showToast('Gagal membagi dan menyimpan biaya: ' + error.message, 'danger');
@@ -1519,6 +1538,7 @@ document.getElementById('form-cost-shared').addEventListener('submit', async (e)
     closeModal('modal-cost-shared');
     refreshAll();
 });
+
 /* ==========================================================================
    MODUL 6: PEMBAYARAN KAS & ALOKASI
    ========================================================================== */
@@ -1766,7 +1786,6 @@ document.getElementById('form-payment').addEventListener('submit', async (e) => 
         data.id = id;
         const index = db.payments.findIndex(x => x.id === id);
         
-        // UPDATE: Tambahkan error handling
         const { error } = await supabaseClient.from('payments').upsert([data]);
         if (error) {
             showToast('Gagal memperbarui transaksi: ' + error.message, 'danger');
@@ -1778,7 +1797,6 @@ document.getElementById('form-payment').addEventListener('submit', async (e) => 
     } else {
         data.id = generateId('PAY');
         
-        // UPDATE: Tambahkan error handling
         const { error } = await supabaseClient.from('payments').insert([data]);
         if (error) {
             showToast('Gagal mencatat transaksi kas: ' + error.message, 'danger');
@@ -1832,7 +1850,6 @@ window.editPaymentAllocation = function(id) {
 
 window.deletePayment = async function(id) {
     confirmAction('Hapus Transaksi Penerimaan', 'Hapus penerimaan kas ini dari database cloud?', async () => {
-        // UPDATE: Tambahkan error handling
         const { error } = await supabaseClient.from('payments').delete().eq('id', id);
         if (error) {
             showToast('Gagal menghapus transaksi: ' + error.message, 'danger');
@@ -1844,6 +1861,7 @@ window.deletePayment = async function(id) {
         refreshAll();
     });
 }
+
 /* ==========================================================================
    MODUL 7: PENGELUARAN OPERASIONAL
    ========================================================================== */
@@ -1931,7 +1949,6 @@ document.getElementById('form-expense').addEventListener('submit', async (e) => 
         data.id = id;
         const index = db.expenses.findIndex(x => x.id === id);
         
-        // UPDATE: Tambahkan error handling
         const { error } = await supabaseClient.from('expenses').upsert([data]);
         if (error) {
             showToast('Gagal memperbarui pengeluaran: ' + error.message, 'danger');
@@ -1943,7 +1960,6 @@ document.getElementById('form-expense').addEventListener('submit', async (e) => 
     } else {
         data.id = generateId('EXP');
         
-        // UPDATE: Tambahkan error handling
         const { error } = await supabaseClient.from('expenses').insert([data]);
         if (error) {
             showToast('Gagal mencatat pengeluaran: ' + error.message, 'danger');
@@ -1975,7 +1991,6 @@ window.editExpense = function(id) {
 
 window.deleteExpense = async function(id) {
     confirmAction('Hapus Pengeluaran', 'Hapus pengeluaran ini dari cloud?', async () => {
-        // UPDATE: Tambahkan error handling
         const { error } = await supabaseClient.from('expenses').delete().eq('id', id);
         if (error) {
             showToast('Gagal menghapus pengeluaran: ' + error.message, 'danger');
@@ -1995,8 +2010,8 @@ document.getElementById('btn-generate-report').addEventListener('click', () => {
     const type = document.getElementById('report-type').value;
     
     document.getElementById('report-print-area').style.display = 'block';
+    // REVISI 2: Pastikan tombol unduh JPEG muncul saat tabel digenerate
     document.getElementById('btn-print-report').style.display = 'inline-block';
-    document.getElementById('btn-export-csv-report').style.display = 'inline-block';
     
     const container = document.getElementById('report-output-container');
     const title = document.getElementById('report-print-title');
@@ -2025,18 +2040,61 @@ document.getElementById('btn-generate-report').addEventListener('click', () => {
     }
 });
 
-document.getElementById('btn-print-report').addEventListener('click', () => {
-    window.print();
+// REVISI 2: Mengubah fungsi cetak laporan menjadi Download JPEG via html2canvas
+document.getElementById('btn-print-report').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-print-report');
+    const printArea = document.getElementById('report-print-area');
+    
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Memproses...';
+
+    try {
+        if (typeof html2canvas === 'function') {
+            const canvas = await html2canvas(printArea, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                logging: false,
+                onclone: (clonedDoc) => {
+                    const clonedArea = clonedDoc.getElementById('report-print-area');
+                    if (clonedArea) {
+                        clonedArea.style.padding = '20px'; // Beri jarak saat dicetak
+                        clonedArea.style.border = 'none';
+                        clonedArea.style.boxShadow = 'none';
+                    }
+                }
+            });
+
+            const jpegUrl = canvas.toDataURL('image/jpeg', 0.95);
+            const link = document.createElement('a');
+            link.download = `Laporan_Keuangan_${Date.now()}.jpg`;
+            link.href = jpegUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast('Berhasil mengunduh Laporan (JPEG)!');
+        } else {
+            throw new Error('Library html2canvas belum siap.');
+        }
+    } catch (err) {
+        console.error('Download JPEG Error:', err);
+        showToast('Gagal memproses gambar.', 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
 });
 
 function generateReportTablePeserta() {
+    // REVISI 3: Menghapus <th>ID</th> dari hasil render tabel laporan
     let html = `<table class="table"><thead><tr>
-        <th>ID</th><th>Nama</th><th>Keluarga</th><th>Total Tagihan</th><th>Telah Dibayar</th><th>Sisa</th><th>Kelebihan</th><th>Status</th>
+        <th>Nama</th><th>Keluarga</th><th>Total Tagihan</th><th>Telah Dibayar</th><th>Sisa</th><th>Kelebihan</th><th>Status</th>
         </tr></thead><tbody>`;
     db.participants.forEach(p => {
         const s = calcParticipantStats(p.id);
         html += `<tr>
-            <td><small>${p.id}</small></td>
             <td>${escapeHTML(p.name)}</td>
             <td>${escapeHTML(p.family)}</td>
             <td>${formatRp(s.totalTagihan)}</td>
@@ -2210,38 +2268,7 @@ function generateReportRekapitulasi() {
     `;
 }
 
-document.getElementById('btn-export-csv-report').addEventListener('click', () => {
-    const type = document.getElementById('report-type').value;
-    const table = document.querySelector('#report-output-container table');
-    if (!table) {
-        showToast('Tidak ada tabel untuk diekspor', 'warning');
-        return;
-    }
-    
-    let csv = [];
-    const rows = table.querySelectorAll('tr');
-    for (let i = 0; i < rows.length; i++) {
-        let row = [], cols = rows[i].querySelectorAll('td, th');
-        for (let j = 0; j < cols.length; j++) {
-            let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, ' ').trim();
-            row.push('"' + data + '"');
-        }
-        csv.push(row.join(','));
-    }
-    downloadCSV(csv.join('\n'), `Laporan_${type}_${new Date().getTime()}.csv`);
-});
-
-function downloadCSV(csvString, filename) {
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
+// REVISI 3: Menghapus logika btn-export-csv-report dan downloadCSV
 
 // FACTORY RESET TERHUBUNG KE SUPABASE CLOUD
 document.getElementById('btn-delete-all-data').addEventListener('click', () => {
@@ -2249,7 +2276,6 @@ document.getElementById('btn-delete-all-data').addEventListener('click', () => {
         'HAPUS SEMUA DATA PERMANEN', 
         'PERINGATAN KRITIS: Apakah Anda yakin ingin menghapus SELURUH data di server Supabase?', 
         async () => {
-            // UPDATE: Tambahkan penangkapan error secara paralel (menghindari aplikasi ter-reset jika koneksi putus)
             const [res1, res2, res3, res4] = await Promise.all([
                 supabaseClient.from('participants').delete().neq('id', '0'),
                 supabaseClient.from('costs').delete().neq('id', '0'),
@@ -2285,7 +2311,18 @@ document.getElementById('btn-delete-all-data').addEventListener('click', () => {
    ========================================================================== */
 window.addEventListener('DOMContentLoaded', async () => {
     await loadData();
-    refreshActiveView('view-dashboard');
+    // REVISI 4: Menangani initial hash route dari History API jika di-reload
+    const hash = window.location.hash.substring(1);
+    
+    if (hash && document.getElementById(hash) && document.getElementById(hash).classList.contains('view-section')) {
+        switchView(hash, true);
+    } else if (hash && hash.startsWith('detail-')) {
+        currentDetailId = hash.replace('detail-', '');
+        switchView('view-participant-detail', true);
+        renderDetailParticipant(currentDetailId);
+    } else {
+        switchView('view-dashboard', true);
+    }
 });
 
 /* ==========================================================================

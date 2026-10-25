@@ -553,7 +553,7 @@ input[type="checkbox"] {
     font-weight: 600;
 }
 
-/* DYNAMIC ROW (REVISI 2 & 3: FORM BIAYA INDIVIDU & FORM PESERTA BARU) */
+/* DYNAMIC ROW */
 .dynamic-row {
     display: flex;
     gap: 10px;
@@ -736,7 +736,7 @@ input[type="checkbox"] {
     left: 0;
     width: 100%;
     height: 100%;
-    height: 100dvh; /* REVISI: dukungan dynamic viewport mobile agar presisi dengan address bar */
+    height: 100dvh;
     background-color: rgba(15, 23, 42, 0.6);
     z-index: 2000;
     align-items: center;
@@ -756,7 +756,7 @@ input[type="checkbox"] {
     width: 100%;
     max-width: 500px;
     max-height: 90vh;
-    max-height: 90dvh; /* REVISI: dukungan dynamic viewport */
+    max-height: 90dvh;
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-lg);
@@ -764,7 +764,6 @@ input[type="checkbox"] {
     animation: modalSlideIn 0.3s ease;
 }
 
-/* REVISI SCROLL BUG: Memastikan tag form (pembungkus isi modal) menjadi flex container agar modal-body di dalamnya bisa di-scroll */
 .modal-content form {
     display: flex;
     flex-direction: column;
@@ -793,7 +792,6 @@ input[type="checkbox"] {
 .modal-body {
     padding: 20px;
     overflow-y: auto;
-    /* REVISI SCROLL MODAL BODY: Agar isi modal bisa menyusut/scroll sendiri saat ditarik ke batas max-height */
     flex: 1;
     min-height: 0;
 }
@@ -982,7 +980,7 @@ input[type="checkbox"] {
     .sidebar {
         position: fixed;
         left: -250px;
-        height: 100vh; /* Sidebar fallback jika diletakkan di sisi */
+        height: 100vh;
         box-shadow: var(--shadow-lg);
     }
     .sidebar.open {
@@ -1022,7 +1020,6 @@ input[type="checkbox"] {
         margin-top: 20px;
     }
 
-    /* Revisi 2 & 3 Form Biaya & Peserta Dynamic Row Mobile */
     .dynamic-row {
         flex-direction: column;
         gap: 5px;
@@ -1057,17 +1054,12 @@ input[type="checkbox"] {
         width: 100%;
     }
 
-    /* Modal - REVISI KEYBOARD: 
-       Modal diubah agar jadi penampung scroll alami ke bawah, form content diset mengikuti konten bukan layar
-    */
     .modal {
         align-items: flex-start;
         padding-top: 20px;
-        /* Perubahan utama: Modal container bisa di-scroll, sehingga content tdk tertekan naik oleh keyboard */
         overflow-y: auto; 
     }
     .modal-content {
-        /* Perubahan utama: Konten modal mengikuti tinggi isi, scroll terjadi di container modal */
         max-height: max-content; 
     }
     .modal-actions {
@@ -1113,11 +1105,43 @@ input[type="checkbox"] {
 }
 
 /* ==========================================================================
-   PERBAIKAN SCROLL PRATINJAU RINGKASAN DI MOBILE
+   REVISI 3 & 1: PROTEKSI LAYOUT LAPORAN & RINGKASAN (ANTI-GESER KANAN-KIRI)
    ========================================================================== */
+#report-print-area, #report-output-container {
+    overflow-x: hidden !important;
+    width: 100%;
+    max-width: 100%;
+}
+
+#report-output-container .table {
+    table-layout: fixed !important;
+    width: 100% !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+#report-output-container .table th,
+#report-output-container .table td {
+    white-space: normal !important;
+    padding: 6px 4px !important;
+    font-size: 11px !important; /* Penyesuaian agar teks pas di layar mobile */
+    vertical-align: top;
+}
+
 #ringkasan-print-area {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden !important; /* Mengunci agar tidak bisa digeser */
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+/* Memastikan wrapper ringkasan menyesuaikan ukuran layar (portrait card) */
+#ringkasan-print-area .print-wrap {
+    width: 100% !important;
+    max-width: 450px !important; 
+    padding: 15px !important;
+    box-sizing: border-box !important;
 }
 
 /* ==========================================================================
