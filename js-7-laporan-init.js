@@ -1,12 +1,13 @@
 /* ==========================================================================
-   MODUL 8: LAPORAN KEUANGAN & PENGATURAN SISTEM
+   MODUL 8: LAPORAN KEUANGAN, CETAK PRINTER (WIFI/LAN/BLUETOOTH) & UNDUH JPG
    ========================================================================== */
 document.getElementById('btn-generate-report').addEventListener('click', () => {
     const type = document.getElementById('report-type').value;
     
     document.getElementById('report-print-area').style.display = 'block';
-    document.getElementById('btn-print-report').style.display = 'inline-block';
-    document.getElementById('btn-export-csv-report').style.display = 'inline-block';
+    document.getElementById('btn-print-report').style.display = 'inline-flex';
+    document.getElementById('btn-print-bluetooth').style.display = 'inline-flex';
+    document.getElementById('btn-download-jpg-report').style.display = 'inline-flex';
     
     const container = document.getElementById('report-output-container');
     const title = document.getElementById('report-print-title');
@@ -35,28 +36,226 @@ document.getElementById('btn-generate-report').addEventListener('click', () => {
     }
 });
 
+// 1. FUNGSI CETAK PRINTER WI-FI / LAN / SISTEM BAWAAN (TETAP DIPERTAHANKAN 100%)
 document.getElementById('btn-print-report').addEventListener('click', () => {
     window.print();
 });
 
+// 2. FUNGSI SIMPAN SEBAGAI JPG (DOWNLOAD LANGSUNG KE HP)
+document.getElementById('btn-download-jpg-report').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-download-jpg-report');
+    const reportArea = document.getElementById('report-print-area');
+    const type = document.getElementById('report-type').value;
+
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Memproses JPG...';
+
+    try {
+        if (typeof html2canvas === 'function') {
+            const canvas = await html2canvas(reportArea, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                logging: false,
+                windowWidth: 900,
+                onclone: (clonedDoc) => {
+                    const clonedArea = clonedDoc.getElementById('report-print-area');
+                    if (clonedArea) {
+                        clonedArea.style.display = 'block';
+                        clonedArea.style.width = '820px';
+                        clonedArea.style.maxWidth = '820px';
+                        clonedArea.style.padding = '25px';
+                        clonedArea.style.margin = '0';
+                        clonedArea.style.border = 'none';
+                        clonedArea.style.boxShadow = 'none';
+                    }
+                    const clonedHeader = clonedDoc.querySelector('#report-print-area .print-only-show');
+                    if (clonedHeader) {
+                        clonedHeader.style.display = 'block';
+                        clonedHeader.style.marginBottom = '20px';
+                        clonedHeader.style.paddingBottom = '12px';
+                        clonedHeader.style.borderBottom = '2px solid #0f172a';
+                    }
+                    const clonedContainer = clonedDoc.getElementById('report-output-container');
+                    if (clonedContainer) {
+                        clonedContainer.style.overflow = 'visible';
+                        clonedContainer.style.padding = '0';
+                    }
+                    clonedDoc.querySelectorAll('.report-table-wrap').forEach(wrap => {
+                        wrap.style.overflow = 'visible';
+                    });
+                }
+            });
+
+            const jpgUrl = canvas.toDataURL('image/jpeg', 0.95);
+            const link = document.createElement('a');
+            link.download = `Laporan_${type}_${Date.now()}.jpg`;
+            link.href = jpgUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast('Laporan berhasil disimpan sebagai JPG!');
+        } else {
+            throw new Error('Library html2canvas belum siap.');
+        }
+    } catch (err) {
+        console.error('Download Report JPG Error:', err);
+        showToast('Gagal menyimpan laporan sebagai JPG.', 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+});
+
+// 3. FUNGSI CETAK PRINTER BLUETOOTH (WEB BLUETOOTH API ESC/POS & FALLBACK)
+let btCharacteristic = null;
+
+document.getElementById('btn-print-bluetooth').addEventListener('click', async () => {
+    if (!navigator.bluetooth) {
+        showToast('Membuka dialog printer sistem (Pilih printer Bluetooth Anda)...', 'warning');
+        setTimeout(() => window.print(), 600);
+        return;
+    }
+
+    const btn = document.getElementById('btn-print-bluetooth');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Menghubungkan BT...';
+
+    try {
+        if (!btCharacteristic) {
+            const device = await navigator.bluetooth.requestDevice({
+                acceptAllDevices: true,
+                optionalServices: [
+                    '000018f0-0000-1000-8000-00805f9b34fb',
+                    'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+                    '49535343-fe7d-4ae5-8fa9-9fafd205e455'
+                ]
+            });
+
+            const server = await device.gatt.connect();
+            const services = await server.getPrimaryServices();
+            for (const service of services) {
+                const characteristics = await service.getCharacteristics();
+                for (const char of characteristics) {
+                    if (char.properties.write || char.properties.writeWithoutResponse) {
+                        btCharacteristic = char;
+                        break;
+                    }
+                }
+                if (btCharacteristic) break;
+            }
+        }
+
+        if (!btCharacteristic) {
+            throw new Error('Karakteristik tulis printer Bluetooth tidak ditemukan.');
+        }
+
+        const receiptText = buildThermalReportText();
+        const encoder = new TextEncoder();
+        const dataBytes = encoder.encode(receiptText);
+
+        const chunkSize = 100;
+        for (let i = 0; i < dataBytes.length; i += chunkSize) {
+            const chunk = dataBytes.slice(i, i + chunkSize);
+            if (btCharacteristic.properties.writeWithoutResponse) {
+                await btCharacteristic.writeValueWithoutResponse(chunk);
+            } else {
+                await btCharacteristic.writeValue(chunk);
+            }
+        }
+
+        showToast('Berhasil mencetak ke Printer Bluetooth!');
+    } catch (err) {
+        console.warn('Bluetooth Print Info:', err);
+        btCharacteristic = null;
+        if (err.name !== 'NotFoundError') {
+            showToast('Gagal koneksi langsung BT. Membuka dialog cetak sistem...', 'warning');
+            setTimeout(() => window.print(), 800);
+        } else {
+            showToast('Pencarian printer Bluetooth dibatalkan.', 'warning');
+        }
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+});
+
+function buildThermalReportText() {
+    const type = document.getElementById('report-type').value;
+    const title = document.getElementById('report-print-title').textContent;
+    const line = '--------------------------------\n';
+    let out = '\x1B\x40'; // Init ESC/POS
+    out += '\x1B\x61\x01'; // Align Center
+    out += 'DAVKA TOUR MANAGEMENT\n';
+    out += title + '\n';
+    out += line;
+    out += '\x1B\x61\x00'; // Align Left
+
+    if (type === 'keluarga') {
+        const families = [...new Set(db.participants.map(p => p.family))].sort();
+        let grandTagihan = 0, grandDibayar = 0, grandSisa = 0;
+        families.forEach(f => {
+            const stats = calcFamilyStats(f);
+            grandTagihan += stats.totalTagihan;
+            grandDibayar += stats.totalDibayar;
+            grandSisa += stats.sisa;
+            out += `Keluarga: ${f}\n`;
+            stats.members.forEach(m => {
+                const ms = calcParticipantStats(m.id);
+                out += `- ${m.name}: ${formatRp(ms.totalTagihan)} (Sisa: ${formatRp(ms.sisa)})\n`;
+            });
+            out += `Sub Tagihan : ${formatRp(stats.totalTagihan)}\n`;
+            out += `Sub Dibayar : ${formatRp(stats.totalDibayar)}\n`;
+            out += `Sub Sisa    : ${formatRp(stats.sisa)}\n`;
+            out += line;
+        });
+        out += `GRAND TOTAL TAGIHAN: ${formatRp(grandTagihan)}\n`;
+        out += `GRAND TOTAL DIBAYAR: ${formatRp(grandDibayar)}\n`;
+        out += `GRAND TOTAL SISA   : ${formatRp(grandSisa)}\n`;
+    } else {
+        const rows = document.querySelectorAll('#report-output-container tr');
+        rows.forEach(r => {
+            const cols = Array.from(r.querySelectorAll('th, td')).map(c => c.innerText.trim());
+            if (cols.length > 0) {
+                out += cols.join(' | ') + '\n';
+            }
+        });
+    }
+
+    out += line;
+    out += '\x1B\x61\x01';
+    out += 'Dicetak oleh Sistem Davka Tour\n\n\n\n';
+    return out;
+}
+
 function generateReportTablePeserta() {
-    let html = `<table class="table"><thead><tr>
-        <th>ID</th><th>Nama</th><th>Keluarga</th><th>Total Tagihan</th><th>Telah Dibayar</th><th>Sisa</th><th>Kelebihan</th><th>Status</th>
+    let html = `<div class="report-table-wrap"><table class="table"><thead><tr>
+        <th style="width:45px;" class="text-center">No</th>
+        <th>Nama Peserta</th>
+        <th>Keluarga</th>
+        <th class="text-right">Total Tagihan</th>
+        <th class="text-right">Telah Dibayar</th>
+        <th class="text-right">Sisa</th>
+        <th class="text-right">Kelebihan</th>
+        <th class="text-center">Status</th>
         </tr></thead><tbody>`;
-    db.participants.forEach(p => {
+    db.participants.forEach((p, idx) => {
         const s = calcParticipantStats(p.id);
         html += `<tr>
-            <td><small>${p.id}</small></td>
-            <td>${escapeHTML(p.name)}</td>
+            <td class="text-center">${idx + 1}</td>
+            <td><strong>${escapeHTML(p.name)}</strong></td>
             <td>${escapeHTML(p.family)}</td>
-            <td>${formatRp(s.totalTagihan)}</td>
-            <td>${formatRp(s.totalDibayar)}</td>
-            <td class="text-danger">${formatRp(s.sisa)}</td>
-            <td class="text-info">${formatRp(s.kelebihan)}</td>
-            <td>${s.status}</td>
+            <td class="text-right">${formatRp(s.totalTagihan)}</td>
+            <td class="text-right text-success">${formatRp(s.totalDibayar)}</td>
+            <td class="text-right text-danger">${formatRp(s.sisa)}</td>
+            <td class="text-right text-info">${formatRp(s.kelebihan)}</td>
+            <td class="text-center"><span class="badge ${s.badgeClass}">${s.status}</span></td>
         </tr>`;
     });
-    return html + `</tbody></table>`;
+    return html + `</tbody></table></div>`;
 }
 
 function generateReportTableKeluarga() {
@@ -71,73 +270,120 @@ function generateReportTableKeluarga() {
         grandSisa += stats.sisa;
         
         html += `
-        <h4 style="margin-top: 20px; background: #f1f5f9; padding: 10px;">Keluarga: ${escapeHTML(f)}</h4>
-        <table class="table table-sm">
-            <thead><tr><th>Nama Anggota</th><th>Tagihan</th><th>Dibayar</th><th>Sisa</th><th>Status</th></tr></thead>
-            <tbody>
+        <div class="report-family-title">Keluarga: ${escapeHTML(f)}</div>
+        <div class="report-table-wrap">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th style="width:40px;" class="text-center">No</th>
+                        <th>Nama Anggota</th>
+                        <th class="text-right" style="width:130px;">Tagihan</th>
+                        <th class="text-right" style="width:130px;">Dibayar</th>
+                        <th class="text-right" style="width:130px;">Sisa</th>
+                        <th class="text-center" style="width:140px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
         `;
-        stats.members.forEach(m => {
+        stats.members.forEach((m, idx) => {
             const ms = calcParticipantStats(m.id);
             html += `<tr>
-                <td>${escapeHTML(m.name)}</td>
-                <td>${formatRp(ms.totalTagihan)}</td>
-                <td>${formatRp(ms.totalDibayar)}</td>
-                <td>${formatRp(ms.sisa)}</td>
-                <td>${ms.status}</td>
+                <td class="text-center">${idx + 1}</td>
+                <td><strong>${escapeHTML(m.name)}</strong></td>
+                <td class="text-right">${formatRp(ms.totalTagihan)}</td>
+                <td class="text-right text-success">${formatRp(ms.totalDibayar)}</td>
+                <td class="text-right text-danger">${formatRp(ms.sisa)}</td>
+                <td class="text-center"><span class="badge ${ms.badgeClass}">${ms.status}</span></td>
             </tr>`;
         });
-        html += `<tr style="font-weight:bold; background:#fff">
-            <td class="text-right">TOTAL KELUARGA</td>
-            <td>${formatRp(stats.totalTagihan)}</td>
-            <td class="text-success">${formatRp(stats.totalDibayar)}</td>
-            <td class="text-danger">${formatRp(stats.sisa)}</td>
+        html += `<tr style="font-weight:bold; background:#f8fafc;">
+            <td colspan="2" class="text-right">TOTAL KELUARGA</td>
+            <td class="text-right">${formatRp(stats.totalTagihan)}</td>
+            <td class="text-right text-success">${formatRp(stats.totalDibayar)}</td>
+            <td class="text-right text-danger">${formatRp(stats.sisa)}</td>
             <td></td>
-        </tr></tbody></table>`;
+        </tr></tbody></table></div>`;
     });
     
-    html += `<div style="margin-top:20px; padding:15px; border:2px solid #000;">
+    html += `
+    <div class="report-grand-total">
         <h3>GRAND TOTAL SELURUH KELUARGA</h3>
-        <p>Total Tagihan: <strong>${formatRp(grandTagihan)}</strong></p>
-        <p>Total Dibayar: <strong class="text-success">${formatRp(grandDibayar)}</strong></p>
-        <p>Total Sisa Tagihan: <strong class="text-danger">${formatRp(grandSisa)}</strong></p>
+        <div class="report-grand-row">
+            <span>Total Tagihan:</span>
+            <strong>${formatRp(grandTagihan)}</strong>
+        </div>
+        <div class="report-grand-row">
+            <span>Total Dibayar:</span>
+            <strong class="text-success">${formatRp(grandDibayar)}</strong>
+        </div>
+        <div class="report-grand-row" style="border-top:1px solid #cbd5e1; margin-top:6px; padding-top:8px; font-size:15px;">
+            <strong>Total Sisa Tagihan:</strong>
+            <strong class="text-danger">${formatRp(grandSisa)}</strong>
+        </div>
     </div>`;
     return html;
 }
 
 function generateReportTablePenerimaan() {
-    let data = db.payments; 
+    let data = [...db.payments]; 
     let total = 0;
-    let html = `<table class="table"><thead><tr>
-        <th>Tanggal</th><th>Pembayar</th><th>Penerimaan</th><th>Metode</th><th>Catatan</th>
+    let html = `<div class="report-table-wrap"><table class="table"><thead><tr>
+        <th style="width:45px;" class="text-center">No</th>
+        <th>Tanggal</th>
+        <th>Pembayar</th>
+        <th class="text-right">Penerimaan</th>
+        <th>Metode</th>
+        <th>Catatan</th>
         </tr></thead><tbody>`;
-    data.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(p => {
+    data.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach((p, idx) => {
         total += p.amount;
         html += `<tr>
+            <td class="text-center">${idx + 1}</td>
             <td>${formatDate(p.date)}</td>
-            <td>${escapeHTML(p.name)}</td><td class="text-bold text-success">${formatRp(p.amount)}</td>
-            <td>${escapeHTML(p.method)}</td><td>${escapeHTML(p.notes)}</td>
+            <td><strong>${escapeHTML(p.name)}</strong></td>
+            <td class="text-right text-bold text-success">${formatRp(p.amount)}</td>
+            <td>${escapeHTML(p.method)}</td>
+            <td class="col-wrap">${escapeHTML(p.notes || '-')}</td>
         </tr>`;
     });
-    html += `<tr style="font-weight:bold"><td colspan="2" class="text-right">TOTAL PENERIMAAN:</td><td colspan="3">${formatRp(total)}</td></tr>`;
-    return html + `</tbody></table>`;
+    html += `<tr style="font-weight:bold; background:#f8fafc;">
+        <td colspan="3" class="text-right">TOTAL PENERIMAAN:</td>
+        <td class="text-right text-success">${formatRp(total)}</td>
+        <td colspan="2"></td>
+    </tr>`;
+    return html + `</tbody></table></div>`;
 }
 
 function generateReportTablePengeluaran() {
-    let data = db.expenses;
+    let data = [...db.expenses];
     let total = 0;
-    let html = `<table class="table"><thead><tr>
-        <th>Tanggal</th><th>Kategori</th><th>Keterangan</th><th>Vendor</th><th>Pengeluaran</th><th>Metode</th>
+    let html = `<div class="report-table-wrap"><table class="table"><thead><tr>
+        <th style="width:45px;" class="text-center">No</th>
+        <th>Tanggal</th>
+        <th>Kategori</th>
+        <th>Keterangan</th>
+        <th>Vendor</th>
+        <th class="text-right">Pengeluaran</th>
+        <th>Metode</th>
         </tr></thead><tbody>`;
-    data.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(e => {
+    data.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach((e, idx) => {
         total += e.amount;
         html += `<tr>
-            <td>${formatDate(e.date)}</td><td>${escapeHTML(e.category)}</td>
-            <td>${escapeHTML(e.desc)}</td><td>${escapeHTML(e.vendor)}</td>
-            <td class="text-bold text-danger">${formatRp(e.amount)}</td><td>${escapeHTML(e.method)}</td>
+            <td class="text-center">${idx + 1}</td>
+            <td>${formatDate(e.date)}</td>
+            <td>${escapeHTML(e.category)}</td>
+            <td class="col-wrap">${escapeHTML(e.desc)}</td>
+            <td>${escapeHTML(e.vendor)}</td>
+            <td class="text-right text-bold text-danger">${formatRp(e.amount)}</td>
+            <td>${escapeHTML(e.method)}</td>
         </tr>`;
     });
-    html += `<tr style="font-weight:bold"><td colspan="4" class="text-right">TOTAL PENGELUARAN:</td><td colspan="2">${formatRp(total)}</td></tr>`;
-    return html + `</tbody></table>`;
+    html += `<tr style="font-weight:bold; background:#f8fafc;">
+        <td colspan="5" class="text-right">TOTAL PENGELUARAN:</td>
+        <td class="text-right text-danger">${formatRp(total)}</td>
+        <td></td>
+    </tr>`;
+    return html + `</tbody></table></div>`;
 }
 
 function generateReportTableBukuKas() {
@@ -162,29 +408,42 @@ function generateReportTableBukuKas() {
             saldoBerjalan -= t.amount;
         }
         
+        let ketText = escapeHTML(t.ref) + (t.desc ? ` - ${escapeHTML(t.desc)}` : '');
         htmlRows += `<tr>
             <td>${formatDate(t.date)}</td>
             <td>${t.type === 'IN' ? 'Penerimaan Peserta' : 'Pengeluaran Operasional'}</td>
-            <td>${escapeHTML(t.ref)} - ${escapeHTML(t.desc)}</td>
-            <td class="text-success">${t.type === 'IN' ? formatRp(t.amount) : ''}</td>
-            <td class="text-danger">${t.type === 'OUT' ? formatRp(t.amount) : ''}</td>
-            <td><strong>${formatRp(saldoBerjalan)}</strong></td>
+            <td class="col-wrap">${ketText}</td>
+            <td class="text-right text-success">${t.type === 'IN' ? formatRp(t.amount) : '-'}</td>
+            <td class="text-right text-danger">${t.type === 'OUT' ? formatRp(t.amount) : '-'}</td>
+            <td class="text-right"><strong>${formatRp(saldoBerjalan)}</strong></td>
         </tr>`;
     });
 
     let html = `
-    <div style="display:flex; justify-content:space-between; margin-bottom: 20px; background:#f1f5f9; padding:15px; border-radius:8px;">
-        <div><h4>Saldo Awal</h4><h2 class="text-primary">${formatRp(saldoAwal)}</h2></div>
-        <div><h4>Total Masuk</h4><h2 class="text-success">+ ${formatRp(kasMasuk)}</h2></div>
-        <div><h4>Total Keluar</h4><h2 class="text-danger">- ${formatRp(kasKeluar)}</h2></div>
-        <div><h4>Saldo Akhir</h4><h2 class="text-primary">${formatRp(saldoAwal + kasMasuk - kasKeluar)}</h2></div>
+    <div class="report-cash-summary">
+        <div class="report-cash-box"><h4>Saldo Awal</h4><h2 class="text-primary">${formatRp(saldoAwal)}</h2></div>
+        <div class="report-cash-box"><h4>Total Masuk</h4><h2 class="text-success">+ ${formatRp(kasMasuk)}</h2></div>
+        <div class="report-cash-box"><h4>Total Keluar</h4><h2 class="text-danger">- ${formatRp(kasKeluar)}</h2></div>
+        <div class="report-cash-box"><h4>Saldo Akhir</h4><h2 class="text-primary">${formatRp(saldoAwal + kasMasuk - kasKeluar)}</h2></div>
     </div>
-    <table class="table"><thead><tr>
-        <th>Tanggal</th><th>Jenis Transaksi</th><th>Keterangan</th><th>Debet (Masuk)</th><th>Kredit (Keluar)</th><th>Saldo</th>
-    </tr></thead><tbody>
-        <tr><td colspan="5" class="text-right"><strong>SALDO AWAL:</strong></td><td><strong>${formatRp(saldoAwal)}</strong></td></tr>
-        ${htmlRows}
-    </tbody></table>`;
+    <div class="report-table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Jenis Transaksi</th>
+                    <th>Keterangan</th>
+                    <th class="text-right">Debet (Masuk)</th>
+                    <th class="text-right">Kredit (Keluar)</th>
+                    <th class="text-right">Saldo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="background:#f8fafc;"><td colspan="5" class="text-right"><strong>SALDO AWAL:</strong></td><td class="text-right"><strong>${formatRp(saldoAwal)}</strong></td></tr>
+                ${htmlRows}
+            </tbody>
+        </table>
+    </div>`;
     return html;
 }
 
@@ -205,52 +464,29 @@ function generateReportRekapitulasi() {
     const surplusDefisit = sumTagihan - sumPengeluaran;
     
     return `
-    <table style="width:100%; border-collapse:collapse; margin-bottom:30px;">
-        <tr><td style="padding:10px; border-bottom:1px solid #ccc;">Total Peserta Terdaftar</td><td class="text-right text-bold">${db.participants.length}</td></tr>
-        <tr><td style="padding:10px; border-bottom:1px solid #ccc;">Total Tagihan Peserta</td><td class="text-right text-bold">${formatRp(sumTagihan)}</td></tr>
-        <tr><td style="padding:10px; border-bottom:1px solid #ccc;">Total Penerimaan Kas</td><td class="text-right text-bold text-success">${formatRp(sumPenerimaan)}</td></tr>
-        <tr><td style="padding:10px; border-bottom:1px solid #ccc;">Dana Telah Dialokasikan</td><td class="text-right text-bold">${formatRp(sumTeralokasi)}</td></tr>
-        <tr><td style="padding:10px; border-bottom:1px solid #ccc;">Dana Belum Dialokasikan</td><td class="text-right text-bold text-warning">${formatRp(danaMenganggur)}</td></tr>
-        <tr><td style="padding:10px; border-bottom:1px solid #ccc;">Total Sisa Harus Ditagih</td><td class="text-right text-bold text-danger">${formatRp(sumSisa)}</td></tr>
-        <tr><td style="padding:10px; border-bottom:1px solid #ccc;">Total Kelebihan Pembayaran</td><td class="text-right text-bold text-info">${formatRp(sumKelebihan)}</td></tr>
-        <tr><td style="padding:10px; border-bottom:1px solid #ccc;">Total Pengeluaran Aktual</td><td class="text-right text-bold text-danger">${formatRp(sumPengeluaran)}</td></tr>
-        <tr><td style="padding:10px; border-bottom:2px solid #000; background:#f1f5f9;"><strong>SALDO KAS BERJALAN</strong></td><td class="text-right text-bold text-primary" style="background:#f1f5f9;">${formatRp(saldoKas)}</td></tr>
-        <tr><td style="padding:10px;">Perkiraan Surplus/Defisit (Tagihan - Pengeluaran)</td><td class="text-right text-bold ${surplusDefisit >= 0 ? 'text-success' : 'text-danger'}">${formatRp(surplusDefisit)}</td></tr>
-    </table>
+    <div class="report-table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Komponen Rekapitulasi Keuangan</th>
+                    <th class="text-right" style="width: 200px;">Nilai / Nominal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Total Peserta Terdaftar</td><td class="text-right text-bold">${db.participants.length} Orang</td></tr>
+                <tr><td>Total Tagihan Peserta</td><td class="text-right text-bold">${formatRp(sumTagihan)}</td></tr>
+                <tr><td>Total Penerimaan Kas</td><td class="text-right text-bold text-success">${formatRp(sumPenerimaan)}</td></tr>
+                <tr><td>Dana Telah Dialokasikan</td><td class="text-right text-bold">${formatRp(sumTeralokasi)}</td></tr>
+                <tr><td>Dana Belum Dialokasikan</td><td class="text-right text-bold text-warning">${formatRp(danaMenganggur)}</td></tr>
+                <tr><td>Total Sisa Harus Ditagih</td><td class="text-right text-bold text-danger">${formatRp(sumSisa)}</td></tr>
+                <tr><td>Total Kelebihan Pembayaran</td><td class="text-right text-bold text-info">${formatRp(sumKelebihan)}</td></tr>
+                <tr><td>Total Pengeluaran Aktual</td><td class="text-right text-bold text-danger">${formatRp(sumPengeluaran)}</td></tr>
+                <tr style="background:#f1f5f9;"><td><strong>SALDO KAS BERJALAN (Penerimaan - Pengeluaran)</strong></td><td class="text-right text-bold text-primary" style="font-size:14px;">${formatRp(saldoKas)}</td></tr>
+                <tr><td><strong>Perkiraan Surplus / Defisit (Tagihan - Pengeluaran)</strong></td><td class="text-right text-bold ${surplusDefisit >= 0 ? 'text-success' : 'text-danger'}" style="font-size:14px;">${formatRp(surplusDefisit)}</td></tr>
+            </tbody>
+        </table>
+    </div>
     `;
-}
-
-document.getElementById('btn-export-csv-report').addEventListener('click', () => {
-    const type = document.getElementById('report-type').value;
-    const table = document.querySelector('#report-output-container table');
-    if (!table) {
-        showToast('Tidak ada tabel untuk diekspor', 'warning');
-        return;
-    }
-    
-    let csv = [];
-    const rows = table.querySelectorAll('tr');
-    for (let i = 0; i < rows.length; i++) {
-        let row = [], cols = rows[i].querySelectorAll('td, th');
-        for (let j = 0; j < cols.length; j++) {
-            let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, ' ').trim();
-            row.push('"' + data + '"');
-        }
-        csv.push(row.join(','));
-    }
-    downloadCSV(csv.join('\n'), `Laporan_${type}_${new Date().getTime()}.csv`);
-});
-
-function downloadCSV(csvString, filename) {
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
 }
 
 // FACTORY RESET TERHUBUNG KE SUPABASE CLOUD

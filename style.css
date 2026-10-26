@@ -676,6 +676,7 @@ input[type="checkbox"] {
     cursor: pointer;
 }
 .btn-close:hover { color: var(--danger); }
+
 /* ==========================================================================
    TABEL
    ========================================================================== */
@@ -962,7 +963,7 @@ input[type="checkbox"] {
 }
 
 /* ==========================================================================
-   RESPONSIVE DESIGN (MOBILE OTIMIZATION)
+   RESPONSIVE DESIGN (MOBILE OPTIMIZATION)
    ========================================================================== */
 @media (max-width: 992px) {
     .form-grid-3 { grid-template-columns: 1fr 1fr; }
@@ -1077,7 +1078,7 @@ input[type="checkbox"] {
         padding: 5px 10px;
         font-size: 12px;
     }
-    .text-right {
+    .profile-header .text-right {
         text-align: left;
     }
     
@@ -1098,89 +1099,212 @@ input[type="checkbox"] {
 }
 
 /* ==========================================================================
-   REVISI PERBAIKAN PRATINJAU & LAPORAN
+   REVISI PERBAIKAN PRATINJAU RINGKASAN & LAPORAN KEUANGAN
    ========================================================================== */
-#report-print-area, #report-output-container {
-    overflow-x: hidden !important;
+#report-print-area {
     width: 100%;
     max-width: 100%;
+    background: #ffffff;
+}
+
+#report-output-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 15px;
+}
+
+.report-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
 }
 
 #report-output-container .table {
-    table-layout: fixed !important;
+    table-layout: auto !important;
     width: 100% !important;
-    white-space: normal !important;
-    word-break: break-word !important;
-    overflow-wrap: break-word !important;
+    border-collapse: collapse !important;
+    margin-bottom: 0 !important;
 }
 
 #report-output-container .table th,
 #report-output-container .table td {
-    white-space: normal !important;
-    padding: 6px 4px !important;
-    font-size: 11px !important; 
-    vertical-align: top;
+    padding: 9px 12px !important;
+    font-size: 12.5px !important;
+    vertical-align: middle !important;
+    border: 1px solid #cbd5e1 !important;
+    white-space: nowrap !important;
 }
 
-/* REVISI CSS UNTUK PREVIEW RINGKASAN AGAR BISA SCROLL DAN UKURAN PROPORSIONAL */
+#report-output-container .table td.col-wrap {
+    white-space: normal !important;
+    min-width: 130px;
+}
+
+#report-output-container .table th {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    position: static !important;
+}
+
+#report-output-container .text-right,
+#ringkasan-print-area .text-right {
+    text-align: right !important;
+}
+
+#report-output-container .text-center,
+#ringkasan-print-area .text-center {
+    text-align: center !important;
+}
+
+.report-family-title {
+    margin: 18px 0 8px 0;
+    background: #f1f5f9;
+    padding: 10px 14px;
+    border-left: 4px solid var(--primary);
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.report-family-title:first-child {
+    margin-top: 0;
+}
+
+.report-grand-total {
+    margin-top: 20px;
+    padding: 16px;
+    background: #f8fafc;
+    border: 2px solid #0f172a;
+    border-radius: 8px;
+}
+
+.report-grand-total h3 {
+    font-size: 15px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #cbd5e1;
+    color: #0f172a;
+}
+
+.report-grand-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 13.5px;
+}
+
+.report-cash-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.report-cash-box {
+    background: #f8fafc;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+}
+
+.report-cash-box h4 {
+    font-size: 11.5px;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.report-cash-box h2 {
+    font-size: 16px;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* PRATINJAU RINGKASAN BIAYA INDIVIDU & KELUARGA */
 #ringkasan-print-area {
-    overflow-x: auto !important; 
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
     width: 100%;
-    display: block !important; 
+    display: block !important;
+    padding: 4px;
 }
 
 #ringkasan-print-area .print-wrap {
-    width: 800px !important;
-    max-width: none !important; 
-    margin: 0 auto !important; 
-    padding: 20px !important;
+    width: 100% !important;
+    min-width: 540px !important;
+    max-width: 720px !important;
+    margin: 0 auto !important;
+    padding: 24px !important;
     background: #ffffff !important;
-    color: #000000 !important;
+    color: #0f172a !important;
     box-sizing: border-box !important;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 /* ==========================================================================
-   TAMPILAN CETAK (PRINT)
+   TAMPILAN CETAK (PRINT WI-FI / LAN / SISTEM)
    ========================================================================== */
 .print-only-show {
     display: none;
 }
 
 @media print {
-    body {
-        background-color: #fff;
-        color: #000;
-        font-size: 12pt;
+    html, body {
+        height: auto !important;
+        overflow: visible !important;
+        background-color: #fff !important;
+        color: #000 !important;
+        font-size: 11pt;
     }
-    .sidebar, .topbar, .btn, .no-print, .modal, .toast-container {
+    .app-container {
+        height: auto !important;
+        overflow: visible !important;
+        display: block !important;
+    }
+    .sidebar, .topbar, .btn, .no-print, .modal, .toast-container, .sidebar-overlay {
         display: none !important;
     }
     .main-content {
-        width: 100%;
-        height: auto;
-        overflow: visible;
-        display: block;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+        display: block !important;
     }
     .content-body {
-        padding: 0;
+        padding: 0 !important;
+        overflow: visible !important;
     }
     .card {
-        border: none;
-        box-shadow: none;
-        margin: 0;
-        padding: 0;
-    }
-    .card-header {
-        background: transparent;
-        border-bottom: 2px solid #000;
-        padding: 0 0 10px 0;
-        margin-bottom: 15px;
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     #report-print-area {
         display: block !important;
     }
+    #report-output-container {
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+    .report-table-wrap {
+        overflow: visible !important;
+        border: none !important;
+    }
     .print-only-show {
-        display: block;
+        display: block !important;
+        padding-top: 10px;
+    }
+    .report-cash-summary {
+        grid-template-columns: repeat(4, 1fr) !important;
     }
     .table th {
         background-color: #f1f5f9 !important;
@@ -1189,11 +1313,8 @@ input[type="checkbox"] {
         print-color-adjust: exact;
     }
     .table th, .table td {
-        border-color: #000;
-        padding: 8px;
-    }
-    .table {
-        border: 1px solid #000;
+        border: 1px solid #334155 !important;
+        padding: 6px 8px !important;
     }
     .text-danger { color: #dc2626 !important; }
     .text-success { color: #16a34a !important; }

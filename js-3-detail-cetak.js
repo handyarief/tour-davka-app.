@@ -150,75 +150,86 @@ document.getElementById('btn-add-cost-from-detail').addEventListener('click', ()
 
 const getPrintStyles = () => `
     <style>
-        .print-wrap { width: 800px; margin: 0 auto; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ffffff; color: #334155; box-sizing: border-box; }
-        .print-header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 15px; }
-        .print-header h2 { margin: 0; color: #0f172a; font-size: 20px; text-transform: uppercase; }
-        .print-header p { margin: 5px 0 0; font-size: 14px; color: #64748b; }
-        .print-info { width: 100%; margin-bottom: 15px; font-size: 14px; }
-        .print-info td { padding: 4px 0; }
-        .print-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px; }
-        .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }
-        .print-table th { background-color: #f1f5f9; font-weight: bold; color: #0f172a; }
+        .print-wrap { width: 100%; max-width: 720px; margin: 0 auto; padding: 24px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ffffff; color: #1e293b; box-sizing: border-box; }
+        .print-header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px; }
+        .print-header h2 { margin: 0; color: #0f172a; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
+        .print-header p { margin: 4px 0 0; font-size: 13px; font-weight: 600; color: #64748b; letter-spacing: 1px; }
+        .print-info { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13.5px; }
+        .print-info td { padding: 4px 0; vertical-align: top; color: #1e293b; }
+        .print-info td.info-label { width: 155px; font-weight: 700; color: #334155; }
+        .print-info td.info-sep { width: 12px; text-align: center; font-weight: 700; }
+        .print-section-title { font-weight: 700; font-size: 13.5px; color: #0f172a; margin: 14px 0 6px 0; }
+        .print-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px; table-layout: auto; }
+        .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 9px 12px; text-align: left; vertical-align: middle; }
+        .print-table th { background-color: #f1f5f9; font-weight: 700; color: #0f172a; white-space: nowrap; }
         .print-table tr:nth-child(even) { background-color: #f8fafc; }
-        .text-right { text-align: right !important; }
-        .text-center { text-align: center !important; }
-        .text-success { color: #16a34a; font-weight: bold; }
-        .text-danger { color: #dc2626; font-weight: bold; }
-        .text-info { color: #0284c7; font-weight: bold; }
-        .text-bold { font-weight: bold; }
-        .print-summary { background: #f8fafc; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px; }
-        .print-summary p { margin: 5px 0; font-size: 14px; }
-        .print-footer { margin-top: 20px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px dashed #cbd5e1; padding-top: 10px; }
+        .print-table td.nowrap, .print-table th.nowrap { white-space: nowrap !important; }
+        .print-wrap .text-right { text-align: right !important; }
+        .print-wrap .text-center { text-align: center !important; }
+        .print-wrap .text-success { color: #16a34a !important; font-weight: 700; }
+        .print-wrap .text-danger { color: #dc2626 !important; font-weight: 700; }
+        .print-wrap .text-info { color: #0284c7 !important; font-weight: 700; }
+        .print-wrap .text-bold { font-weight: 700; }
+        .print-summary { background: #f8fafc; padding: 16px 18px; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 16px; }
+        .print-summary-title { font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 8px; text-transform: uppercase; }
+        .print-summary-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 13.5px; color: #334155; }
+        .print-summary-row.total-row { border-top: 1px solid #cbd5e1; margin-top: 8px; padding-top: 10px; font-size: 15px; font-weight: 800; color: #0f172a; }
+        .print-footer { margin-top: 20px; text-align: center; font-size: 11.5px; color: #94a3b8; border-top: 1px dashed #cbd5e1; padding-top: 10px; }
     </style>
 `;
 
 document.getElementById('btn-print-individual').addEventListener('click', () => {
     const p = db.participants.find(x => x.id === currentDetailId);
+    if (!p) return;
     const stats = calcParticipantStats(p.id);
     const pCosts = db.costs.filter(c => c.participantId === p.id);
     
     let html = getPrintStyles() + `<div class="print-wrap">`;
     html += `
         <div class="print-header">
-            <h2>RINGKASAN PEMBAYARAN</h2>
+            <h2>RINGKASAN BIAYA INDIVIDU</h2>
             <p>TOUR DAVKA TRAVEL</p>
         </div>
         <table class="print-info">
-            <tr><td style="width: 120px;"><strong>Nama Peserta</strong></td><td>: ${escapeHTML(p.name)}</td></tr>
-            <tr><td><strong>Keluarga/Grup</strong></td><td>: ${escapeHTML(p.family)}</td></tr>
-            <tr><td><strong>Status</strong></td><td>: <strong>${stats.status}</strong></td></tr>
+            <tr><td class="info-label">Nama Peserta</td><td class="info-sep">:</td><td><strong>${escapeHTML(p.name)}</strong></td></tr>
+            <tr><td class="info-label">Keluarga/Grup</td><td class="info-sep">:</td><td>${escapeHTML(p.family)}</td></tr>
+            <tr><td class="info-label">Status</td><td class="info-sep">:</td><td><strong>${stats.status}</strong></td></tr>
         </table>
         
-        <div class="text-bold" style="margin-bottom: 5px; font-size:14px;">A. Rincian Biaya</div>
+        <div class="print-section-title">A. Rincian Biaya</div>
         <table class="print-table">
             <thead>
                 <tr>
+                    <th style="width: 40px;" class="text-center">No</th>
                     <th>Deskripsi Kategori</th>
-                    <th class="text-right">Total Biaya (Rp)</th>
+                    <th class="text-right nowrap" style="width: 160px;">Total Biaya (Rp)</th>
                 </tr>
             </thead>
             <tbody>
     `;
     
     if(pCosts.length === 0) {
-        html += `<tr><td colspan="2" class="text-center text-muted">Belum ada tagihan biaya</td></tr>`;
+        html += `<tr><td colspan="3" class="text-center text-muted">Belum ada tagihan biaya</td></tr>`;
     } else {
-        pCosts.forEach(c => {
-            let noteStr = c.notes ? `<br><small style="color:#64748b;">${escapeHTML(c.notes)}</small>` : '';
+        pCosts.forEach((c, idx) => {
+            let noteStr = c.notes ? `<div style="font-size:11.5px; color:#64748b; margin-top:2px;">Catatan: ${escapeHTML(c.notes)}</div>` : '';
             html += `<tr>
-                <td>${escapeHTML(c.category)} ${c.qty > 1 ? `(${c.qty}x)` : ''}${noteStr}</td>
-                <td class="text-right">${formatRp(c.total)}</td>
+                <td class="text-center">${idx + 1}</td>
+                <td><strong>${escapeHTML(c.category)}</strong> ${c.qty > 1 ? `(${c.qty}x)` : ''}${noteStr}</td>
+                <td class="text-right nowrap text-bold">${formatRp(c.total)}</td>
             </tr>`;
         });
     }
     
     html += `</tbody></table>`;
-    html += `<div class="text-bold" style="margin-bottom: 5px; font-size:14px;">B. Riwayat Pembayaran</div>
+    html += `<div class="print-section-title">B. Riwayat Pembayaran</div>
         <table class="print-table">
             <thead>
                 <tr>
-                    <th>Tanggal</th>
-                    <th class="text-right">Nominal (Rp)</th>
+                    <th style="width: 40px;" class="text-center">No</th>
+                    <th>Tanggal Pembayaran</th>
+                    <th>Metode</th>
+                    <th class="text-right nowrap" style="width: 160px;">Nominal (Rp)</th>
                 </tr>
             </thead>
             <tbody>
@@ -229,28 +240,46 @@ document.getElementById('btn-print-individual').addEventListener('click', () => 
         if(pay.allocations) {
             const alloc = pay.allocations.find(a => a.participantId === p.id);
             if(alloc) {
-                html += `<tr>
-                    <td>${formatDate(pay.date)}</td>
-                    <td class="text-right text-success">${formatRp(alloc.amount)}</td>
-                </tr>`;
                 payCount++;
+                html += `<tr>
+                    <td class="text-center">${payCount}</td>
+                    <td class="nowrap">${formatDate(pay.date)}</td>
+                    <td>${escapeHTML(pay.method || '-')}</td>
+                    <td class="text-right nowrap text-success">${formatRp(alloc.amount)}</td>
+                </tr>`;
             }
         }
     });
-    if(payCount === 0) html += `<tr><td colspan="2" class="text-center text-muted">Belum ada riwayat pembayaran</td></tr>`;
+    if(payCount === 0) html += `<tr><td colspan="4" class="text-center text-muted">Belum ada riwayat pembayaran</td></tr>`;
     html += `</tbody></table>`;
     
     html += `
         <div class="print-summary">
-            <p>Total Tagihan: <span style="float:right;">${formatRp(stats.totalTagihan)}</span></p>
-            <p>Total Dibayar: <span style="float:right;" class="text-success">${formatRp(stats.totalDibayar)}</span></p>
-            <hr style="border:0; border-top:1px solid #cbd5e1; margin:10px 0;">
+            <div class="print-summary-title">TOTAL RINGKASAN INDIVIDU:</div>
+            <div class="print-summary-row">
+                <span>Total Tagihan:</span>
+                <strong class="nowrap">${formatRp(stats.totalTagihan)}</strong>
+            </div>
+            <div class="print-summary-row">
+                <span>Total Dibayar:</span>
+                <strong class="text-success nowrap">${formatRp(stats.totalDibayar)}</strong>
+            </div>
     `;
     
     if(stats.kelebihan > 0) {
-        html += `<p class="text-bold">Kelebihan Bayar: <span style="float:right;" class="text-info">${formatRp(stats.kelebihan)}</span></p>`;
+        html += `
+            <div class="print-summary-row total-row">
+                <span>TOTAL KELEBIHAN BAYAR:</span>
+                <span class="text-info nowrap">+${formatRp(stats.kelebihan)}</span>
+            </div>
+        `;
     } else {
-        html += `<p class="text-bold">Sisa Harus Dibayar: <span style="float:right;" class="text-danger">${formatRp(stats.sisa)}</span></p>`;
+        html += `
+            <div class="print-summary-row total-row">
+                <span>TOTAL SISA DIBAYAR:</span>
+                <span class="text-danger nowrap">${formatRp(stats.sisa)}</span>
+            </div>
+        `;
     }
     
     html += `</div>
@@ -263,27 +292,28 @@ document.getElementById('btn-print-individual').addEventListener('click', () => 
 
 document.getElementById('btn-print-family').addEventListener('click', () => {
     const p = db.participants.find(x => x.id === currentDetailId);
+    if (!p) return;
     const fStats = calcFamilyStats(p.family);
     
     let html = getPrintStyles() + `<div class="print-wrap">`;
     html += `
         <div class="print-header">
-            <h2>RINGKASAN KELUARGA</h2>
+            <h2>RINGKASAN BIAYA KELUARGA</h2>
             <p>TOUR DAVKA TRAVEL</p>
         </div>
         <table class="print-info">
-            <tr><td style="width: 150px;"><strong>Nama Keluarga/Grup</strong></td><td>: ${escapeHTML(p.family)}</td></tr>
-            <tr><td><strong>Jumlah Anggota</strong></td><td>: ${fStats.members.length} Orang</td></tr>
+            <tr><td class="info-label">Nama Keluarga/Grup</td><td class="info-sep">:</td><td><strong>${escapeHTML(p.family)}</strong></td></tr>
+            <tr><td class="info-label">Jumlah Anggota</td><td class="info-sep">:</td><td>${fStats.members.length} Orang</td></tr>
         </table>
         
         <table class="print-table">
             <thead>
                 <tr>
-                    <th>No</th>
+                    <th style="width: 40px;" class="text-center">No</th>
                     <th>Nama Peserta</th>
-                    <th class="text-right">Tagihan</th>
-                    <th class="text-right">Dibayar</th>
-                    <th class="text-right">Sisa/Lebih</th>
+                    <th class="text-right nowrap" style="width: 130px;">Tagihan</th>
+                    <th class="text-right nowrap" style="width: 130px;">Dibayar</th>
+                    <th class="text-right nowrap" style="width: 130px;">Sisa/Lebih</th>
                 </tr>
             </thead>
             <tbody>
@@ -293,27 +323,42 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
         const stats = calcParticipantStats(m.id);
         let sisaStr = stats.kelebihan > 0 ? `<span class="text-info">+${formatRp(stats.kelebihan)}</span>` : `<span class="text-danger">${formatRp(stats.sisa)}</span>`;
         html += `<tr>
-            <td class="text-center">${idx+1}</td>
-            <td><strong>${escapeHTML(m.name)}</strong><br><small style="color:#64748b;">${stats.status}</small></td>
-            <td class="text-right">${formatRp(stats.totalTagihan)}</td>
-            <td class="text-right text-success">${formatRp(stats.totalDibayar)}</td>
-            <td class="text-right">${sisaStr}</td>
+            <td class="text-center">${idx + 1}</td>
+            <td><strong>${escapeHTML(m.name)}</strong><div style="font-size:11px; color:#64748b; margin-top:2px;">${stats.status}</div></td>
+            <td class="text-right nowrap">${formatRp(stats.totalTagihan)}</td>
+            <td class="text-right nowrap text-success">${formatRp(stats.totalDibayar)}</td>
+            <td class="text-right nowrap">${sisaStr}</td>
         </tr>`;
     });
     
     html += `</tbody></table>`;
     html += `
-        <div class="print-summary" style="margin-top:20px;">
-            <p><strong>TOTAL KELUARGA:</strong></p>
-            <p>Total Tagihan: <span style="float:right;">${formatRp(fStats.totalTagihan)}</span></p>
-            <p>Total Dibayar: <span style="float:right;" class="text-success">${formatRp(fStats.totalDibayar)}</span></p>
-            <hr style="border:0; border-top:1px solid #cbd5e1; margin:10px 0;">
+        <div class="print-summary">
+            <div class="print-summary-title">TOTAL BIAYA KELUARGA:</div>
+            <div class="print-summary-row">
+                <span>Total Tagihan:</span>
+                <strong class="nowrap">${formatRp(fStats.totalTagihan)}</strong>
+            </div>
+            <div class="print-summary-row">
+                <span>Total Dibayar:</span>
+                <strong class="text-success nowrap">${formatRp(fStats.totalDibayar)}</strong>
+            </div>
     `;
     
     if(fStats.kelebihan > 0) {
-        html += `<p class="text-bold" style="font-size:16px;">Total Kelebihan: <span style="float:right;" class="text-info">${formatRp(fStats.kelebihan)}</span></p>`;
+        html += `
+            <div class="print-summary-row total-row">
+                <span>TOTAL KELEBIHAN BAYAR:</span>
+                <span class="text-info nowrap">+${formatRp(fStats.kelebihan)}</span>
+            </div>
+        `;
     } else {
-        html += `<p class="text-bold" style="font-size:16px;">TOTAL SISA DIBAYAR: <span style="float:right;" class="text-danger">${formatRp(fStats.sisa)}</span></p>`;
+        html += `
+            <div class="print-summary-row total-row">
+                <span>TOTAL SISA DIBAYAR:</span>
+                <span class="text-danger nowrap">${formatRp(fStats.sisa)}</span>
+            </div>
+        `;
     }
     
     html += `</div>
@@ -341,19 +386,22 @@ document.getElementById('btn-download-jpeg').addEventListener('click', async () 
                 backgroundColor: '#ffffff',
                 useCORS: true,
                 logging: false,
+                windowWidth: 800,
                 onclone: (clonedDoc) => {
                     const clonedWrap = clonedDoc.querySelector('.print-wrap');
                     if (clonedWrap) {
-                        clonedWrap.style.width = '800px';
+                        clonedWrap.style.width = '720px';
+                        clonedWrap.style.maxWidth = '720px';
                         clonedWrap.style.margin = '0';
-                        clonedWrap.style.transform = 'none'; // Proteksi menghindari efek skala aneh
+                        clonedWrap.style.boxShadow = 'none';
+                        clonedWrap.style.transform = 'none';
                     }
                 }
             });
 
             const jpegUrl = canvas.toDataURL('image/jpeg', 0.95);
             const link = document.createElement('a');
-            link.download = `Ringkasan_Pembayaran_${Date.now()}.jpg`;
+            link.download = `Ringkasan_Biaya_${Date.now()}.jpg`;
             link.href = jpegUrl;
             document.body.appendChild(link);
             link.click();
