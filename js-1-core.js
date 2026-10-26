@@ -191,12 +191,42 @@ function calcFamilyStats(familyName) {
         fKelebihan += stats.kelebihan;
     });
 
-    return { totalTagihan: fTagihan, totalDibayar: fDibayar, sisa: fSisa, kelebihan: fKelebihan, members };
+    const rawNetSisa = fTagihan - fDibayar;
+    let status = 'BELUM BAYAR';
+    let badgeClass = 'badge-danger';
+
+    if (fTagihan === 0 && fDibayar === 0) {
+        status = 'BELUM ADA TAGIHAN';
+        badgeClass = 'badge-secondary';
+    } else if (fSisa === 0 && fKelebihan === 0 && fTagihan > 0) {
+        status = 'LUNAS';
+        badgeClass = 'badge-success';
+    } else if (fSisa === 0 && fKelebihan > 0) {
+        status = 'KELEBIHAN BAYAR';
+        badgeClass = 'badge-info';
+    } else if (fSisa > 0 && fDibayar > 0) {
+        status = 'CICILAN';
+        badgeClass = 'badge-warning';
+    }
+
+    return { totalTagihan: fTagihan, totalDibayar: fDibayar, sisa: fSisa, kelebihan: fKelebihan, rawNetSisa, status, badgeClass, members };
 }
 
 /* ==========================================================================
-   KOMPONEN UI & NAVIGASI
+   KOMPONEN UI, MODAL & SISTEM NAVIGASI HISTORY (GLOBAL BACK BUTTON)
    ========================================================================== */
+let isHandlingPopState = false;
+
+function getCurrentNavState() {
+    const activeSection = document.querySelector('.view-section.active');
+    const viewId = activeSection ? activeSection.id : 'view-dashboard';
+    return {
+        viewId: viewId,
+        detailId: typeof currentDetailId !== 'undefined' ? currentDetailId : null,
+        detailFamily: typeof currentDetailFamily !== 'undefined' ? currentDetailFamily : null
+    };
+}
+
 function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -207,11 +237,27 @@ function showToast(message, type = 'success') {
 }
 
 function openModal(modalId) {
-    document.getElementById(modalId).classList.add('show');
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    const wasAlreadyOpen = modal.classList.contains('show');
+    modal.classList.add('show');
+
+    if (!wasAlreadyOpen && !isHandlingPopState) {
+        const navState = getCurrentNavState();
+        navState.modalId = modalId;
+        history.pushState(navState, '', window.location.pathname);
+    }
 }
 
-function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('show');
+function closeModal(modalId, fromPopState = false) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    const wasOpen = modal.classList.contains('show');
+    modal.classList.remove('show');
+
+    if (wasOpen && !fromPopState && !isHandlingPopState && history.state && history.state.modalId === modalId) {
+        history.back();
+    }
 }
 
 let confirmCallback = null;
@@ -236,7 +282,7 @@ document.querySelectorAll('.btn-close, .btn-secondary').forEach(btn => {
     if(btn.id !== 'btn-confirm-cancel' && btn.id !== 'btn-close-ringkasan-footer') {
         btn.addEventListener('click', (e) => {
             const modal = e.target.closest('.modal');
-            if (modal) modal.classList.remove('show');
+            if (modal) closeModal(modal.id);
         });
     }
 });
@@ -253,26 +299,117 @@ function closeSidebarMobile() {
     }
 }
 
+const viewTitles = {
+    'view-dashboard': '<span class="topbar-title-main">TOUR MANAGEMENT</span><span class="topbar-title-sub">DAVKA TOUR AND TRAVEL</span>',
+    'view-participants': 'Peserta & Keluarga',
+    'view-costs': 'Rincian Biaya Peserta',
+    'view-payments': 'Pembayaran & Cicilan',
+    'view-expenses': 'Pengeluaran Operasional',
+    'view-reports': 'Laporan Keuangan',
+    'view-participant-detail': 'Detail Peserta',
+    'view-family-detail': 'Detail Keluarga'
+};
+
+function activateViewDOM(viewId, options = {}) {
+    const { pushHistory = true, detailId = null, detailFamily = null } = options;
+
+    if (typeof currentDetailId !== 'undefined') {
+        currentDetailId = detailId;
+    }
+    if (typeof currentDetailFamily !== 'undefined') {
+        currentDetailFamily = detailFamily;
+    }
+
+    document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
+    const targetSection = document.getElementById(viewId);
+    if (targetSection) targetSection.classList.add('active');
+
+    document.querySelectorAll('.nav-link').forEach(nav => {
+        if (nav.getAttribute('data-target') === viewId) {
+            nav.classList.add('active');
+        } else {
+            nav.classList.remove('active');
+        }
+    });
+
+    const pageTitleEl = document.getElementById('page-title');
+    if (viewId === 'view-dashboard') {
+        pageTitleEl.innerHTML = viewTitles['view-dashboard'];
+    } else {
+        pageTitleEl.textContent = viewTitles[viewId] || 'Davka Tour';
+    }
+
+    closeSidebarMobile();
+    refreshActiveView(viewId);
+
+    if (pushHistory && !isHandlingPopState) {
+        history.pushState({
+            viewId: viewId,
+            detailId: detailId,
+            detailFamily: detailFamily,
+            modalId: null
+        }, '', window.location.pathname);
+    }
+}
+
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
-        document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
-        e.target.classList.add('active');
+        const targetId = e.currentTarget.getAttribute('data-target');
+        const currentActive = document.querySelector('.view-section.active');
+        const isSameView = currentActive && currentActive.id === targetId;
 
-        const targetId = e.target.getAttribute('data-target');
-        document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
-        document.getElementById(targetId).classList.add('active');
-        
-        if(targetId === 'view-dashboard') {
-            document.getElementById('page-title').innerHTML = '<span class="topbar-title-main">TOUR MANAGEMENT</span><span class="topbar-title-sub">DAVKA TOUR AND TRAVEL</span>';
-        } else {
-            document.getElementById('page-title').textContent = e.target.textContent;
-        }
-        
-        closeSidebarMobile();
-        refreshActiveView(targetId);
+        activateViewDOM(targetId, { pushHistory: !isSameView });
     });
 });
+
+// Event listener Global untuk tombol Back fisik HP / Browser
+window.addEventListener('popstate', (e) => {
+    isHandlingPopState = true;
+
+    // 1. Jika ada sidebar mobile yang terbuka, tutup terlebih dahulu
+    if (sidebar && sidebar.classList.contains('open')) {
+        closeSidebarMobile();
+    }
+
+    // 2. Jika ada modal yang sedang terbuka, tutup modal yang tidak sesuai state
+    const openModals = document.querySelectorAll('.modal.show');
+    if (openModals.length > 0) {
+        const targetModalId = e.state ? e.state.modalId : null;
+        openModals.forEach(m => {
+            if (m.id !== targetModalId) {
+                m.classList.remove('show');
+            }
+        });
+    }
+
+    // 3. Pulihkan tampilan halaman (view) sesuai riwayat sebelumnya
+    if (e.state && e.state.viewId) {
+        activateViewDOM(e.state.viewId, {
+            pushHistory: false,
+            detailId: e.state.detailId || null,
+            detailFamily: e.state.detailFamily || null
+        });
+        if (e.state.modalId) {
+            const modalToRestore = document.getElementById(e.state.modalId);
+            if (modalToRestore) modalToRestore.classList.add('show');
+        }
+    } else {
+        activateViewDOM('view-dashboard', { pushHistory: false });
+    }
+
+    isHandlingPopState = false;
+});
+
+// Inisialisasi state awal saat halaman pertama kali dibuka
+if (!history.state || !history.state.viewId) {
+    history.replaceState({
+        viewId: 'view-dashboard',
+        detailId: null,
+        detailFamily: null,
+        modalId: null
+    }, '', window.location.pathname);
+}
 
 mobileMenuBtn.addEventListener('click', () => {
     sidebar.classList.toggle('open');
@@ -291,6 +428,7 @@ function refreshActiveView(viewId) {
         case 'view-payments': renderPayments(); break;
         case 'view-expenses': renderExpenses(); break;
         case 'view-participant-detail': renderDetailParticipant(currentDetailId); break;
+        case 'view-family-detail': renderDetailFamily(currentDetailFamily); break;
     }
 }
 
@@ -300,6 +438,9 @@ function refreshAll() {
     if (activeNav) refreshActiveView(activeNav.getAttribute('data-target'));
     if (document.getElementById('view-participant-detail').classList.contains('active')) {
         renderDetailParticipant(currentDetailId);
+    }
+    if (document.getElementById('view-family-detail') && document.getElementById('view-family-detail').classList.contains('active')) {
+        renderDetailFamily(currentDetailFamily);
     }
 }
 

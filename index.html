@@ -220,7 +220,7 @@
                                 <table class="table" id="table-participants">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
+                                            <th>No</th>
                                             <th>Nama Lengkap</th>
                                             <th>Keluarga/Grup</th>
                                             <th>Aksi</th>
@@ -275,35 +275,31 @@
 
                 <!-- VIEW: DETAIL PESERTA (Sub-view) -->
                 <section id="view-participant-detail" class="view-section">
-                    <!-- REVISI 1: Tombol Kembali ke Daftar Manual Dihapus -->
-                    
                     <div class="card profile-header mb-20">
                         <div class="flex-between align-start">
                             <div>
                                 <h2 id="detail-part-name">Nama Peserta</h2>
-                                <p class="text-muted"><span id="detail-part-family">Keluarga</span> | ID: <span id="detail-part-id"></span></p>
+                                <p class="text-muted mb-5">Keluarga / Grup: <strong id="detail-part-family">Keluarga</strong></p>
                                 <div class="mt-10">
                                     <span class="badge" id="detail-part-status-badge">Status</span>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <button class="btn btn-outline-primary mb-10" id="btn-print-individual">Cetak Ringkasan Biaya Individu</button>
-                                <br>
-                                <button class="btn btn-outline-secondary" id="btn-print-family">Cetak Ringkasan Biaya Keluarga</button>
+                                <button class="btn btn-outline-primary" id="btn-print-individual">Cetak Ringkasan Biaya Individu</button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card-grid mb-20">
-                        <div class="card summary-card">
+                    <div class="card-grid detail-summary-grid mb-20">
+                        <div class="card summary-card summary-card-tagihan">
                             <h3>Total Tagihan</h3>
                             <p id="detail-total-tagihan" class="stat-value">Rp0</p>
                         </div>
-                        <div class="card summary-card">
+                        <div class="card summary-card summary-card-dibayar">
                             <h3>Total Dibayar</h3>
                             <p id="detail-total-dibayar" class="stat-value text-success">Rp0</p>
                         </div>
-                        <div class="card summary-card">
+                        <div class="card summary-card summary-card-sisa">
                             <h3>Sisa Tagihan</h3>
                             <p id="detail-sisa-tagihan" class="stat-value text-danger">Rp0</p>
                         </div>
@@ -343,6 +339,105 @@
                                 <thead>
                                     <tr>
                                         <th>Tanggal</th>
+                                        <th>Nominal Alokasi</th>
+                                        <th>Metode</th>
+                                        <th>Catatan</th>
+                                    </tr>
+                                </thead>
+                                <tbody><!-- JS injection --></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW: DETAIL KELUARGA (Sub-view) -->
+                <section id="view-family-detail" class="view-section">
+                    <div class="card profile-header mb-20">
+                        <div class="flex-between align-start">
+                            <div>
+                                <h2 id="detail-fam-name">Nama Keluarga</h2>
+                                <p class="text-muted mb-5">Jumlah Anggota: <strong id="detail-fam-count">0 Orang</strong></p>
+                                <div class="mt-10">
+                                    <span class="badge" id="detail-fam-status-badge">Status</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <button class="btn btn-outline-primary" id="btn-print-family">Cetak Ringkasan Biaya Keluarga</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-grid detail-summary-grid mb-20">
+                        <div class="card summary-card summary-card-tagihan">
+                            <h3>Total Tagihan</h3>
+                            <p id="detail-fam-total-tagihan" class="stat-value">Rp0</p>
+                        </div>
+                        <div class="card summary-card summary-card-dibayar">
+                            <h3>Total Dibayar</h3>
+                            <p id="detail-fam-total-dibayar" class="stat-value text-success">Rp0</p>
+                        </div>
+                        <div class="card summary-card summary-card-sisa">
+                            <h3>Sisa Tagihan</h3>
+                            <p id="detail-fam-sisa-tagihan" class="stat-value text-danger">Rp0</p>
+                        </div>
+                    </div>
+
+                    <div class="card mb-20">
+                        <div class="card-header flex-between align-center">
+                            <h3>Daftar Anggota & Tagihan</h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table" id="table-detail-fam-members">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Anggota</th>
+                                        <th>Tagihan</th>
+                                        <th>Dibayar</th>
+                                        <th>Sisa / Lebih</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody><!-- JS injection --></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card mb-20">
+                        <div class="card-header flex-between align-center">
+                            <h3>Rincian Biaya Keluarga</h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table" id="table-detail-fam-costs">
+                                <thead>
+                                    <tr>
+                                        <th>Peserta</th>
+                                        <th>Kategori</th>
+                                        <th>Harga</th>
+                                        <th>Qty</th>
+                                        <th>Total</th>
+                                        <th>Catatan</th>
+                                    </tr>
+                                </thead>
+                                <tbody><!-- JS injection --></tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer text-right">
+                            <p class="text-muted">Total Biaya Keluarga: <strong id="detail-fam-sum-costs">Rp0</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Riwayat Pembayaran Keluarga (Alokasi)</h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table" id="table-detail-fam-payments">
+                                <thead>
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Peserta</th>
                                         <th>Nominal Alokasi</th>
                                         <th>Metode</th>
                                         <th>Catatan</th>

@@ -214,16 +214,12 @@ if (dashSearchPeserta) {
     });
 }
 
-// Fungsi Aksi Tombol Detail pada Tabel Status Keluarga / Grup
+// Fungsi Aksi Tombol Detail pada Tabel Status Keluarga / Grup -> Buka Halaman Detail Keluarga
 window.openFamilyDetailFromDash = function(representativeParticipantId) {
     if (!representativeParticipantId) return;
-    currentDetailId = representativeParticipantId;
-    const btnPrintFam = document.getElementById('btn-print-family');
-    if (btnPrintFam) {
-        btnPrintFam.click();
-    } else {
-        openParticipantDetail(representativeParticipantId);
-    }
+    const p = db.participants.find(x => x.id === representativeParticipantId);
+    if (!p) return;
+    openFamilyDetail(p.family);
 };
 
 /* ==========================================================================

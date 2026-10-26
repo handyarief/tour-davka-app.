@@ -1,32 +1,26 @@
 /* ==========================================================================
-   MODUL 4: DETAIL PESERTA & CETAK RINGKASAN (JPEG)
+   MODUL 4: DETAIL PESERTA, DETAIL KELUARGA & CETAK RINGKASAN (JPEG)
    ========================================================================== */
 let currentDetailId = null;
+let currentDetailFamily = null;
 
 window.openParticipantDetail = function(id) {
-    currentDetailId = id;
-    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-    document.getElementById('view-participant-detail').classList.add('active');
-    document.getElementById('page-title').textContent = 'Detail Peserta';
-    
-    document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
-    
-    // REVISI 1: Manfaatkan History PushState agar mendukung tombol BACK pada Handphone
-    history.pushState({ view: 'detail', id: id }, '', '#detail');
-    
-    renderDetailParticipant(id);
-}
+    if (!id) return;
+    activateViewDOM('view-participant-detail', {
+        pushHistory: true,
+        detailId: id,
+        detailFamily: currentDetailFamily
+    });
+};
 
-// REVISI 1: Event listener tombol back pada browser / hardware Android back button
-window.addEventListener('popstate', (e) => {
-    if (currentDetailId !== null) {
-        currentDetailId = null;
-        document.getElementById('view-participant-detail').classList.remove('active');
-        document.getElementById('view-participants').classList.add('active');
-        document.querySelector('[data-target="view-participants"]').classList.add('active');
-        document.getElementById('page-title').textContent = 'Peserta & Keluarga';
-    }
-});
+window.openFamilyDetail = function(familyName) {
+    if (!familyName) return;
+    activateViewDOM('view-family-detail', {
+        pushHistory: true,
+        detailId: currentDetailId,
+        detailFamily: familyName
+    });
+};
 
 function renderDetailParticipant(id) {
     if(!id) return;
@@ -37,7 +31,6 @@ function renderDetailParticipant(id) {
 
     document.getElementById('detail-part-name').textContent = p.name;
     document.getElementById('detail-part-family').textContent = p.family;
-    document.getElementById('detail-part-id').textContent = p.id;
     
     const badge = document.getElementById('detail-part-status-badge');
     badge.textContent = stats.status;
@@ -46,32 +39,40 @@ function renderDetailParticipant(id) {
     document.getElementById('detail-total-tagihan').textContent = formatRp(stats.totalTagihan);
     document.getElementById('detail-total-dibayar').textContent = formatRp(stats.totalDibayar);
     
+    const sisaEl = document.getElementById('detail-sisa-tagihan');
+    const sisaCard = sisaEl ? sisaEl.closest('.summary-card-sisa') : null;
     if (stats.kelebihan > 0) {
-        document.getElementById('detail-sisa-tagihan').textContent = `+${formatRp(stats.kelebihan)} (Lebih)`;
-        document.getElementById('detail-sisa-tagihan').className = 'stat-value text-info';
+        sisaEl.textContent = `+${formatRp(stats.kelebihan)} (Lebih)`;
+        sisaEl.className = 'stat-value text-info';
+        if (sisaCard) sisaCard.classList.add('is-lebih');
     } else {
-        document.getElementById('detail-sisa-tagihan').textContent = formatRp(stats.sisa);
-        document.getElementById('detail-sisa-tagihan').className = 'stat-value text-danger';
+        sisaEl.textContent = formatRp(stats.sisa);
+        sisaEl.className = 'stat-value text-danger';
+        if (sisaCard) sisaCard.classList.remove('is-lebih');
     }
 
     const tbodyCosts = document.querySelector('#table-detail-costs tbody');
     tbodyCosts.innerHTML = '';
     const pCosts = db.costs.filter(c => c.participantId === id);
-    pCosts.forEach(c => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${escapeHTML(c.category)}</td>
-            <td>${formatRp(c.price)}</td>
-            <td>${c.qty}</td>
-            <td><strong>${formatRp(c.total)}</strong></td>
-            <td>${escapeHTML(c.notes || '-')}</td>
-            <td>
-                <button class="btn btn-sm btn-outline-secondary" onclick="openEditCostModal('${c.id}')">Edit</button>
-                <button class="btn btn-sm btn-danger ml-5" onclick="deleteCost('${c.id}', true)">&times;</button>
-            </td>
-        `;
-        tbodyCosts.appendChild(tr);
-    });
+    if (pCosts.length === 0) {
+        tbodyCosts.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada rincian biaya.</td></tr>';
+    } else {
+        pCosts.forEach(c => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${escapeHTML(c.category)}</td>
+                <td>${formatRp(c.price)}</td>
+                <td>${c.qty}</td>
+                <td><strong>${formatRp(c.total)}</strong></td>
+                <td>${escapeHTML(c.notes || '-')}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="openEditCostModal('${c.id}')">Edit</button>
+                    <button class="btn btn-sm btn-danger ml-5" onclick="deleteCost('${c.id}', true)">&times;</button>
+                </td>
+            `;
+            tbodyCosts.appendChild(tr);
+        });
+    }
     document.getElementById('detail-sum-costs').textContent = formatRp(stats.totalTagihan);
 
     const tbodyPays = document.querySelector('#table-detail-payments tbody');
@@ -93,7 +94,115 @@ function renderDetailParticipant(id) {
             }
         }
     });
-    if(!hasPayment) tbodyPays.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada riwayat pembayaran.</td></tr>';
+    if(!hasPayment) tbodyPays.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Belum ada riwayat pembayaran.</td></tr>';
+}
+
+function renderDetailFamily(familyName) {
+    if (!familyName) return;
+    const fStats = calcFamilyStats(familyName);
+
+    document.getElementById('detail-fam-name').textContent = familyName;
+    document.getElementById('detail-fam-count').textContent = `${fStats.members.length} Orang`;
+
+    const badge = document.getElementById('detail-fam-status-badge');
+    badge.textContent = fStats.status;
+    badge.className = `badge ${fStats.badgeClass}`;
+
+    document.getElementById('detail-fam-total-tagihan').textContent = formatRp(fStats.totalTagihan);
+    document.getElementById('detail-fam-total-dibayar').textContent = formatRp(fStats.totalDibayar);
+
+    const sisaEl = document.getElementById('detail-fam-sisa-tagihan');
+    const sisaCard = sisaEl ? sisaEl.closest('.summary-card-sisa') : null;
+    if (fStats.sisa === 0 && fStats.kelebihan > 0) {
+        sisaEl.textContent = `+${formatRp(fStats.kelebihan)} (Lebih)`;
+        sisaEl.className = 'stat-value text-info';
+        if (sisaCard) sisaCard.classList.add('is-lebih');
+    } else {
+        sisaEl.textContent = formatRp(fStats.sisa);
+        sisaEl.className = 'stat-value text-danger';
+        if (sisaCard) sisaCard.classList.remove('is-lebih');
+    }
+
+    // 1. Tabel Daftar Anggota Keluarga
+    const tbodyMembers = document.querySelector('#table-detail-fam-members tbody');
+    tbodyMembers.innerHTML = '';
+    if (fStats.members.length === 0) {
+        tbodyMembers.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Belum ada anggota keluarga.</td></tr>';
+    } else {
+        fStats.members.forEach((m, idx) => {
+            const ms = calcParticipantStats(m.id);
+            const sisaStr = ms.kelebihan > 0
+                ? `<span class="text-info text-bold">+${formatRp(ms.kelebihan)}</span>`
+                : `<span class="text-danger text-bold">${formatRp(ms.sisa)}</span>`;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${idx + 1}</td>
+                <td><strong>${escapeHTML(m.name)}</strong></td>
+                <td>${formatRp(ms.totalTagihan)}</td>
+                <td class="text-success text-bold">${formatRp(ms.totalDibayar)}</td>
+                <td>${sisaStr}</td>
+                <td><span class="badge ${ms.badgeClass}">${ms.status}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="openParticipantDetail('${m.id}')">Detail Peserta</button>
+                </td>
+            `;
+            tbodyMembers.appendChild(tr);
+        });
+    }
+
+    // 2. Tabel Rincian Biaya Keluarga
+    const tbodyCosts = document.querySelector('#table-detail-fam-costs tbody');
+    tbodyCosts.innerHTML = '';
+    const memberIds = fStats.members.map(m => m.id);
+    const famCosts = db.costs.filter(c => memberIds.includes(c.participantId));
+
+    if (famCosts.length === 0) {
+        tbodyCosts.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada rincian biaya keluarga.</td></tr>';
+    } else {
+        famCosts.forEach(c => {
+            const memberObj = fStats.members.find(m => m.id === c.participantId);
+            const memberName = memberObj ? memberObj.name : '-';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${escapeHTML(memberName)}</strong></td>
+                <td>${escapeHTML(c.category)}</td>
+                <td>${formatRp(c.price)}</td>
+                <td>${c.qty}</td>
+                <td><strong>${formatRp(c.total)}</strong></td>
+                <td>${escapeHTML(c.notes || '-')}</td>
+            `;
+            tbodyCosts.appendChild(tr);
+        });
+    }
+    document.getElementById('detail-fam-sum-costs').textContent = formatRp(fStats.totalTagihan);
+
+    // 3. Tabel Riwayat Pembayaran Keluarga (Alokasi)
+    const tbodyPays = document.querySelector('#table-detail-fam-payments tbody');
+    tbodyPays.innerHTML = '';
+    let hasPayment = false;
+    db.payments.forEach(pay => {
+        if (pay.allocations) {
+            pay.allocations.forEach(alloc => {
+                if (memberIds.includes(alloc.participantId)) {
+                    hasPayment = true;
+                    const memberObj = fStats.members.find(m => m.id === alloc.participantId);
+                    const memberName = memberObj ? memberObj.name : '-';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${formatDate(pay.date)}</td>
+                        <td><strong>${escapeHTML(memberName)}</strong></td>
+                        <td class="text-success text-bold">${formatRp(alloc.amount)}</td>
+                        <td>${escapeHTML(pay.method)}</td>
+                        <td>${escapeHTML(pay.notes || '-')}</td>
+                    `;
+                    tbodyPays.appendChild(tr);
+                }
+            });
+        }
+    });
+    if (!hasPayment) {
+        tbodyPays.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Belum ada riwayat pembayaran keluarga.</td></tr>';
+    }
 }
 
 window.openEditCostModal = function(costId) {
@@ -291,9 +400,14 @@ document.getElementById('btn-print-individual').addEventListener('click', () => 
 });
 
 document.getElementById('btn-print-family').addEventListener('click', () => {
-    const p = db.participants.find(x => x.id === currentDetailId);
-    if (!p) return;
-    const fStats = calcFamilyStats(p.family);
+    let targetFamily = currentDetailFamily;
+    if (!targetFamily && currentDetailId) {
+        const p = db.participants.find(x => x.id === currentDetailId);
+        if (p) targetFamily = p.family;
+    }
+    if (!targetFamily) return;
+
+    const fStats = calcFamilyStats(targetFamily);
     
     let html = getPrintStyles() + `<div class="print-wrap">`;
     html += `
@@ -302,7 +416,7 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
             <p>TOUR DAVKA TRAVEL</p>
         </div>
         <table class="print-info">
-            <tr><td class="info-label">Nama Keluarga/Grup</td><td class="info-sep">:</td><td><strong>${escapeHTML(p.family)}</strong></td></tr>
+            <tr><td class="info-label">Nama Keluarga/Grup</td><td class="info-sep">:</td><td><strong>${escapeHTML(targetFamily)}</strong></td></tr>
             <tr><td class="info-label">Jumlah Anggota</td><td class="info-sep">:</td><td>${fStats.members.length} Orang</td></tr>
         </table>
         
@@ -345,7 +459,7 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
             </div>
     `;
     
-    if(fStats.kelebihan > 0) {
+    if(fStats.sisa === 0 && fStats.kelebihan > 0) {
         html += `
             <div class="print-summary-row total-row">
                 <span>TOTAL KELEBIHAN BAYAR:</span>
