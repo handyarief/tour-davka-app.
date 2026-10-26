@@ -145,14 +145,39 @@
                         </div>
                     </div>
 
+                    <!-- Card Status Keluarga / Grup -->
                     <div class="card mt-20">
                         <div class="card-header flex-between align-center">
-                            <h3>Status Peserta</h3>
-                            <select id="dash-filter-keluarga" class="form-control input-sm" style="max-width: 250px;">
+                            <h3>Status Keluarga / Grup</h3>
+                            <select id="dash-filter-status-keluarga" class="form-control input-sm" style="max-width: 250px;">
                                 <option value="none">None</option>
                                 <option value="">Semua Keluarga</option>
                                 <!-- Opsi via JS -->
                             </select>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table" id="table-dash-keluarga">
+                                <thead>
+                                    <tr id="dash-family-table-header">
+                                        <th>Nama Keluarga</th>
+                                        <th>Total Peserta</th>
+                                        <!-- Kolom Kategori Biaya disuntikkan via JS -->
+                                        <th>Total Biaya</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data disuntikkan via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Card Status Peserta -->
+                    <div class="card mt-20">
+                        <div class="card-header flex-between align-center">
+                            <h3>Status Peserta</h3>
+                            <input type="text" id="dash-search-peserta" class="form-control input-sm" style="max-width: 250px;" placeholder="Cari peserta / keluarga..." autocomplete="off">
                         </div>
                         <div class="table-responsive">
                             <table class="table" id="table-dash-peserta">

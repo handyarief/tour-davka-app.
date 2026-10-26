@@ -53,16 +53,78 @@ function renderDashboard() {
         });
     }
 
-    const filterSelect = document.getElementById('dash-filter-keluarga');
-    const currentFilterVal = filterSelect.value;
-    filterSelect.innerHTML = '<option value="none">None</option>'; 
-    filterSelect.innerHTML += '<option value="">Semua Keluarga</option>';
-    families.forEach(f => {
-        filterSelect.innerHTML += `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`;
-    });
-    
-    if(!currentFilterVal) filterSelect.value = 'none';
-    else filterSelect.value = currentFilterVal;
+    /* ----------------------------------------------------------------------
+       1. TABEL STATUS KELUARGA / GRUP
+       ---------------------------------------------------------------------- */
+    const familyFilterSelect = document.getElementById('dash-filter-status-keluarga');
+    if (familyFilterSelect) {
+        const currentFamFilterVal = familyFilterSelect.value;
+        familyFilterSelect.innerHTML = '<option value="none">None</option>';
+        familyFilterSelect.innerHTML += '<option value="">Semua Keluarga</option>';
+        families.forEach(f => {
+            familyFilterSelect.innerHTML += `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`;
+        });
+
+        if (!currentFamFilterVal) familyFilterSelect.value = 'none';
+        else familyFilterSelect.value = currentFamFilterVal;
+
+        const famTheadTr = document.getElementById('dash-family-table-header');
+        let famThHtml = `<th>Nama Keluarga</th><th>Total Peserta</th>`;
+        usedCatArray.forEach(cat => {
+            famThHtml += `<th>${escapeHTML(cat)}</th>`;
+        });
+        famThHtml += `<th>Total Biaya</th><th>Aksi</th>`;
+        famTheadTr.innerHTML = famThHtml;
+
+        const famTbody = document.querySelector('#table-dash-keluarga tbody');
+        famTbody.innerHTML = '';
+        const activeFamFilter = familyFilterSelect.value;
+
+        families.forEach(famName => {
+            const famMembers = activeParticipants.filter(p => p.family === famName);
+            const memberIds = famMembers.map(m => m.id);
+            const famCosts = db.costs.filter(c => memberIds.includes(c.participantId));
+
+            let famCatTotals = {};
+            let famTotalBiaya = 0;
+
+            famCosts.forEach(c => {
+                if (!famCatTotals[c.category]) famCatTotals[c.category] = 0;
+                famCatTotals[c.category] += c.total;
+                famTotalBiaya += c.total;
+            });
+
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-family', famName);
+
+            if (activeFamFilter === 'none') tr.style.display = 'none';
+            else if (activeFamFilter && activeFamFilter !== famName) tr.style.display = 'none';
+            else tr.style.display = '';
+
+            let tdHtml = `
+                <td><strong>${escapeHTML(famName)}</strong></td>
+                <td>${famMembers.length} Orang</td>
+            `;
+            usedCatArray.forEach(cat => {
+                tdHtml += `<td>${formatRp(famCatTotals[cat] || 0)}</td>`;
+            });
+
+            const firstMemberId = famMembers.length > 0 ? famMembers[0].id : '';
+            tdHtml += `
+                <td><strong>${formatRp(famTotalBiaya)}</strong></td>
+                <td><button class="btn btn-sm btn-outline-primary" onclick="openFamilyDetailFromDash('${firstMemberId}')">Detail</button></td>
+            `;
+
+            tr.innerHTML = tdHtml;
+            famTbody.appendChild(tr);
+        });
+    }
+
+    /* ----------------------------------------------------------------------
+       2. TABEL STATUS PESERTA (PENCARIAN KETIK NAMA PESERTA / KELUARGA)
+       ---------------------------------------------------------------------- */
+    const searchInput = document.getElementById('dash-search-peserta');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
     const theadTr = document.getElementById('dash-table-header');
     let thHtml = `<th>Nama</th><th>Keluarga</th>`;
@@ -74,7 +136,6 @@ function renderDashboard() {
 
     const tbody = document.querySelector('#table-dash-peserta tbody');
     tbody.innerHTML = '';
-    const activeFilter = filterSelect.value; 
 
     activeParticipants.forEach(p => {
         const pCosts = db.costs.filter(c => c.participantId === p.id);
@@ -88,11 +149,16 @@ function renderDashboard() {
         });
         
         const tr = document.createElement('tr');
-        tr.setAttribute('data-family', p.family);
+        tr.setAttribute('data-name', p.name.toLowerCase());
+        tr.setAttribute('data-family', p.family.toLowerCase());
         
-        if (activeFilter === 'none') tr.style.display = 'none';
-        else if (activeFilter && activeFilter !== p.family) tr.style.display = 'none';
-        else tr.style.display = '';
+        if (!searchTerm) {
+            tr.style.display = 'none';
+        } else {
+            const matchName = p.name.toLowerCase().includes(searchTerm);
+            const matchFam = p.family.toLowerCase().includes(searchTerm);
+            tr.style.display = (matchName || matchFam) ? '' : 'none';
+        }
 
         let tdHtml = `
             <td><strong>${escapeHTML(p.name)}</strong></td>
@@ -111,19 +177,54 @@ function renderDashboard() {
     });
 }
 
-document.getElementById('dash-filter-keluarga').addEventListener('change', function(e) {
-    const family = e.target.value;
-    const rows = document.querySelectorAll('#table-dash-peserta tbody tr');
-    
-    rows.forEach(row => {
-        if (family === 'none') row.style.display = 'none'; 
-        else if (family === '') row.style.display = ''; 
-        else {
-            const rowFam = row.getAttribute('data-family');
-            row.style.display = (rowFam === family) ? '' : 'none';
-        }
+// Event Listener Filter Dropdown pada Status Keluarga / Grup
+const dashFamilySelect = document.getElementById('dash-filter-status-keluarga');
+if (dashFamilySelect) {
+    dashFamilySelect.addEventListener('change', function(e) {
+        const family = e.target.value;
+        const rows = document.querySelectorAll('#table-dash-keluarga tbody tr');
+        
+        rows.forEach(row => {
+            if (family === 'none') row.style.display = 'none';
+            else if (family === '') row.style.display = '';
+            else {
+                const rowFam = row.getAttribute('data-family');
+                row.style.display = (rowFam === family) ? '' : 'none';
+            }
+        });
     });
-});
+}
+
+// Event Listener Pencarian Ketik Nama Peserta / Keluarga pada Status Peserta
+const dashSearchPeserta = document.getElementById('dash-search-peserta');
+if (dashSearchPeserta) {
+    dashSearchPeserta.addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#table-dash-peserta tbody tr');
+        
+        rows.forEach(row => {
+            if (!term) {
+                row.style.display = 'none';
+            } else {
+                const rowName = row.getAttribute('data-name') || '';
+                const rowFam = row.getAttribute('data-family') || '';
+                row.style.display = (rowName.includes(term) || rowFam.includes(term)) ? '' : 'none';
+            }
+        });
+    });
+}
+
+// Fungsi Aksi Tombol Detail pada Tabel Status Keluarga / Grup
+window.openFamilyDetailFromDash = function(representativeParticipantId) {
+    if (!representativeParticipantId) return;
+    currentDetailId = representativeParticipantId;
+    const btnPrintFam = document.getElementById('btn-print-family');
+    if (btnPrintFam) {
+        btnPrintFam.click();
+    } else {
+        openParticipantDetail(representativeParticipantId);
+    }
+};
 
 /* ==========================================================================
    MODUL 3: PESERTA & KELUARGA (DENGAN SUPABASE SYNC)
