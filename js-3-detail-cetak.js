@@ -1,8 +1,9 @@
 /* ==========================================================================
-   MODUL 4: DETAIL PESERTA, DETAIL KELUARGA & CETAK RINGKASAN (JPEG)
+   MODUL 4: DETAIL PESERTA, DETAIL KELUARGA & CETAK RINGKASAN (PRINT / BT / JPG)
    ========================================================================== */
 let currentDetailId = null;
 let currentDetailFamily = null;
+let currentRingkasanType = null; // 'individual' atau 'family'
 
 window.openParticipantDetail = function(id) {
     if (!id) return;
@@ -290,6 +291,8 @@ const getPrintStyles = () => `
 document.getElementById('btn-print-individual').addEventListener('click', () => {
     const p = db.participants.find(x => x.id === currentDetailId);
     if (!p) return;
+    currentRingkasanType = 'individual';
+
     const stats = calcParticipantStats(p.id);
     const pCosts = db.costs.filter(c => c.participantId === p.id);
     
@@ -406,6 +409,7 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
         if (p) targetFamily = p.family;
     }
     if (!targetFamily) return;
+    currentRingkasanType = 'family';
 
     const fStats = calcFamilyStats(targetFamily);
     
@@ -483,7 +487,191 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
     openModal('modal-ringkasan');
 });
 
-// REVISI 3: Render JPEG kini presisi, utuh, tanpa terpotong
+// 1. FUNGSI CETAK (PRINT) WI-FI / LAN / SISTEM PADA MODAL RINGKASAN (INDIVIDU & KELUARGA)
+function triggerSystemPrintRingkasan() {
+    document.body.classList.add('printing-ringkasan');
+    window.print();
+    setTimeout(() => {
+        document.body.classList.remove('printing-ringkasan');
+    }, 500);
+}
+
+window.addEventListener('afterprint', () => {
+    document.body.classList.remove('printing-ringkasan');
+});
+
+const btnPrintRingkasan = document.getElementById('btn-print-ringkasan');
+if (btnPrintRingkasan) {
+    btnPrintRingkasan.addEventListener('click', () => {
+        triggerSystemPrintRingkasan();
+    });
+}
+
+// 2. FUNGSI CETAK BLUETOOTH (ESC/POS & FALLBACK) PADA MODAL RINGKASAN (INDIVIDU & KELUARGA)
+const btnPrintBtRingkasan = document.getElementById('btn-print-bluetooth-ringkasan');
+if (btnPrintBtRingkasan) {
+    btnPrintBtRingkasan.addEventListener('click', async () => {
+        if (!navigator.bluetooth) {
+            showToast('Membuka dialog printer sistem (Pilih printer Bluetooth Anda)...', 'warning');
+            setTimeout(() => triggerSystemPrintRingkasan(), 600);
+            return;
+        }
+
+        const originalText = btnPrintBtRingkasan.textContent;
+        btnPrintBtRingkasan.disabled = true;
+        btnPrintBtRingkasan.textContent = 'Menghubungkan BT...';
+
+        try {
+            if (typeof btCharacteristic === 'undefined' || !btCharacteristic) {
+                const device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: [
+                        '000018f0-0000-1000-8000-00805f9b34fb',
+                        'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+                        '49535343-fe7d-4ae5-8fa9-9fafd205e455'
+                    ]
+                });
+
+                const server = await device.gatt.connect();
+                const services = await server.getPrimaryServices();
+                for (const service of services) {
+                    const characteristics = await service.getCharacteristics();
+                    for (const char of characteristics) {
+                        if (char.properties.write || char.properties.writeWithoutResponse) {
+                            btCharacteristic = char;
+                            break;
+                        }
+                    }
+                    if (btCharacteristic) break;
+                }
+            }
+
+            if (!btCharacteristic) {
+                throw new Error('Karakteristik tulis printer Bluetooth tidak ditemukan.');
+            }
+
+            const receiptText = buildThermalRingkasanText();
+            const encoder = new TextEncoder();
+            const dataBytes = encoder.encode(receiptText);
+
+            const chunkSize = 100;
+            for (let i = 0; i < dataBytes.length; i += chunkSize) {
+                const chunk = dataBytes.slice(i, i + chunkSize);
+                if (btCharacteristic.properties.writeWithoutResponse) {
+                    await btCharacteristic.writeValueWithoutResponse(chunk);
+                } else {
+                    await btCharacteristic.writeValue(chunk);
+                }
+            }
+
+            showToast('Berhasil mencetak ke Printer Bluetooth!');
+        } catch (err) {
+            console.warn('Bluetooth Print Ringkasan Info:', err);
+            if (typeof btCharacteristic !== 'undefined') btCharacteristic = null;
+            if (err.name !== 'NotFoundError') {
+                showToast('Gagal koneksi langsung BT. Membuka dialog cetak sistem...', 'warning');
+                setTimeout(() => triggerSystemPrintRingkasan(), 800);
+            } else {
+                showToast('Pencarian printer Bluetooth dibatalkan.', 'warning');
+            }
+        } finally {
+            btnPrintBtRingkasan.disabled = false;
+            btnPrintBtRingkasan.textContent = originalText;
+        }
+    });
+}
+
+function buildThermalRingkasanText() {
+    const line = '--------------------------------\n';
+    let out = '\x1B\x40'; // Init ESC/POS
+    out += '\x1B\x61\x01'; // Align Center
+
+    if (currentRingkasanType === 'individual') {
+        const p = db.participants.find(x => x.id === currentDetailId);
+        if (!p) return '';
+        const stats = calcParticipantStats(p.id);
+        const pCosts = db.costs.filter(c => c.participantId === p.id);
+
+        out += 'RINGKASAN BIAYA INDIVIDU\n';
+        out += 'TOUR DAVKA TRAVEL\n';
+        out += line;
+        out += '\x1B\x61\x00'; // Align Left
+        out += `Nama     : ${p.name}\n`;
+        out += `Keluarga : ${p.family}\n`;
+        out += `Status   : ${stats.status}\n`;
+        out += line;
+        out += 'A. RINCIAN BIAYA:\n';
+        if (pCosts.length === 0) {
+            out += '- Belum ada tagihan biaya\n';
+        } else {
+            pCosts.forEach((c, idx) => {
+                out += `${idx + 1}. ${c.category}${c.qty > 1 ? ` (${c.qty}x)` : ''}: ${formatRp(c.total)}\n`;
+                if (c.notes) out += `   Catatan: ${c.notes}\n`;
+            });
+        }
+        out += line;
+        out += 'B. RIWAYAT PEMBAYARAN:\n';
+        let payCount = 0;
+        db.payments.forEach(pay => {
+            if (pay.allocations) {
+                const alloc = pay.allocations.find(a => a.participantId === p.id);
+                if (alloc) {
+                    payCount++;
+                    out += `${payCount}. ${formatDate(pay.date)} (${pay.method || '-'}): ${formatRp(alloc.amount)}\n`;
+                }
+            }
+        });
+        if (payCount === 0) {
+            out += '- Belum ada pembayaran\n';
+        }
+        out += line;
+        out += `Total Tagihan : ${formatRp(stats.totalTagihan)}\n`;
+        out += `Total Dibayar : ${formatRp(stats.totalDibayar)}\n`;
+        if (stats.kelebihan > 0) {
+            out += `Kelebihan Byr : +${formatRp(stats.kelebihan)}\n`;
+        } else {
+            out += `Total Sisa    : ${formatRp(stats.sisa)}\n`;
+        }
+    } else {
+        let targetFamily = currentDetailFamily;
+        if (!targetFamily && currentDetailId) {
+            const p = db.participants.find(x => x.id === currentDetailId);
+            if (p) targetFamily = p.family;
+        }
+        if (!targetFamily) return '';
+        const fStats = calcFamilyStats(targetFamily);
+
+        out += 'RINGKASAN BIAYA KELUARGA\n';
+        out += 'TOUR DAVKA TRAVEL\n';
+        out += line;
+        out += '\x1B\x61\x00'; // Align Left
+        out += `Keluarga : ${targetFamily}\n`;
+        out += `Anggota  : ${fStats.members.length} Orang\n`;
+        out += line;
+        fStats.members.forEach((m, idx) => {
+            const ms = calcParticipantStats(m.id);
+            const sisaTxt = ms.kelebihan > 0 ? `+${formatRp(ms.kelebihan)}` : formatRp(ms.sisa);
+            out += `${idx + 1}. ${m.name} (${ms.status})\n`;
+            out += `   Tagihan: ${formatRp(ms.totalTagihan)} | Dibayar: ${formatRp(ms.totalDibayar)}\n`;
+            out += `   Sisa/Lebih: ${sisaTxt}\n`;
+        });
+        out += line;
+        out += `Total Tagihan : ${formatRp(fStats.totalTagihan)}\n`;
+        out += `Total Dibayar : ${formatRp(fStats.totalDibayar)}\n`;
+        if (fStats.sisa === 0 && fStats.kelebihan > 0) {
+            out += `Kelebihan Byr : +${formatRp(fStats.kelebihan)}\n`;
+        } else {
+            out += `Total Sisa    : ${formatRp(fStats.sisa)}\n`;
+        }
+    }
+
+    out += line;
+    out += '\x1B\x61\x01'; // Align Center
+    out += 'Dicetak oleh Sistem Davka Travel\n\n\n\n';
+    return out;
+}
+
+// 3. FUNGSI SIMPAN SEBAGAI JPG PADA MODAL RINGKASAN (INDIVIDU & KELUARGA)
 document.getElementById('btn-download-jpeg').addEventListener('click', async () => {
     const btn = document.getElementById('btn-download-jpeg');
     const printArea = document.getElementById('ringkasan-print-area');
@@ -491,7 +679,7 @@ document.getElementById('btn-download-jpeg').addEventListener('click', async () 
 
     const originalText = btn.textContent;
     btn.disabled = true;
-    btn.textContent = 'Memproses...';
+    btn.textContent = 'Memproses JPG...';
 
     try {
         if (typeof html2canvas === 'function') {
@@ -521,7 +709,7 @@ document.getElementById('btn-download-jpeg').addEventListener('click', async () 
             link.click();
             document.body.removeChild(link);
 
-            showToast('Berhasil mengunduh gambar JPEG!');
+            showToast('Ringkasan berhasil disimpan sebagai JPG!');
         } else {
             throw new Error('Library html2canvas belum siap.');
         }

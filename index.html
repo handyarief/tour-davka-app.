@@ -40,18 +40,22 @@
                 <button class="btn-close" id="btn-close-ringkasan">&times;</button>
             </div>
             <div class="modal-body" style="background: #e2e8f0;">
-                <p class="help-text mb-10 text-center">Pratinjau ringkasan di bawah ini siap diunduh menjadi gambar (JPEG).</p>
+                <p class="help-text mb-10 text-center">Pratinjau ringkasan di bawah ini siap dicetak atau disimpan menjadi gambar (JPG).</p>
                 
-                <!-- Area yang akan dirender menjadi gambar JPEG -->
+                <!-- Area yang akan dirender menjadi gambar JPEG / Dicetak -->
                 <!-- REVISI: Inline style dihapus agar dikendalikan penuh oleh style.css -->
                 <div id="ringkasan-print-area">
                     <!-- Data disuntikkan via JS -->
                 </div>
 
             </div>
-            <div class="modal-actions">
+            <div class="modal-actions ringkasan-modal-actions">
+                <div class="ringkasan-action-group">
+                    <button type="button" class="btn btn-print-gray" id="btn-print-ringkasan">Cetak (Print)</button>
+                    <button type="button" class="btn btn-outline-primary" id="btn-print-bluetooth-ringkasan">Cetak Bluetooth</button>
+                    <button type="button" class="btn btn-success" id="btn-download-jpeg">Simpan sebagai JPG</button>
+                </div>
                 <button type="button" class="btn btn-secondary" id="btn-close-ringkasan-footer">Tutup</button>
-                <button type="button" class="btn btn-primary" id="btn-download-jpeg">Download JPEG</button>
             </div>
         </div>
     </div>
