@@ -11,7 +11,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Davka tour">
-    <!-- REVISI: Mengubah logo_2.png menjadi logo.png sesuai file yang tersedia -->
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
 
@@ -33,7 +32,7 @@
         </div>
     </div>
 
-    <!-- REVISI 3: Modal Ringkasan (Pengganti Modal WhatsApp) -->
+    <!-- Modal Ringkasan -->
     <div id="modal-ringkasan" class="modal">
         <div class="modal-content modal-lg">
             <div class="modal-header">
@@ -44,8 +43,8 @@
                 <p class="help-text mb-10 text-center">Pratinjau ringkasan di bawah ini siap diunduh menjadi gambar (JPEG).</p>
                 
                 <!-- Area yang akan dirender menjadi gambar JPEG -->
-                <!-- Penambahan overflow-x: auto agar bisa discroll di mobile tanpa merusak ukuran -->
-                <div id="ringkasan-print-area" style="background:#fff; padding:30px; border-radius:8px; color:#000; font-family:sans-serif; overflow-x: auto;">
+                <!-- REVISI: Inline style dihapus agar dikendalikan penuh oleh style.css -->
+                <div id="ringkasan-print-area">
                     <!-- Data disuntikkan via JS -->
                 </div>
 
@@ -57,7 +56,7 @@
         </div>
     </div>
 
-    <!-- REVISI 2: Pindah Modal Edit Biaya Individu ke Global Root (Luar tag view-section) -->
+    <!-- Modal Edit Biaya Individu -->
     <div id="modal-edit-cost" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -161,7 +160,7 @@
                                     <tr id="dash-table-header">
                                         <th>Nama</th>
                                         <th>Keluarga</th>
-                                        <!-- Kolom Kategori Biaya akan disuntikkan di sini via JS -->
+                                        <!-- Kolom Kategori Biaya disuntikkan via JS -->
                                         <th>Total Biaya</th>
                                         <th>Aksi</th>
                                     </tr>
@@ -251,9 +250,7 @@
 
                 <!-- VIEW: DETAIL PESERTA (Sub-view) -->
                 <section id="view-participant-detail" class="view-section">
-                    <div class="mb-15">
-                        <button class="btn btn-secondary" id="btn-back-to-participants">&larr; Kembali ke Daftar</button>
-                    </div>
+                    <!-- REVISI 1: Tombol Kembali ke Daftar Manual Dihapus -->
                     
                     <div class="card profile-header mb-20">
                         <div class="flex-between align-start">
@@ -265,7 +262,6 @@
                                 </div>
                             </div>
                             <div class="text-right">
-                                <!-- REVISI 3: Mengubah tombol cetak ringkasan -->
                                 <button class="btn btn-outline-primary mb-10" id="btn-print-individual">Cetak Ringkasan Individu</button>
                                 <br>
                                 <button class="btn btn-outline-secondary" id="btn-print-family">Cetak Ringkasan Keluarga</button>
@@ -320,7 +316,6 @@
                         <div class="table-responsive">
                             <table class="table" id="table-detail-payments">
                                 <thead>
-                                    <!-- REVISI 2: Menghapus <th> ID Transaksi -->
                                     <tr>
                                         <th>Tanggal</th>
                                         <th>Nominal Alokasi</th>
@@ -334,7 +329,7 @@
                     </div>
                 </section>
 
-                <!-- VIEW: RINCIAN BIAYA PESERTA (Manajemen Biaya Master) -->
+                <!-- VIEW: RINCIAN BIAYA PESERTA -->
                 <section id="view-costs" class="view-section">
                     <div class="card mb-20">
                         <div class="card-header">
@@ -404,8 +399,6 @@
                             </form>
                         </div>
                     </div>
-
-                    <!-- REVISI 2: Modal Edit Biaya dipindahkan ke luar section ini untuk memperbaiki bug z-index / display:none -->
 
                     <!-- Modal Biaya Bersama (Split) -->
                     <div id="modal-cost-shared" class="modal">
@@ -716,7 +709,6 @@
                             <h3>Pengaturan Laporan</h3>
                         </div>
                         <div class="card-body">
-                            <!-- REVISI 1: Menghapus input tanggal periode -->
                             <div class="form-group" style="max-width: 300px;">
                                 <label>Jenis Laporan</label>
                                 <select id="report-type" class="form-control">

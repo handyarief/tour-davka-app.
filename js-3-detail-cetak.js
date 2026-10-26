@@ -10,15 +10,22 @@ window.openParticipantDetail = function(id) {
     document.getElementById('page-title').textContent = 'Detail Peserta';
     
     document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
+    
+    // REVISI 1: Manfaatkan History PushState agar mendukung tombol BACK pada Handphone
+    history.pushState({ view: 'detail', id: id }, '', '#detail');
+    
     renderDetailParticipant(id);
 }
 
-document.getElementById('btn-back-to-participants').addEventListener('click', () => {
-    currentDetailId = null;
-    document.getElementById('view-participant-detail').classList.remove('active');
-    document.getElementById('view-participants').classList.add('active');
-    document.querySelector('[data-target="view-participants"]').classList.add('active');
-    document.getElementById('page-title').textContent = 'Peserta & Keluarga';
+// REVISI 1: Event listener tombol back pada browser / hardware Android back button
+window.addEventListener('popstate', (e) => {
+    if (currentDetailId !== null) {
+        currentDetailId = null;
+        document.getElementById('view-participant-detail').classList.remove('active');
+        document.getElementById('view-participants').classList.add('active');
+        document.querySelector('[data-target="view-participants"]').classList.add('active');
+        document.getElementById('page-title').textContent = 'Peserta & Keluarga';
+    }
 });
 
 function renderDetailParticipant(id) {
@@ -116,7 +123,6 @@ document.getElementById('form-edit-cost').addEventListener('submit', async (e) =
 
     const costIndex = db.costs.findIndex(c => c.id === costId);
     if(costIndex > -1) {
-        // UPDATE: Gunakan object baru dan cek error sebelum mengubah state lokal 'db'
         const updatedCost = {
             ...db.costs[costIndex],
             category: newCat,
@@ -318,6 +324,7 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
     openModal('modal-ringkasan');
 });
 
+// REVISI 3: Render JPEG kini presisi, utuh, tanpa terpotong
 document.getElementById('btn-download-jpeg').addEventListener('click', async () => {
     const btn = document.getElementById('btn-download-jpeg');
     const printArea = document.getElementById('ringkasan-print-area');
@@ -334,18 +341,12 @@ document.getElementById('btn-download-jpeg').addEventListener('click', async () 
                 backgroundColor: '#ffffff',
                 useCORS: true,
                 logging: false,
-                width: 800,
-                windowWidth: 900,
                 onclone: (clonedDoc) => {
-                    const clonedArea = clonedDoc.getElementById('ringkasan-print-area');
-                    if (clonedArea) {
-                        clonedArea.style.overflow = 'visible';
-                        clonedArea.style.width = '860px';
-                    }
-                    const clonedWrap = clonedDoc.querySelector('#ringkasan-print-area .print-wrap');
+                    const clonedWrap = clonedDoc.querySelector('.print-wrap');
                     if (clonedWrap) {
                         clonedWrap.style.width = '800px';
                         clonedWrap.style.margin = '0';
+                        clonedWrap.style.transform = 'none'; // Proteksi menghindari efek skala aneh
                     }
                 }
             });

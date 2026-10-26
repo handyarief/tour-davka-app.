@@ -39,7 +39,6 @@
     box-sizing: border-box;
 }
 
-/* REVISI GLOBAL SCROLL: Kunci scroll pada root untuk menghindari konflik touch di mobile */
 html, body {
     height: 100%;
     overflow: hidden;
@@ -77,13 +76,11 @@ strong {
    ========================================================================== */
 .app-container {
     display: flex;
-    /* REVISI GLOBAL SCROLL: Gunakan 100% dan dynamic viewport, kunci overflow luar */
     height: 100%;
     height: 100dvh; 
     overflow: hidden;
 }
 
-/* Sidebar Navigasi */
 .sidebar {
     width: 250px;
     background-color: #1e293b;
@@ -165,14 +162,12 @@ strong {
     font-weight: 600;
 }
 
-/* Area Konten Utama */
 .main-content {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     width: calc(100% - 250px);
     height: 100%;
-    /* REVISI GLOBAL SCROLL: Hapus overflow-y: auto disini, pindahkan ke .content-body */
     overflow: hidden; 
 }
 
@@ -231,7 +226,6 @@ strong {
 .content-body {
     padding: 20px;
     flex-grow: 1;
-    /* REVISI GLOBAL SCROLL: Jadikan wadah ini sebagai area scroll satu-satunya */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch; 
 }
@@ -249,6 +243,7 @@ strong {
     from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
 /* ==========================================================================
    KARTU (CARD) & GRID
    ========================================================================== */
@@ -313,7 +308,6 @@ strong {
     color: var(--text-muted);
 }
 
-/* UPDATE DASHBOARD: Card & Grid Ukuran Kecil */
 .dashboard-summary-grid {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 10px;
@@ -360,7 +354,6 @@ strong {
     text-overflow: ellipsis;
 }
 
-/* REVISI UX: Wrapper untuk Qty dan Harga agar sejajar */
 .cat-sum-detail {
     display: flex;
     justify-content: space-between;
@@ -1105,7 +1098,7 @@ input[type="checkbox"] {
 }
 
 /* ==========================================================================
-   REVISI 3 & 1: PROTEKSI LAYOUT LAPORAN & RINGKASAN (ANTI-GESER KANAN-KIRI)
+   REVISI PERBAIKAN PRATINJAU & LAPORAN
    ========================================================================== */
 #report-print-area, #report-output-container {
     overflow-x: hidden !important;
@@ -1125,22 +1118,24 @@ input[type="checkbox"] {
 #report-output-container .table td {
     white-space: normal !important;
     padding: 6px 4px !important;
-    font-size: 11px !important; /* Penyesuaian agar teks pas di layar mobile */
+    font-size: 11px !important; 
     vertical-align: top;
 }
 
+/* REVISI CSS UNTUK PREVIEW RINGKASAN AGAR BISA SCROLL DAN UKURAN PROPORSIONAL */
 #ringkasan-print-area {
-    overflow-x: hidden !important; /* Mengunci agar tidak bisa digeser */
+    overflow-x: auto !important; 
     width: 100%;
-    display: flex;
-    justify-content: center;
+    display: block !important; 
 }
 
-/* Memastikan wrapper ringkasan menyesuaikan ukuran layar (portrait card) */
 #ringkasan-print-area .print-wrap {
-    width: 100% !important;
-    max-width: 450px !important; 
-    padding: 15px !important;
+    width: 800px !important;
+    max-width: none !important; 
+    margin: 0 auto !important; 
+    padding: 20px !important;
+    background: #ffffff !important;
+    color: #000000 !important;
     box-sizing: border-box !important;
 }
 
