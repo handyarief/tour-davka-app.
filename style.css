@@ -776,6 +776,22 @@ input[type="checkbox"] {
     font-size: 13px;
 }
 
+/* Baris Total pada Tabel Matriks Rincian Biaya Keluarga */
+.table tr.fam-cost-summary-row td {
+    background-color: #f8fafc;
+    font-weight: 700;
+    color: #0f172a;
+    border-top: 2px solid #cbd5e1;
+}
+
+.table tr.fam-cost-grand-row td {
+    background-color: #f1f5f9;
+    font-weight: 800;
+    color: var(--primary);
+    border-top: 1px solid #cbd5e1;
+    font-size: 14px;
+}
+
 /* ==========================================================================
    MODAL / DIALOG
    ========================================================================== */
@@ -1365,6 +1381,12 @@ input[type="checkbox"] {
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
+#ringkasan-print-area .print-wrap.print-wrap-wide {
+    max-width: 100% !important;
+    width: max-content !important;
+    min-width: 100% !important;
+}
+
 /* ==========================================================================
    TAMPILAN CETAK (PRINT WI-FI / LAN / SISTEM)
    ========================================================================== */
@@ -1471,7 +1493,8 @@ input[type="checkbox"] {
         overflow: visible !important;
         padding: 0 !important;
     }
-    body.printing-ringkasan #ringkasan-print-area .print-wrap {
+    body.printing-ringkasan #ringkasan-print-area .print-wrap,
+    body.printing-ringkasan #ringkasan-print-area .print-wrap.print-wrap-wide {
         min-width: 0 !important;
         max-width: 100% !important;
         width: 100% !important;
@@ -1481,6 +1504,8 @@ input[type="checkbox"] {
         border: none !important;
     }
     body.printing-ringkasan .print-table th,
+    body.printing-ringkasan .print-table tr.matrix-total-row td,
+    body.printing-ringkasan .print-table tr.matrix-grand-row td,
     body.printing-ringkasan .print-summary {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;

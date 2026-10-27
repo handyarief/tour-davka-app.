@@ -98,6 +98,59 @@ function renderDetailParticipant(id) {
     if(!hasPayment) tbodyPays.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Belum ada riwayat pembayaran.</td></tr>';
 }
 
+// Helper untuk membangun data matriks biaya keluarga per kategori
+function buildFamilyCostMatrix(members) {
+    const sortedMembers = members.slice().sort((a, b) =>
+        (a.name || '').localeCompare(b.name || '', 'id', { sensitivity: 'base' })
+    );
+    const memberIds = sortedMembers.map(m => m.id);
+    const famCosts = db.costs.filter(c => memberIds.includes(c.participantId));
+
+    const usedCategoriesSet = new Set();
+    famCosts.forEach(c => {
+        if (c.category) usedCategoriesSet.add(c.category);
+    });
+    const usedCategories = Array.from(usedCategoriesSet).sort((a, b) =>
+        a.localeCompare(b, 'id', { sensitivity: 'base' })
+    );
+
+    const categoryTotals = {};
+    usedCategories.forEach(cat => { categoryTotals[cat] = 0; });
+
+    let grandTotal = 0;
+    const memberRows = sortedMembers.map(m => {
+        const mCosts = famCosts.filter(c => c.participantId === m.id);
+        const catMap = {};
+        usedCategories.forEach(cat => { catMap[cat] = 0; });
+
+        let rowTotal = 0;
+        mCosts.forEach(c => {
+            if (c.category) {
+                catMap[c.category] = (catMap[c.category] || 0) + c.total;
+                categoryTotals[c.category] = (categoryTotals[c.category] || 0) + c.total;
+                rowTotal += c.total;
+            }
+        });
+        grandTotal += rowTotal;
+
+        return {
+            member: m,
+            catMap,
+            rowTotal
+        };
+    });
+
+    return {
+        sortedMembers,
+        memberIds,
+        famCosts,
+        usedCategories,
+        categoryTotals,
+        grandTotal,
+        memberRows
+    };
+}
+
 function renderDetailFamily(familyName) {
     if (!familyName) return;
     const fStats = calcFamilyStats(familyName);
@@ -151,46 +204,73 @@ function renderDetailFamily(familyName) {
         });
     }
 
-    // 2. Tabel Rincian Biaya Keluarga (Diurutkan berdasarkan Nama Peserta A-Z)
-    const tbodyCosts = document.querySelector('#table-detail-fam-costs tbody');
+    // 2. Tabel Rincian Biaya Keluarga (Tabel Matriks: Nama | Per Kategori | Total + Total per Kategori & Total Semua)
+    const tableCosts = document.getElementById('table-detail-fam-costs');
+    const theadCosts = tableCosts.querySelector('thead');
+    const tbodyCosts = tableCosts.querySelector('tbody');
     tbodyCosts.innerHTML = '';
-    const memberIds = fStats.members.map(m => m.id);
-    const famCosts = db.costs
-        .filter(c => memberIds.includes(c.participantId))
-        .slice()
-        .sort((a, b) => {
-            const memberA = fStats.members.find(m => m.id === a.participantId);
-            const memberB = fStats.members.find(m => m.id === b.participantId);
-            const nameA = memberA ? memberA.name : '';
-            const nameB = memberB ? memberB.name : '';
-            const nameCompare = nameA.localeCompare(nameB, 'id', { sensitivity: 'base' });
-            if (nameCompare !== 0) return nameCompare;
-            return (a.category || '').localeCompare(b.category || '', 'id', { sensitivity: 'base' });
-        });
 
-    if (famCosts.length === 0) {
-        tbodyCosts.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada rincian biaya keluarga.</td></tr>';
+    const matrix = buildFamilyCostMatrix(fStats.members);
+
+    if (matrix.famCosts.length === 0) {
+        theadCosts.innerHTML = `
+            <tr>
+                <th style="width: 45px;">No</th>
+                <th>Nama Peserta</th>
+                <th class="text-right">Total</th>
+            </tr>
+        `;
+        tbodyCosts.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Belum ada rincian biaya keluarga.</td></tr>';
     } else {
-        famCosts.forEach(c => {
-            const memberObj = fStats.members.find(m => m.id === c.participantId);
-            const memberName = memberObj ? memberObj.name : '-';
+        let thHtml = `<tr><th style="width: 45px;">No</th><th>Nama Peserta</th>`;
+        matrix.usedCategories.forEach(cat => {
+            thHtml += `<th class="text-right">${escapeHTML(cat)}</th>`;
+        });
+        thHtml += `<th class="text-right">Total</th></tr>`;
+        theadCosts.innerHTML = thHtml;
+
+        matrix.memberRows.forEach((row, idx) => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><strong>${escapeHTML(memberName)}</strong></td>
-                <td>${escapeHTML(c.category)}</td>
-                <td>${formatRp(c.price)}</td>
-                <td>${c.qty}</td>
-                <td><strong>${formatRp(c.total)}</strong></td>
-                <td>${escapeHTML(c.notes || '-')}</td>
+            let tdHtml = `
+                <td>${idx + 1}</td>
+                <td><strong>${escapeHTML(row.member.name)}</strong></td>
             `;
+            matrix.usedCategories.forEach(cat => {
+                const val = row.catMap[cat] || 0;
+                tdHtml += `<td class="text-right">${val > 0 ? formatRp(val) : '-'}</td>`;
+            });
+            tdHtml += `<td class="text-right"><strong>${formatRp(row.rowTotal)}</strong></td>`;
+            tr.innerHTML = tdHtml;
             tbodyCosts.appendChild(tr);
         });
+
+        // Baris Total per Kategori
+        const trCatTotal = document.createElement('tr');
+        trCatTotal.className = 'fam-cost-summary-row';
+        let catTotalHtml = `<td colspan="2" class="text-right">TOTAL PER KATEGORI</td>`;
+        matrix.usedCategories.forEach(cat => {
+            catTotalHtml += `<td class="text-right">${formatRp(matrix.categoryTotals[cat] || 0)}</td>`;
+        });
+        catTotalHtml += `<td class="text-right">${formatRp(matrix.grandTotal)}</td>`;
+        trCatTotal.innerHTML = catTotalHtml;
+        tbodyCosts.appendChild(trCatTotal);
+
+        // Baris Total Semua
+        const trGrandTotal = document.createElement('tr');
+        trGrandTotal.className = 'fam-cost-grand-row';
+        const colSpanCount = 2 + matrix.usedCategories.length;
+        trGrandTotal.innerHTML = `
+            <td colspan="${colSpanCount}" class="text-right">TOTAL SEMUA BIAYA KELUARGA</td>
+            <td class="text-right">${formatRp(matrix.grandTotal)}</td>
+        `;
+        tbodyCosts.appendChild(trGrandTotal);
     }
     document.getElementById('detail-fam-sum-costs').textContent = formatRp(fStats.totalTagihan);
 
     // 3. Tabel Riwayat Pembayaran Keluarga (Alokasi)
     const tbodyPays = document.querySelector('#table-detail-fam-payments tbody');
     tbodyPays.innerHTML = '';
+    const memberIds = fStats.members.map(m => m.id);
     let hasPayment = false;
     db.payments.forEach(pay => {
         if (pay.allocations) {
@@ -272,6 +352,7 @@ document.getElementById('btn-add-cost-from-detail').addEventListener('click', ()
 const getPrintStyles = () => `
     <style>
         .print-wrap { width: 100%; max-width: 720px; margin: 0 auto; padding: 24px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ffffff; color: #1e293b; box-sizing: border-box; }
+        .print-wrap.print-wrap-wide { max-width: 100%; }
         .print-header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px; }
         .print-header h2 { margin: 0; color: #0f172a; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
         .print-header p { margin: 4px 0 0; font-size: 13px; font-weight: 600; color: #64748b; letter-spacing: 1px; }
@@ -279,11 +360,13 @@ const getPrintStyles = () => `
         .print-info td { padding: 4px 0; vertical-align: top; color: #1e293b; }
         .print-info td.info-label { width: 155px; font-weight: 700; color: #334155; }
         .print-info td.info-sep { width: 12px; text-align: center; font-weight: 700; }
-        .print-section-title { font-weight: 700; font-size: 13.5px; color: #0f172a; margin: 14px 0 6px 0; }
-        .print-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px; table-layout: auto; }
-        .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 9px 12px; text-align: left; vertical-align: middle; }
+        .print-section-title { font-weight: 700; font-size: 13.5px; color: #0f172a; margin: 16px 0 8px 0; text-transform: uppercase; letter-spacing: 0.3px; }
+        .print-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12.5px; table-layout: auto; }
+        .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; vertical-align: middle; }
         .print-table th { background-color: #f1f5f9; font-weight: 700; color: #0f172a; white-space: nowrap; }
         .print-table tr:nth-child(even) { background-color: #f8fafc; }
+        .print-table tr.matrix-total-row td { background-color: #f1f5f9 !important; font-weight: 700; color: #0f172a; border-top: 2px solid #94a3b8; }
+        .print-table tr.matrix-grand-row td { background-color: #e0f2fe !important; font-weight: 800; color: #0369a1; font-size: 13.5px; border-top: 1px solid #94a3b8; }
         .print-table td.nowrap, .print-table th.nowrap { white-space: nowrap !important; }
         .print-wrap .text-right { text-align: right !important; }
         .print-wrap .text-center { text-align: center !important; }
@@ -423,53 +506,179 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
     currentRingkasanType = 'family';
 
     const fStats = calcFamilyStats(targetFamily);
-    
-    let html = getPrintStyles() + `<div class="print-wrap">`;
+    const matrix = buildFamilyCostMatrix(fStats.members);
+    const isWideMatrix = matrix.usedCategories.length >= 3;
+
+    let html = getPrintStyles() + `<div class="print-wrap ${isWideMatrix ? 'print-wrap-wide' : ''}">`;
     html += `
         <div class="print-header">
-            <h2>RINGKASAN BIAYA KELUARGA</h2>
+            <h2>RINGKASAN BIAYA & PEMBAYARAN KELUARGA</h2>
             <p>TOUR DAVKA TRAVEL</p>
         </div>
         <table class="print-info">
             <tr><td class="info-label">Nama Keluarga/Grup</td><td class="info-sep">:</td><td><strong>${escapeHTML(targetFamily)}</strong></td></tr>
             <tr><td class="info-label">Jumlah Anggota</td><td class="info-sep">:</td><td>${fStats.members.length} Orang</td></tr>
+            <tr><td class="info-label">Status Pembayaran</td><td class="info-sep">:</td><td><strong>${fStats.status}</strong></td></tr>
         </table>
-        
+    `;
+
+    // A. TABEL MATRIKS RINCIAN BIAYA PER KATEGORI
+    html += `<div class="print-section-title">A. Rincian Biaya Keluarga per Kategori</div>`;
+    if (matrix.famCosts.length === 0) {
+        html += `
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;" class="text-center">No</th>
+                        <th>Nama Peserta</th>
+                        <th class="text-right nowrap">Total Biaya</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="3" class="text-center text-muted">Belum ada rincian biaya keluarga</td></tr>
+                </tbody>
+            </table>
+        `;
+    } else {
+        html += `<table class="print-table"><thead><tr>
+            <th style="width: 38px;" class="text-center">No</th>
+            <th>Nama Peserta</th>`;
+        matrix.usedCategories.forEach(cat => {
+            html += `<th class="text-right nowrap">${escapeHTML(cat)}</th>`;
+        });
+        html += `<th class="text-right nowrap">Total</th></tr></thead><tbody>`;
+
+        matrix.memberRows.forEach((row, idx) => {
+            html += `<tr>
+                <td class="text-center">${idx + 1}</td>
+                <td class="nowrap"><strong>${escapeHTML(row.member.name)}</strong></td>`;
+            matrix.usedCategories.forEach(cat => {
+                const val = row.catMap[cat] || 0;
+                html += `<td class="text-right nowrap">${val > 0 ? formatRp(val) : '-'}</td>`;
+            });
+            html += `<td class="text-right nowrap text-bold">${formatRp(row.rowTotal)}</td></tr>`;
+        });
+
+        // Baris Total per Kategori
+        html += `<tr class="matrix-total-row">
+            <td colspan="2" class="text-right nowrap">TOTAL PER KATEGORI</td>`;
+        matrix.usedCategories.forEach(cat => {
+            html += `<td class="text-right nowrap">${formatRp(matrix.categoryTotals[cat] || 0)}</td>`;
+        });
+        html += `<td class="text-right nowrap">${formatRp(matrix.grandTotal)}</td></tr>`;
+
+        // Baris Total Semua
+        const colSpanAll = 2 + matrix.usedCategories.length;
+        html += `<tr class="matrix-grand-row">
+            <td colspan="${colSpanAll}" class="text-right nowrap">TOTAL SEMUA BIAYA KELUARGA</td>
+            <td class="text-right nowrap">${formatRp(matrix.grandTotal)}</td>
+        </tr>`;
+
+        html += `</tbody></table>`;
+    }
+
+    // B. TABEL RINGKASAN TAGIHAN & STATUS PER ANGGOTA
+    html += `
+        <div class="print-section-title">B. Ringkasan Tagihan & Pembayaran Anggota</div>
         <table class="print-table">
             <thead>
                 <tr>
-                    <th style="width: 40px;" class="text-center">No</th>
+                    <th style="width: 38px;" class="text-center">No</th>
                     <th>Nama Peserta</th>
+                    <th class="text-center" style="width: 120px;">Status</th>
                     <th class="text-right nowrap" style="width: 130px;">Tagihan</th>
                     <th class="text-right nowrap" style="width: 130px;">Dibayar</th>
-                    <th class="text-right nowrap" style="width: 130px;">Sisa/Lebih</th>
+                    <th class="text-right nowrap" style="width: 130px;">Sisa / Lebih</th>
                 </tr>
             </thead>
             <tbody>
     `;
-    
-    fStats.members.forEach((m, idx) => {
+
+    matrix.sortedMembers.forEach((m, idx) => {
         const stats = calcParticipantStats(m.id);
-        let sisaStr = stats.kelebihan > 0 ? `<span class="text-info">+${formatRp(stats.kelebihan)}</span>` : `<span class="text-danger">${formatRp(stats.sisa)}</span>`;
+        let sisaStr = stats.kelebihan > 0
+            ? `<span class="text-info">+${formatRp(stats.kelebihan)}</span>`
+            : `<span class="text-danger">${formatRp(stats.sisa)}</span>`;
         html += `<tr>
             <td class="text-center">${idx + 1}</td>
-            <td><strong>${escapeHTML(m.name)}</strong><div style="font-size:11px; color:#64748b; margin-top:2px;">${stats.status}</div></td>
+            <td class="nowrap"><strong>${escapeHTML(m.name)}</strong></td>
+            <td class="text-center nowrap" style="font-size:11.5px; font-weight:700; color:#475569;">${stats.status}</td>
             <td class="text-right nowrap">${formatRp(stats.totalTagihan)}</td>
             <td class="text-right nowrap text-success">${formatRp(stats.totalDibayar)}</td>
             <td class="text-right nowrap">${sisaStr}</td>
         </tr>`;
     });
-    
     html += `</tbody></table>`;
+
+    // C. TABEL RINCIAN RIWAYAT PEMBAYARAN 1 KELUARGA
+    html += `
+        <div class="print-section-title">C. Rincian Riwayat Pembayaran Keluarga</div>
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th style="width: 38px;" class="text-center">No</th>
+                    <th style="width: 115px;">Tanggal</th>
+                    <th>Nama Peserta (Alokasi)</th>
+                    <th style="width: 120px;">Metode</th>
+                    <th>Catatan / Ref</th>
+                    <th class="text-right nowrap" style="width: 140px;">Nominal (Rp)</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    const familyPaymentRows = [];
+    const sortedPayments = [...db.payments].sort((a, b) => new Date(a.date) - new Date(b.date));
+    sortedPayments.forEach(pay => {
+        if (pay.allocations) {
+            pay.allocations.forEach(alloc => {
+                if (matrix.memberIds.includes(alloc.participantId)) {
+                    const memberObj = matrix.sortedMembers.find(m => m.id === alloc.participantId);
+                    const infoParts = [];
+                    if (pay.ref) infoParts.push(pay.ref);
+                    if (pay.notes) infoParts.push(pay.notes);
+                    familyPaymentRows.push({
+                        date: pay.date,
+                        memberName: memberObj ? memberObj.name : '-',
+                        method: pay.method || '-',
+                        notes: infoParts.length > 0 ? infoParts.join(' - ') : '-',
+                        amount: alloc.amount
+                    });
+                }
+            });
+        }
+    });
+
+    if (familyPaymentRows.length === 0) {
+        html += `<tr><td colspan="6" class="text-center text-muted">Belum ada riwayat pembayaran untuk keluarga ini</td></tr>`;
+    } else {
+        familyPaymentRows.forEach((item, idx) => {
+            html += `<tr>
+                <td class="text-center">${idx + 1}</td>
+                <td class="nowrap">${formatDate(item.date)}</td>
+                <td class="nowrap"><strong>${escapeHTML(item.memberName)}</strong></td>
+                <td class="nowrap">${escapeHTML(item.method)}</td>
+                <td>${escapeHTML(item.notes)}</td>
+                <td class="text-right nowrap text-success">${formatRp(item.amount)}</td>
+            </tr>`;
+        });
+        html += `<tr class="matrix-total-row">
+            <td colspan="5" class="text-right nowrap">TOTAL PEMBAYARAN DITERIMA KELUARGA</td>
+            <td class="text-right nowrap text-success">${formatRp(fStats.totalDibayar)}</td>
+        </tr>`;
+    }
+    html += `</tbody></table>`;
+
+    // RINGKASAN AKHIR KELUARGA
     html += `
         <div class="print-summary">
-            <div class="print-summary-title">TOTAL BIAYA KELUARGA:</div>
+            <div class="print-summary-title">TOTAL RINGKASAN BIAYA & PEMBAYARAN KELUARGA:</div>
             <div class="print-summary-row">
-                <span>Total Tagihan:</span>
+                <span>Total Biaya / Tagihan Keluarga:</span>
                 <strong class="nowrap">${formatRp(fStats.totalTagihan)}</strong>
             </div>
             <div class="print-summary-row">
-                <span>Total Dibayar:</span>
+                <span>Total Sudah Dibayar:</span>
                 <strong class="text-success nowrap">${formatRp(fStats.totalDibayar)}</strong>
             </div>
     `;
@@ -484,7 +693,7 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
     } else {
         html += `
             <div class="print-summary-row total-row">
-                <span>TOTAL SISA DIBAYAR:</span>
+                <span>TOTAL SISA TAGIHAN:</span>
                 <span class="text-danger nowrap">${formatRp(fStats.sisa)}</span>
             </div>
         `;
@@ -651,6 +860,7 @@ function buildThermalRingkasanText() {
         }
         if (!targetFamily) return '';
         const fStats = calcFamilyStats(targetFamily);
+        const matrix = buildFamilyCostMatrix(fStats.members);
 
         out += 'RINGKASAN BIAYA KELUARGA\n';
         out += 'TOUR DAVKA TRAVEL\n';
@@ -658,8 +868,35 @@ function buildThermalRingkasanText() {
         out += '\x1B\x61\x00'; // Align Left
         out += `Keluarga : ${targetFamily}\n`;
         out += `Anggota  : ${fStats.members.length} Orang\n`;
+        out += `Status   : ${fStats.status}\n`;
         out += line;
-        fStats.members.forEach((m, idx) => {
+
+        out += 'A. RINCIAN BIAYA ANGGOTA:\n';
+        matrix.memberRows.forEach((row, idx) => {
+            out += `${idx + 1}. ${row.member.name}\n`;
+            matrix.usedCategories.forEach(cat => {
+                const val = row.catMap[cat] || 0;
+                if (val > 0) {
+                    out += `   - ${cat}: ${formatRp(val)}\n`;
+                }
+            });
+            out += `   Subtotal: ${formatRp(row.rowTotal)}\n`;
+        });
+        out += line;
+
+        out += 'TOTAL PER KATEGORI:\n';
+        if (matrix.usedCategories.length === 0) {
+            out += '- Belum ada kategori biaya\n';
+        } else {
+            matrix.usedCategories.forEach(cat => {
+                out += `- ${cat}: ${formatRp(matrix.categoryTotals[cat] || 0)}\n`;
+            });
+        }
+        out += `TOTAL SEMUA: ${formatRp(matrix.grandTotal)}\n`;
+        out += line;
+
+        out += 'B. STATUS PER ANGGOTA:\n';
+        matrix.sortedMembers.forEach((m, idx) => {
             const ms = calcParticipantStats(m.id);
             const sisaTxt = ms.kelebihan > 0 ? `+${formatRp(ms.kelebihan)}` : formatRp(ms.sisa);
             out += `${idx + 1}. ${m.name} (${ms.status})\n`;
@@ -667,6 +904,28 @@ function buildThermalRingkasanText() {
             out += `   Sisa/Lebih: ${sisaTxt}\n`;
         });
         out += line;
+
+        out += 'C. RIWAYAT PEMBAYARAN KELUARGA:\n';
+        let famPayCount = 0;
+        const sortedPayments = [...db.payments].sort((a, b) => new Date(a.date) - new Date(b.date));
+        sortedPayments.forEach(pay => {
+            if (pay.allocations) {
+                pay.allocations.forEach(alloc => {
+                    if (matrix.memberIds.includes(alloc.participantId)) {
+                        famPayCount++;
+                        const memberObj = matrix.sortedMembers.find(m => m.id === alloc.participantId);
+                        const memberName = memberObj ? memberObj.name : '-';
+                        out += `${famPayCount}. ${formatDate(pay.date)} - ${memberName}\n`;
+                        out += `   ${pay.method || '-'}: ${formatRp(alloc.amount)}\n`;
+                    }
+                });
+            }
+        });
+        if (famPayCount === 0) {
+            out += '- Belum ada pembayaran\n';
+        }
+        out += line;
+
         out += `Total Tagihan : ${formatRp(fStats.totalTagihan)}\n`;
         out += `Total Dibayar : ${formatRp(fStats.totalDibayar)}\n`;
         if (fStats.sisa === 0 && fStats.kelebihan > 0) {
@@ -694,17 +953,20 @@ document.getElementById('btn-download-jpeg').addEventListener('click', async () 
 
     try {
         if (typeof html2canvas === 'function') {
+            const isWide = targetEl.classList.contains('print-wrap-wide');
+            const requiredWidth = Math.max(isWide ? targetEl.scrollWidth + 48 : 720, 720);
+
             const canvas = await html2canvas(targetEl, {
                 scale: 2,
                 backgroundColor: '#ffffff',
                 useCORS: true,
                 logging: false,
-                windowWidth: 800,
+                windowWidth: requiredWidth + 80,
                 onclone: (clonedDoc) => {
                     const clonedWrap = clonedDoc.querySelector('.print-wrap');
                     if (clonedWrap) {
-                        clonedWrap.style.width = '720px';
-                        clonedWrap.style.maxWidth = '720px';
+                        clonedWrap.style.width = `${requiredWidth}px`;
+                        clonedWrap.style.maxWidth = `${requiredWidth}px`;
                         clonedWrap.style.margin = '0';
                         clonedWrap.style.boxShadow = 'none';
                         clonedWrap.style.transform = 'none';
