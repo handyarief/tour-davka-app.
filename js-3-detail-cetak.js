@@ -349,6 +349,7 @@ document.getElementById('btn-add-cost-from-detail').addEventListener('click', ()
     prepareIndividualCostForm(currentDetailId);
 });
 
+// REVISI: Modifikasi style injeksi CSS print (hapus nowrap dari th kategori, biarkan wrap alami)
 const getPrintStyles = () => `
     <style>
         .print-wrap { width: 100%; max-width: 720px; margin: 0 auto; padding: 24px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ffffff; color: #1e293b; box-sizing: border-box; }
@@ -363,11 +364,12 @@ const getPrintStyles = () => `
         .print-section-title { font-weight: 700; font-size: 13.5px; color: #0f172a; margin: 16px 0 8px 0; text-transform: uppercase; letter-spacing: 0.3px; }
         .print-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12.5px; table-layout: auto; }
         .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; vertical-align: middle; }
-        .print-table th { background-color: #f1f5f9; font-weight: 700; color: #0f172a; white-space: nowrap; }
+        .print-table th { background-color: #f1f5f9; font-weight: 700; color: #0f172a; white-space: normal; line-height: 1.3; }
         .print-table tr:nth-child(even) { background-color: #f8fafc; }
         .print-table tr.matrix-total-row td { background-color: #f1f5f9 !important; font-weight: 700; color: #0f172a; border-top: 2px solid #94a3b8; }
         .print-table tr.matrix-grand-row td { background-color: #e0f2fe !important; font-weight: 800; color: #0369a1; font-size: 13.5px; border-top: 1px solid #94a3b8; }
         .print-table td.nowrap, .print-table th.nowrap { white-space: nowrap !important; }
+        .print-table th.cat-header { min-width: 85px; max-width: 130px; word-wrap: break-word; }
         .print-wrap .text-right { text-align: right !important; }
         .print-wrap .text-center { text-align: center !important; }
         .print-wrap .text-success { color: #16a34a !important; font-weight: 700; }
@@ -543,8 +545,9 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
         html += `<table class="print-table"><thead><tr>
             <th style="width: 38px;" class="text-center">No</th>
             <th>Nama Peserta</th>`;
+        // REVISI: Mengubah class "nowrap" menjadi "cat-header" yang mengizinkan wrapping secara natural
         matrix.usedCategories.forEach(cat => {
-            html += `<th class="text-right nowrap">${escapeHTML(cat)}</th>`;
+            html += `<th class="text-right cat-header">${escapeHTML(cat)}</th>`;
         });
         html += `<th class="text-right nowrap">Total</th></tr></thead><tbody>`;
 
@@ -953,8 +956,8 @@ document.getElementById('btn-download-jpeg').addEventListener('click', async () 
 
     try {
         if (typeof html2canvas === 'function') {
-            const isWide = targetEl.classList.contains('print-wrap-wide');
-            const requiredWidth = Math.max(isWide ? targetEl.scrollWidth + 48 : 720, 720);
+            // REVISI: Mengandalkan ukuran canvas mutlak (scrollWidth) dari elemen tabel agar tidak terjadi stretch
+            const requiredWidth = Math.max(targetEl.scrollWidth + 48, 720); 
 
             const canvas = await html2canvas(targetEl, {
                 scale: 2,

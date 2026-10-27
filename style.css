@@ -1369,9 +1369,9 @@ input[type="checkbox"] {
 }
 
 #ringkasan-print-area .print-wrap {
-    width: 100% !important;
-    min-width: 540px !important;
-    max-width: 720px !important;
+    width: max-content !important; /* REVISI: Mengikuti lebar asli tabel/konten agar tidak ada grey space */
+    min-width: 100% !important; /* REVISI: Pastikan minimal seluas layar HP */
+    max-width: max-content !important; /* REVISI: Menghapus batas 720px di layar kecil */
     margin: 0 auto !important;
     padding: 24px !important;
     background: #ffffff !important;
@@ -1382,7 +1382,7 @@ input[type="checkbox"] {
 }
 
 #ringkasan-print-area .print-wrap.print-wrap-wide {
-    max-width: 100% !important;
+    max-width: max-content !important; /* REVISI: Bebaskan batasan 100% lebar layar */
     width: max-content !important;
     min-width: 100% !important;
 }
