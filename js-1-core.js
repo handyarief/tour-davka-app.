@@ -223,7 +223,8 @@ function getCurrentNavState() {
     return {
         viewId: viewId,
         detailId: typeof currentDetailId !== 'undefined' ? currentDetailId : null,
-        detailFamily: typeof currentDetailFamily !== 'undefined' ? currentDetailFamily : null
+        detailFamily: typeof currentDetailFamily !== 'undefined' ? currentDetailFamily : null,
+        detailCategory: typeof currentDetailCategory !== 'undefined' ? currentDetailCategory : null
     };
 }
 
@@ -307,17 +308,21 @@ const viewTitles = {
     'view-expenses': 'Pengeluaran Operasional',
     'view-reports': 'Laporan Keuangan',
     'view-participant-detail': 'Detail Peserta',
-    'view-family-detail': 'Detail Keluarga'
+    'view-family-detail': 'Detail Keluarga',
+    'view-category-detail': 'Detail Kategori Biaya'
 };
 
 function activateViewDOM(viewId, options = {}) {
-    const { pushHistory = true, detailId = null, detailFamily = null } = options;
+    const { pushHistory = true, detailId = null, detailFamily = null, detailCategory = null } = options;
 
     if (typeof currentDetailId !== 'undefined') {
         currentDetailId = detailId;
     }
     if (typeof currentDetailFamily !== 'undefined') {
         currentDetailFamily = detailFamily;
+    }
+    if (typeof currentDetailCategory !== 'undefined') {
+        currentDetailCategory = detailCategory;
     }
 
     document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
@@ -347,6 +352,7 @@ function activateViewDOM(viewId, options = {}) {
             viewId: viewId,
             detailId: detailId,
             detailFamily: detailFamily,
+            detailCategory: detailCategory,
             modalId: null
         }, '', window.location.pathname);
     }
@@ -388,7 +394,8 @@ window.addEventListener('popstate', (e) => {
         activateViewDOM(e.state.viewId, {
             pushHistory: false,
             detailId: e.state.detailId || null,
-            detailFamily: e.state.detailFamily || null
+            detailFamily: e.state.detailFamily || null,
+            detailCategory: e.state.detailCategory || null
         });
         if (e.state.modalId) {
             const modalToRestore = document.getElementById(e.state.modalId);
@@ -407,6 +414,7 @@ if (!history.state || !history.state.viewId) {
         viewId: 'view-dashboard',
         detailId: null,
         detailFamily: null,
+        detailCategory: null,
         modalId: null
     }, '', window.location.pathname);
 }
@@ -429,6 +437,7 @@ function refreshActiveView(viewId) {
         case 'view-expenses': renderExpenses(); break;
         case 'view-participant-detail': renderDetailParticipant(currentDetailId); break;
         case 'view-family-detail': renderDetailFamily(currentDetailFamily); break;
+        case 'view-category-detail': renderDetailCategory(currentDetailCategory); break;
     }
 }
 
@@ -441,6 +450,9 @@ function refreshAll() {
     }
     if (document.getElementById('view-family-detail') && document.getElementById('view-family-detail').classList.contains('active')) {
         renderDetailFamily(currentDetailFamily);
+    }
+    if (document.getElementById('view-category-detail') && document.getElementById('view-category-detail').classList.contains('active')) {
+        renderDetailCategory(currentDetailCategory);
     }
 }
 

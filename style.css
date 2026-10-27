@@ -390,6 +390,20 @@ strong {
     border: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
+    cursor: pointer;
+    transition: var(--transition);
+    user-select: none;
+}
+
+.cat-sum-item:hover {
+    background-color: var(--primary-light);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.cat-sum-item:active {
+    transform: translateY(0);
 }
 
 .cat-sum-label {
@@ -401,6 +415,10 @@ strong {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.cat-sum-item:hover .cat-sum-label {
+    color: var(--primary);
 }
 
 .cat-sum-detail {
@@ -939,6 +957,7 @@ input[type="checkbox"] {
 .mt-10 { margin-top: 10px; }
 .mt-15 { margin-top: 15px; }
 .mt-20 { margin-top: 20px; }
+.mb-0 { margin-bottom: 0; }
 .mb-5 { margin-bottom: 5px; }
 .mb-10 { margin-bottom: 10px; }
 .mb-15 { margin-bottom: 15px; }

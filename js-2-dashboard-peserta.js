@@ -1,6 +1,134 @@
 /* ==========================================================================
-   MODUL 1: DASHBOARD
+   MODUL 1: DASHBOARD & DETAIL KATEGORI BIAYA
    ========================================================================== */
+let currentDetailCategory = null;
+
+function getCategoryUnitName(cat) {
+    if (!cat) return 'Item';
+    const catLower = cat.toLowerCase();
+    if (catLower.includes('kaos')) return 'pcs';
+    if (catLower.includes('tiket')) return 'tiket';
+    if (catLower.includes('penginapan') || catLower.includes('hotel')) return 'kamar';
+    if (catLower.includes('bus') || catLower.includes('transportasi')) return 'unit';
+    if (catLower.includes('makan') || catLower.includes('konsumsi')) return 'porsi';
+    return 'Item';
+}
+
+window.openCategoryDetail = function(categoryName) {
+    if (!categoryName) return;
+    activateViewDOM('view-category-detail', {
+        pushHistory: true,
+        detailId: typeof currentDetailId !== 'undefined' ? currentDetailId : null,
+        detailFamily: typeof currentDetailFamily !== 'undefined' ? currentDetailFamily : null,
+        detailCategory: categoryName
+    });
+};
+
+const btnBackCatDash = document.getElementById('btn-back-cat-dashboard');
+if (btnBackCatDash) {
+    btnBackCatDash.addEventListener('click', () => {
+        activateViewDOM('view-dashboard', { pushHistory: true });
+    });
+}
+
+function renderDetailCategory(categoryName) {
+    if (!categoryName) return;
+
+    const unitName = getCategoryUnitName(categoryName);
+    const activeParticipants = db.participants.filter(p => p.status === 'Aktif');
+    const activeMap = {};
+    activeParticipants.forEach(p => {
+        activeMap[p.id] = p;
+    });
+
+    const catCosts = [];
+    let totalQty = 0;
+    let totalAmount = 0;
+
+    db.costs.forEach(c => {
+        if (c.category === categoryName && activeMap[c.participantId]) {
+            const p = activeMap[c.participantId];
+            const qty = Number(c.qty || 1);
+            const price = Number(c.price || 0);
+            const total = Number(c.total || 0);
+
+            totalQty += qty;
+            totalAmount += total;
+
+            catCosts.push({
+                costId: c.id,
+                participantId: p.id,
+                name: p.name || '',
+                family: p.family || 'None',
+                shirt: p.shirt || '',
+                qty: qty,
+                price: price,
+                total: total,
+                notes: c.notes || ''
+            });
+        }
+    });
+
+    catCosts.sort((a, b) => {
+        const famCompare = a.family.localeCompare(b.family, 'id', { sensitivity: 'base' });
+        if (famCompare !== 0) return famCompare;
+        return a.name.localeCompare(b.name, 'id', { sensitivity: 'base' });
+    });
+
+    const titleEl = document.getElementById('detail-cat-name');
+    if (titleEl) titleEl.textContent = categoryName;
+
+    const rowsEl = document.getElementById('detail-cat-total-rows');
+    if (rowsEl) rowsEl.textContent = `${catCosts.length} Orang`;
+
+    const qtyEl = document.getElementById('detail-cat-total-qty');
+    if (qtyEl) qtyEl.textContent = `${totalQty} ${unitName}`;
+
+    const amountEl = document.getElementById('detail-cat-total-amount');
+    if (amountEl) amountEl.textContent = formatRp(totalAmount);
+
+    const footerTotalEl = document.getElementById('detail-cat-footer-total');
+    if (footerTotalEl) footerTotalEl.textContent = `${formatRp(totalAmount)} (${totalQty} ${unitName})`;
+
+    const tbody = document.querySelector('#table-detail-category tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (catCosts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada peserta dengan pembelian pada kategori ini.</td></tr>';
+        return;
+    }
+
+    const isShirtCategory = categoryName.toLowerCase().includes('kaos');
+
+    catCosts.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        const shirtBadge = (isShirtCategory && item.shirt)
+            ? ` <span class="badge badge-info ml-5">Ukuran: ${escapeHTML(item.shirt)}</span>`
+            : '';
+
+        tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td><strong>${escapeHTML(item.name)}</strong>${shirtBadge}</td>
+            <td>${escapeHTML(item.family)}</td>
+            <td class="text-center"><strong>${item.qty} ${unitName}</strong></td>
+            <td class="text-right">${formatRp(item.price)}</td>
+            <td class="text-right"><strong class="text-primary">${formatRp(item.total)}</strong></td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    const trTotal = document.createElement('tr');
+    trTotal.className = 'fam-cost-grand-row';
+    trTotal.innerHTML = `
+        <td colspan="3" class="text-right">TOTAL KESELURUHAN</td>
+        <td class="text-center">${totalQty} ${unitName}</td>
+        <td class="text-right">-</td>
+        <td class="text-right">${formatRp(totalAmount)}</td>
+    `;
+    tbody.appendChild(trTotal);
+}
+
 function renderDashboard() {
     const activeParticipants = db.participants.filter(p => p.status === 'Aktif');
     const families = [...new Set(activeParticipants.map(p => p.family))].sort();
@@ -32,24 +160,22 @@ function renderDashboard() {
         catContainer.innerHTML = '<p class="text-muted" style="grid-column: 1/-1;">Belum ada data rincian biaya peserta.</p>';
     } else {
         usedCatArray.forEach(cat => {
-            let unitName = 'Item';
-            const catLower = cat.toLowerCase();
-            
-            if (catLower.includes('kaos')) unitName = 'pcs';
-            else if (catLower.includes('tiket')) unitName = 'tiket';
-            else if (catLower.includes('penginapan') || catLower.includes('hotel')) unitName = 'kamar';
-            else if (catLower.includes('bus') || catLower.includes('transportasi')) unitName = 'unit';
-            else if (catLower.includes('makan') || catLower.includes('konsumsi')) unitName = 'porsi';
-
-            catContainer.innerHTML += `
-                <div class="cat-sum-item">
-                    <span class="cat-sum-label">${escapeHTML(cat)}</span>
-                    <div class="cat-sum-detail mt-5">
-                        <span class="cat-sum-qty">${categoryQtys[cat]} ${unitName}</span>
-                        <span class="cat-sum-value">${formatRp(categoryTotals[cat])}</span>
-                    </div>
+            const unitName = getCategoryUnitName(cat);
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'cat-sum-item';
+            itemDiv.setAttribute('role', 'button');
+            itemDiv.setAttribute('tabindex', '0');
+            itemDiv.innerHTML = `
+                <span class="cat-sum-label">${escapeHTML(cat)}</span>
+                <div class="cat-sum-detail mt-5">
+                    <span class="cat-sum-qty">${categoryQtys[cat]} ${unitName}</span>
+                    <span class="cat-sum-value">${formatRp(categoryTotals[cat])}</span>
                 </div>
             `;
+            itemDiv.addEventListener('click', () => {
+                openCategoryDetail(cat);
+            });
+            catContainer.appendChild(itemDiv);
         });
     }
 

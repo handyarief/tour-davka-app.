@@ -597,6 +597,60 @@
                     </div>
                 </section>
 
+                <!-- VIEW: DETAIL KATEGORI BIAYA (Sub-view) -->
+                <section id="view-category-detail" class="view-section">
+                    <div class="card profile-header mb-20">
+                        <div class="flex-between align-start">
+                            <div>
+                                <h2 id="detail-cat-name">Nama Kategori</h2>
+                                <p class="text-muted mb-0">Daftar rincian peserta yang memiliki pembelian pada kategori ini.</p>
+                            </div>
+                            <div class="text-right">
+                                <button type="button" class="btn btn-secondary" id="btn-back-cat-dashboard">&larr; Kembali ke Dashboard</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-grid detail-summary-grid mb-20">
+                        <div class="card summary-card summary-card-tagihan">
+                            <h3>Total Pembeli / Baris</h3>
+                            <p id="detail-cat-total-rows" class="stat-value">0 Orang</p>
+                        </div>
+                        <div class="card summary-card summary-card-dibayar">
+                            <h3>Total Item</h3>
+                            <p id="detail-cat-total-qty" class="stat-value text-primary">0 Item</p>
+                        </div>
+                        <div class="card summary-card summary-card-sisa is-lebih">
+                            <h3>Total Biaya Kategori</h3>
+                            <p id="detail-cat-total-amount" class="stat-value text-danger">Rp0</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header flex-between align-center">
+                            <h3>Tabel Detail Pembelian Kategori</h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table" id="table-detail-category">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px;">No</th>
+                                        <th>Nama</th>
+                                        <th>Keluarga</th>
+                                        <th class="text-center">Item</th>
+                                        <th class="text-right">Harga</th>
+                                        <th class="text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody><!-- JS injection --></tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer text-right">
+                            <p class="text-muted mb-0">Total Keseluruhan: <strong id="detail-cat-footer-total" class="text-primary">Rp0</strong></p>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- VIEW: RINCIAN BIAYA PESERTA -->
                 <section id="view-costs" class="view-section">
                     <div class="card mb-20">
