@@ -1395,12 +1395,18 @@ input[type="checkbox"] {
 }
 
 @media print {
+    @page {
+        margin: 10mm;
+    }
     html, body {
+        width: 100% !important;
         height: auto !important;
         overflow: visible !important;
         background-color: #fff !important;
         color: #000 !important;
-        font-size: 11pt;
+        font-size: 10.5pt;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     .app-container {
         height: auto !important;
@@ -1452,7 +1458,7 @@ input[type="checkbox"] {
     }
     .table th, .table td {
         border: 1px solid #334155 !important;
-        padding: 6px 8px !important;
+        padding: 5px 7px !important;
     }
     .text-danger { color: #dc2626 !important; }
     .text-success { color: #16a34a !important; }
@@ -1473,11 +1479,14 @@ input[type="checkbox"] {
         overflow: visible !important;
     }
     body.printing-ringkasan #modal-ringkasan .modal-content {
+        width: 100% !important;
         max-width: 100% !important;
         max-height: none !important;
         box-shadow: none !important;
         border: none !important;
         display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     body.printing-ringkasan #modal-ringkasan .modal-header,
     body.printing-ringkasan #modal-ringkasan .modal-actions,
@@ -1486,12 +1495,15 @@ input[type="checkbox"] {
     }
     body.printing-ringkasan #modal-ringkasan .modal-body {
         padding: 0 !important;
+        margin: 0 !important;
         background: #ffffff !important;
         overflow: visible !important;
     }
     body.printing-ringkasan #ringkasan-print-area {
+        width: 100% !important;
         overflow: visible !important;
         padding: 0 !important;
+        margin: 0 !important;
     }
     body.printing-ringkasan #ringkasan-print-area .print-wrap,
     body.printing-ringkasan #ringkasan-print-area .print-wrap.print-wrap-wide {
@@ -1502,6 +1514,18 @@ input[type="checkbox"] {
         margin: 0 !important;
         box-shadow: none !important;
         border: none !important;
+    }
+    body.printing-ringkasan .print-table {
+        width: 100% !important;
+        font-size: 10.5px !important;
+    }
+    body.printing-ringkasan .print-table th,
+    body.printing-ringkasan .print-table td {
+        padding: 5px 6px !important;
+    }
+    body.printing-ringkasan .print-table th.cat-header {
+        min-width: 0 !important;
+        max-width: none !important;
     }
     body.printing-ringkasan .print-table th,
     body.printing-ringkasan .print-table tr.matrix-total-row td,

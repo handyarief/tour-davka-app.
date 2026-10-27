@@ -711,16 +711,29 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
 });
 
 // 1. FUNGSI CETAK (PRINT) WI-FI / LAN / SISTEM PADA MODAL RINGKASAN (INDIVIDU & KELUARGA)
+function cleanupPrintRingkasanClass() {
+    document.body.classList.remove('printing-ringkasan');
+}
+
 function triggerSystemPrintRingkasan() {
     document.body.classList.add('printing-ringkasan');
     window.print();
-    setTimeout(() => {
-        document.body.classList.remove('printing-ringkasan');
-    }, 500);
 }
 
-window.addEventListener('afterprint', () => {
-    document.body.classList.remove('printing-ringkasan');
+window.addEventListener('afterprint', cleanupPrintRingkasanClass);
+
+// Pastikan class printing-ringkasan selalu保持 aktif selama di dialog Android Print Spooler
+// dan otomatis dibersihkan saat fokus kembali ke aplikasi atau saat modal ditutup
+window.addEventListener('focus', () => {
+    if (document.body.classList.contains('printing-ringkasan')) {
+        setTimeout(cleanupPrintRingkasanClass, 300);
+    }
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && document.body.classList.contains('printing-ringkasan')) {
+        setTimeout(cleanupPrintRingkasanClass, 300);
+    }
 });
 
 const btnPrintRingkasan = document.getElementById('btn-print-ringkasan');
