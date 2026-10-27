@@ -136,6 +136,49 @@
         </div>
     </div>
 
+    <!-- Modal Biaya Keluarga (Multi-Peserta dalam 1 Keluarga) -->
+    <div id="modal-cost-family" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="cost-fam-title">Formulir Biaya Keluarga</h3>
+                <button class="btn-close" id="btn-close-cost-fam">&times;</button>
+            </div>
+            <form id="form-cost-fam" novalidate>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="cost-fam-family">Pilih Keluarga/Grup *</label>
+                        <select id="cost-fam-family" class="form-control" required>
+                            <option value="">-- Pilih Keluarga --</option>
+                        </select>
+                    </div>
+                    <div class="form-group border-bottom pb-15 mb-15" style="border-bottom: 1px solid var(--border-color);">
+                        <label for="cost-fam-participant">Pilih Peserta *</label>
+                        <select id="cost-fam-participant" class="form-control" disabled>
+                            <option value="">-- Pilih Peserta --</option>
+                        </select>
+                        <div id="cost-fam-selected-list" class="tag-container mt-10">
+                            <!-- Daftar nama peserta yang dipilih muncul di sini -->
+                        </div>
+                    </div>
+
+                    <div id="cost-fam-dynamic-container">
+                        <!-- Container untuk row kategori & harga yang disuntikkan via JS -->
+                    </div>
+
+                    <button type="button" class="btn btn-sm btn-outline-primary w-100 mb-15" id="btn-add-cost-fam-row">+ Tambah Kategori Biaya</button>
+                    
+                    <div class="bg-light p-10 box-rounded text-right mt-10">
+                        <p>Total Harga: <strong id="cost-fam-total-sum" class="text-danger text-bold" style="font-size: 18px;">Rp0</strong></p>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-cost-fam">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Biaya</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal Biaya Bersama (Split) -->
     <div id="modal-cost-shared" class="modal">
         <div class="modal-content modal-lg">
@@ -559,10 +602,11 @@
                     <div class="card mb-20">
                         <div class="card-header">
                             <h3>Alokasi Biaya ke Peserta</h3>
-                            <p class="help-text">Gunakan menu ini untuk menambahkan biaya secara spesifik ke satu orang, atau membagi biaya bersama (misal sewa kamar) ke beberapa orang.</p>
+                            <p class="help-text">Gunakan menu ini untuk menambahkan biaya secara spesifik ke satu orang, satu keluarga sekaligus, atau membagi biaya bersama (misal sewa kamar) ke beberapa orang.</p>
                         </div>
-                        <div class="card-body form-grid-2">
+                        <div class="card-body form-grid-3">
                             <button class="btn btn-primary btn-lg" id="btn-open-cost-individual">Input Biaya Individu</button>
+                            <button class="btn btn-primary btn-lg" id="btn-open-cost-family">Input Biaya Keluarga</button>
                             <button class="btn btn-secondary btn-lg" id="btn-open-cost-shared">Input Biaya Bersama (Split)</button>
                         </div>
                     </div>

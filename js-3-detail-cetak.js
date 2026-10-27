@@ -151,11 +151,22 @@ function renderDetailFamily(familyName) {
         });
     }
 
-    // 2. Tabel Rincian Biaya Keluarga
+    // 2. Tabel Rincian Biaya Keluarga (Diurutkan berdasarkan Nama Peserta A-Z)
     const tbodyCosts = document.querySelector('#table-detail-fam-costs tbody');
     tbodyCosts.innerHTML = '';
     const memberIds = fStats.members.map(m => m.id);
-    const famCosts = db.costs.filter(c => memberIds.includes(c.participantId));
+    const famCosts = db.costs
+        .filter(c => memberIds.includes(c.participantId))
+        .slice()
+        .sort((a, b) => {
+            const memberA = fStats.members.find(m => m.id === a.participantId);
+            const memberB = fStats.members.find(m => m.id === b.participantId);
+            const nameA = memberA ? memberA.name : '';
+            const nameB = memberB ? memberB.name : '';
+            const nameCompare = nameA.localeCompare(nameB, 'id', { sensitivity: 'base' });
+            if (nameCompare !== 0) return nameCompare;
+            return (a.category || '').localeCompare(b.category || '', 'id', { sensitivity: 'base' });
+        });
 
     if (famCosts.length === 0) {
         tbodyCosts.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada rincian biaya keluarga.</td></tr>';

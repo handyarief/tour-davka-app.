@@ -211,6 +211,251 @@ document.getElementById('form-cost-ind').addEventListener('submit', async (e) =>
     }
 });
 
+/* --------------------------------------------------------------------------
+   INPUT BIAYA KELUARGA (MULTI-PESERTA DALAM 1 KELUARGA)
+   -------------------------------------------------------------------------- */
+let selectedFamilyCostParticipants = [];
+
+const btnOpenCostFamily = document.getElementById('btn-open-cost-family');
+if (btnOpenCostFamily) {
+    btnOpenCostFamily.addEventListener('click', () => prepareFamilyCostForm());
+}
+
+function prepareFamilyCostForm() {
+    document.getElementById('form-cost-fam').reset();
+    selectedFamilyCostParticipants = [];
+
+    const familySelect = document.getElementById('cost-fam-family');
+    const partSelect = document.getElementById('cost-fam-participant');
+    const dynamicContainer = document.getElementById('cost-fam-dynamic-container');
+
+    familySelect.innerHTML = '<option value="">-- Pilih Keluarga --</option>';
+    partSelect.innerHTML = '<option value="">-- Pilih Peserta --</option>';
+    partSelect.disabled = true;
+
+    const activeParticipants = db.participants.filter(p => p.status === 'Aktif');
+    const families = [...new Set(activeParticipants.map(p => p.family))].sort();
+
+    families.forEach(f => {
+        familySelect.innerHTML += `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`;
+    });
+
+    renderSelectedFamilyCostParticipants();
+    dynamicContainer.innerHTML = '';
+    addFamilyCostRow();
+    calculateFamCostTotal();
+
+    openModal('modal-cost-family');
+}
+
+document.getElementById('cost-fam-family').addEventListener('change', function(e) {
+    const family = e.target.value;
+    selectedFamilyCostParticipants = [];
+    populateFamilyCostParticipantDropdown(family);
+    renderSelectedFamilyCostParticipants();
+    calculateFamCostTotal();
+});
+
+function populateFamilyCostParticipantDropdown(family) {
+    const partSelect = document.getElementById('cost-fam-participant');
+    partSelect.innerHTML = '<option value="">-- Pilih Peserta --</option>';
+
+    if (family) {
+        const members = db.participants
+            .filter(p => p.family === family && p.status === 'Aktif')
+            .sort((a, b) => a.name.localeCompare(b.name, 'id', { sensitivity: 'base' }));
+
+        const unselectedMembers = members.filter(m => !selectedFamilyCostParticipants.includes(m.id));
+
+        if (unselectedMembers.length > 1) {
+            partSelect.innerHTML += `<option value="__ALL__">-- Pilih Semua Anggota (${unselectedMembers.length} Orang) --</option>`;
+        }
+
+        unselectedMembers.forEach(m => {
+            partSelect.innerHTML += `<option value="${m.id}">${escapeHTML(m.name)}</option>`;
+        });
+
+        partSelect.disabled = unselectedMembers.length === 0;
+        if (unselectedMembers.length === 0 && members.length > 0) {
+            partSelect.innerHTML = '<option value="">-- Semua anggota telah dipilih --</option>';
+        }
+    } else {
+        partSelect.disabled = true;
+    }
+}
+
+document.getElementById('cost-fam-participant').addEventListener('change', function(e) {
+    const val = e.target.value;
+    const family = document.getElementById('cost-fam-family').value;
+    if (!val || !family) return;
+
+    if (val === '__ALL__') {
+        const members = db.participants
+            .filter(p => p.family === family && p.status === 'Aktif')
+            .sort((a, b) => a.name.localeCompare(b.name, 'id', { sensitivity: 'base' }));
+        members.forEach(m => {
+            if (!selectedFamilyCostParticipants.includes(m.id)) {
+                selectedFamilyCostParticipants.push(m.id);
+            }
+        });
+    } else {
+        if (!selectedFamilyCostParticipants.includes(val)) {
+            selectedFamilyCostParticipants.push(val);
+        }
+    }
+
+    populateFamilyCostParticipantDropdown(family);
+    renderSelectedFamilyCostParticipants();
+    calculateFamCostTotal();
+});
+
+function renderSelectedFamilyCostParticipants() {
+    const container = document.getElementById('cost-fam-selected-list');
+    if (!container) return;
+    container.innerHTML = '';
+
+    selectedFamilyCostParticipants.forEach(pId => {
+        const p = db.participants.find(x => x.id === pId);
+        if (p) {
+            const tag = document.createElement('div');
+            tag.className = 'tag';
+            tag.innerHTML = `
+                ${escapeHTML(p.name)}
+                <button type="button" class="tag-btn-del" onclick="removeSelectedFamilyParticipant('${p.id}')">&times;</button>
+            `;
+            container.appendChild(tag);
+        }
+    });
+}
+
+window.removeSelectedFamilyParticipant = function(pId) {
+    selectedFamilyCostParticipants = selectedFamilyCostParticipants.filter(id => id !== pId);
+    const family = document.getElementById('cost-fam-family').value;
+    populateFamilyCostParticipantDropdown(family);
+    renderSelectedFamilyCostParticipants();
+    calculateFamCostTotal();
+};
+
+function addFamilyCostRow() {
+    const container = document.getElementById('cost-fam-dynamic-container');
+    const rowId = 'fam-row-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+
+    let catOptions = '';
+    db.categories.forEach(c => {
+        catOptions += `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`;
+    });
+
+    const rowHTML = `
+        <div class="dynamic-row cost-dynamic-row" id="${rowId}">
+            <div class="form-group">
+                <label>Kategori Biaya</label>
+                <select class="form-control cost-fam-cat-input" required>
+                    ${catOptions}
+                </select>
+            </div>
+            <div class="form-group col-price">
+                <label>Harga (Rp)</label>
+                <input type="number" class="form-control cost-fam-price-input" required step="1" placeholder="0">
+            </div>
+            <div class="form-group col-action">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removeFamilyCostRow('${rowId}')">&times; Hapus</button>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', rowHTML);
+
+    const newInputs = container.querySelectorAll(`#${rowId} .cost-fam-price-input`);
+    newInputs.forEach(inp => {
+        inp.addEventListener('input', calculateFamCostTotal);
+    });
+}
+
+document.getElementById('btn-add-cost-fam-row').addEventListener('click', addFamilyCostRow);
+
+window.removeFamilyCostRow = function(rowId) {
+    const row = document.getElementById(rowId);
+    if (row) row.remove();
+    calculateFamCostTotal();
+};
+
+function calculateFamCostTotal() {
+    let sumPerPerson = 0;
+    const inputs = document.querySelectorAll('#cost-fam-dynamic-container .cost-fam-price-input');
+    inputs.forEach(inp => {
+        sumPerPerson += parseFloat(inp.value) || 0;
+    });
+
+    const count = selectedFamilyCostParticipants.length;
+    const totalEl = document.getElementById('cost-fam-total-sum');
+    if (count > 1) {
+        totalEl.textContent = `${formatRp(sumPerPerson * count)} (${count} Peserta x ${formatRp(sumPerPerson)})`;
+    } else {
+        totalEl.textContent = formatRp(sumPerPerson);
+    }
+}
+
+document.getElementById('form-cost-fam').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const familyVal = document.getElementById('cost-fam-family').value;
+
+    if (!familyVal || selectedFamilyCostParticipants.length === 0) {
+        showToast('Silakan pilih Keluarga dan minimal 1 Peserta terlebih dahulu!', 'warning');
+        return;
+    }
+
+    const rows = document.querySelectorAll('#cost-fam-dynamic-container .dynamic-row');
+    if (rows.length === 0) {
+        showToast('Minimal harus ada 1 kategori biaya!', 'danger');
+        return;
+    }
+
+    let costItems = [];
+    rows.forEach(row => {
+        const catEl = row.querySelector('.cost-fam-cat-input');
+        const priceEl = row.querySelector('.cost-fam-price-input');
+        if (!catEl || !priceEl) return;
+
+        const cat = catEl.value;
+        const price = parseFloat(priceEl.value) || 0;
+
+        if (cat && price > 0) {
+            costItems.push({ category: cat, price: price });
+        }
+    });
+
+    if (costItems.length === 0) {
+        showToast('Silakan isi harga biaya dengan benar!', 'warning');
+        return;
+    }
+
+    let newCosts = [];
+    selectedFamilyCostParticipants.forEach(pId => {
+        costItems.forEach(item => {
+            newCosts.push({
+                id: generateId('CST'),
+                participantId: pId,
+                category: item.category,
+                price: item.price,
+                qty: 1,
+                total: item.price,
+                notes: ""
+            });
+        });
+    });
+
+    if (newCosts.length > 0) {
+        const { error } = await supabaseClient.from('costs').insert(newCosts);
+        if (error) {
+            showToast('Gagal menyimpan biaya keluarga ke Supabase: ' + error.message, 'danger');
+            return;
+        }
+        db.costs.push(...newCosts);
+        showToast(`Berhasil menambahkan biaya ke ${selectedFamilyCostParticipants.length} anggota keluarga.`);
+        closeModal('modal-cost-family');
+        refreshAll();
+    }
+});
+
 window.deleteCost = async function(id, isFromDetail = false) {
     confirmAction('Hapus Biaya', 'Hapus komponen tagihan ini dari peserta?', async () => {
         // UPDATE: Tambahkan error handling
