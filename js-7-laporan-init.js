@@ -1,6 +1,14 @@
 /* ==========================================================================
    MODUL 8: LAPORAN KEUANGAN, CETAK PRINTER (WIFI/LAN/BLUETOOTH) & UNDUH JPG
    ========================================================================== */
+function ensureReportWatermark() {
+    const reportArea = document.getElementById('report-print-area');
+    if (!reportArea) return;
+    const oldWatermark = reportArea.querySelector('.nota-watermark-layer');
+    if (oldWatermark) oldWatermark.remove();
+    reportArea.insertAdjacentHTML('afterbegin', getWatermarkHTML(true));
+}
+
 document.getElementById('btn-generate-report').addEventListener('click', () => {
     const type = document.getElementById('report-type').value;
     
@@ -34,10 +42,13 @@ document.getElementById('btn-generate-report').addEventListener('click', () => {
         title.textContent = 'REKAPITULASI KESELURUHAN PERJALANAN';
         container.innerHTML = generateReportRekapitulasi();
     }
+
+    ensureReportWatermark();
 });
 
 // 1. FUNGSI CETAK PRINTER WI-FI / LAN / SISTEM BAWAAN (TETAP DIPERTAHANKAN 100%)
 document.getElementById('btn-print-report').addEventListener('click', () => {
+    ensureReportWatermark();
     window.print();
 });
 
@@ -46,6 +57,8 @@ document.getElementById('btn-download-jpg-report').addEventListener('click', asy
     const btn = document.getElementById('btn-download-jpg-report');
     const reportArea = document.getElementById('report-print-area');
     const type = document.getElementById('report-type').value;
+
+    ensureReportWatermark();
 
     const originalText = btn.textContent;
     btn.disabled = true;
@@ -69,6 +82,8 @@ document.getElementById('btn-download-jpg-report').addEventListener('click', asy
                         clonedArea.style.margin = '0';
                         clonedArea.style.border = 'none';
                         clonedArea.style.boxShadow = 'none';
+                        clonedArea.style.position = 'relative';
+                        clonedArea.style.overflow = 'hidden';
                     }
                     const clonedHeader = clonedDoc.querySelector('#report-print-area .print-only-show');
                     if (clonedHeader) {
@@ -76,11 +91,15 @@ document.getElementById('btn-download-jpg-report').addEventListener('click', asy
                         clonedHeader.style.marginBottom = '20px';
                         clonedHeader.style.paddingBottom = '12px';
                         clonedHeader.style.borderBottom = '2px solid #0f172a';
+                        clonedHeader.style.position = 'relative';
+                        clonedHeader.style.zIndex = '1';
                     }
                     const clonedContainer = clonedDoc.getElementById('report-output-container');
                     if (clonedContainer) {
                         clonedContainer.style.overflow = 'visible';
                         clonedContainer.style.padding = '0';
+                        clonedContainer.style.position = 'relative';
+                        clonedContainer.style.zIndex = '1';
                     }
                     clonedDoc.querySelectorAll('.report-table-wrap').forEach(wrap => {
                         wrap.style.overflow = 'visible';
@@ -227,7 +246,7 @@ function buildThermalReportText() {
 
     out += line;
     out += '\x1B\x61\x01';
-    out += 'Dicetak oleh Sistem Davka Tour\n\n\n\n';
+    out += 'DOKUMEN ASLI - DAVKA TOUR\n\n\n\n';
     return out;
 }
 
@@ -450,9 +469,10 @@ function generateReportTableBukuKas() {
 function generateReportRekapitulasi() {
     let sumTagihan = 0, sumPenerimaan = 0, sumPengeluaran = 0, sumTeralokasi = 0, sumSisa = 0, sumKelebihan = 0;
     db.participants.forEach(p => {
+        const raw = getRawParticipantTotals(p.id);
         const s = calcParticipantStats(p.id);
-        sumTagihan += s.totalTagihan;
-        sumTeralokasi += s.totalDibayar;
+        sumTagihan += raw.totalTagihan;
+        sumTeralokasi += raw.rawTotalDibayar;
         sumSisa += s.sisa;
         sumKelebihan += s.kelebihan;
     });
@@ -495,7 +515,6 @@ document.getElementById('btn-delete-all-data').addEventListener('click', () => {
         'HAPUS SEMUA DATA PERMANEN', 
         'PERINGATAN KRITIS: Apakah Anda yakin ingin menghapus SELURUH data di server Supabase?', 
         async () => {
-            // UPDATE: Tambahkan penangkapan error secara paralel (menghindari aplikasi ter-reset jika koneksi putus)
             const [res1, res2, res3, res4] = await Promise.all([
                 supabaseClient.from('participants').delete().neq('id', '0'),
                 supabaseClient.from('costs').delete().neq('id', '0'),

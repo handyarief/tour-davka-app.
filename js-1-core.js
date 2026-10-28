@@ -6,6 +6,41 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 /* ==========================================================================
+   PRELOAD LOGO WATERMARK (BASE64 AGAR AMAN SAAT RENDER JPG / PRINT)
+   ========================================================================== */
+window.davkaLogoDataUrl = 'logo.png';
+
+(function preloadDavkaLogo() {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth || 300;
+            canvas.height = img.naturalHeight || 300;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            window.davkaLogoDataUrl = canvas.toDataURL('image/png');
+        } catch (e) {
+            window.davkaLogoDataUrl = 'logo.png';
+        }
+    };
+    img.src = 'logo.png';
+})();
+
+function getWatermarkHTML(isLarge = false) {
+    const logoSrc = window.davkaLogoDataUrl || 'logo.png';
+    return `
+        <div class="nota-watermark-layer" aria-hidden="true">
+            <div class="nota-watermark-inner ${isLarge ? 'watermark-lg' : ''}">
+                <img src="${logoSrc}" alt="Davka Tour Official Watermark" class="nota-watermark-logo">
+                <div class="nota-watermark-stamp">DOKUMEN ASLI &bull; DAVKA TOUR</div>
+            </div>
+        </div>
+    `;
+}
+
+/* ==========================================================================
    INISIALISASI & MANAJEMEN DATA (FULL ONLINE SUPABASE)
    ========================================================================== */
 // Struktur Data Dasar di Memori
@@ -110,7 +145,6 @@ async function saveData() {
         // Sinkronisasi Kategori ke Supabase jika tabel 'categories' ada
         if (db.categories && db.categories.length > 0) {
             const catPayload = db.categories.map(c => ({ name: c }));
-            // UPDATE: Menambahkan deteksi error untuk operasi di background
             const { error } = await supabaseClient.from('categories').upsert(catPayload, { onConflict: 'name' });
             if (error) console.error('Gagal sinkronisasi background kategori:', error.message);
         }
@@ -138,21 +172,91 @@ function formatDate(dateStr) {
 }
 
 /* ==========================================================================
-   PERHITUNGAN INTI (CORE CALCULATOR)
+   PERHITUNGAN INTI (CORE CALCULATOR — SINKRON INDIVIDU & KELUARGA)
    ========================================================================== */
-function calcParticipantStats(participantId) {
+function getRawParticipantTotals(participantId) {
     const pCosts = db.costs.filter(c => c.participantId === participantId);
     const totalTagihan = pCosts.reduce((sum, c) => sum + c.total, 0);
 
     let totalDibayar = 0;
+    let hasExplicitManual = false;
+    let hasAllocation = false;
+
     db.payments.forEach(pay => {
-        if (pay.allocations) {
+        if (pay.allocations && Array.isArray(pay.allocations)) {
             const alloc = pay.allocations.find(a => a.participantId === participantId);
-            if (alloc) totalDibayar += alloc.amount;
+            if (alloc && alloc.amount > 0) {
+                hasAllocation = true;
+                totalDibayar += Number(alloc.amount || 0);
+
+                if (alloc.allocMethod === 'manual') {
+                    hasExplicitManual = true;
+                } else if (!alloc.allocMethod) {
+                    // Deteksi untuk data lama yang belum memiliki properti allocMethod:
+                    // Jika nominal alokasi antar peserta dalam transaksi yang sama berbeda > Rp 5, berarti diinput Manual per Peserta.
+                    // Jika semua peserta dalam 1 transaksi mendapat nominal sama rata (selisih <= Rp 5), berarti Bagi Rata.
+                    if (pay.allocations.length === 1) {
+                        const pObj = db.participants.find(x => x.id === participantId);
+                        const famCount = pObj ? db.participants.filter(x => x.family === pObj.family && x.status === 'Aktif').length : 1;
+                        if (famCount === 1) hasExplicitManual = true;
+                    } else if (pay.allocations.length > 1) {
+                        const amounts = pay.allocations.map(a => Number(a.amount || 0));
+                        const maxAmt = Math.max(...amounts);
+                        const minAmt = Math.min(...amounts);
+                        if ((maxAmt - minAmt) > 5) {
+                            hasExplicitManual = true;
+                        }
+                    }
+                }
+            }
         }
     });
 
+    return { totalTagihan, rawTotalDibayar: totalDibayar, hasExplicitManual, hasAllocation };
+}
+
+function calcParticipantStats(participantId) {
+    const p = db.participants.find(x => x.id === participantId);
+    const raw = getRawParticipantTotals(participantId);
+    const totalTagihan = raw.totalTagihan;
+    let totalDibayar = raw.rawTotalDibayar;
+    let isSyncedWithFamily = false;
+
+    // Sinkronisasi otomatis dengan Keluarga jika bukan input Manual per Peserta yang disengaja berbeda
+    // atau jika secara kolektif 1 keluarga sudah LUNAS / KELEBIHAN BAYAR
+    if (p && p.family && p.family.toLowerCase() !== 'none') {
+        const famMembers = db.participants.filter(m => m.family === p.family && m.status === 'Aktif');
+        if (famMembers.length > 1) {
+            let fTagihan = 0;
+            let fDibayar = 0;
+            famMembers.forEach(m => {
+                const mRaw = getRawParticipantTotals(m.id);
+                fTagihan += mRaw.totalTagihan;
+                fDibayar += mRaw.rawTotalDibayar;
+            });
+
+            const famNetSisa = fTagihan - fDibayar;
+
+            if (!raw.hasExplicitManual) {
+                isSyncedWithFamily = true;
+                if (fTagihan > 0 && famNetSisa <= 0) {
+                    // Keluarga sudah lunas atau kelebihan bayar -> tagihan individu otomatis tertutup penuh
+                    totalDibayar = totalTagihan;
+                } else if (fTagihan > 0 && fDibayar > 0 && famNetSisa > 0) {
+                    // Keluarga masih cicilan kolektif (via bagi rata) -> sesuaikan maksimal sebesar tagihan individu
+                    totalDibayar = Math.min(totalTagihan, raw.rawTotalDibayar);
+                }
+            } else if (fTagihan > 0 && famNetSisa <= 0 && raw.rawTotalDibayar < totalTagihan) {
+                // Meskipun pernah tercatat manual tetapi 1 keluarga sudah LUNAS / LEBIH BAYAR penuh,
+                // jangan tampilkan sisa tagihan pada anggota karena sudah tertutup kelebihan bayar keluarga
+                isSyncedWithFamily = true;
+                totalDibayar = totalTagihan;
+            }
+        }
+    }
+
     const sisa = totalTagihan - totalDibayar;
+    const rawSisa = totalTagihan - raw.rawTotalDibayar;
     let kelebihan = 0;
     let sisaTagihanAktif = 0;
     let status = 'BELUM BAYAR';
@@ -162,9 +266,16 @@ function calcParticipantStats(participantId) {
         status = 'LUNAS';
         badgeClass = 'badge-success';
     } else if (sisa < 0) {
-        status = 'KELEBIHAN BAYAR';
-        badgeClass = 'badge-info';
-        kelebihan = Math.abs(sisa);
+        if (raw.hasExplicitManual) {
+            status = 'KELEBIHAN BAYAR';
+            badgeClass = 'badge-info';
+            kelebihan = Math.abs(sisa);
+        } else {
+            // Jika alokasi Bagi Rata, kelebihan masuk ke level Keluarga, di level Individu berstatus LUNAS
+            status = 'LUNAS';
+            badgeClass = 'badge-success';
+            totalDibayar = totalTagihan;
+        }
     } else if (sisa > 0 && totalDibayar > 0) {
         status = 'CICILAN';
         badgeClass = 'badge-warning';
@@ -176,7 +287,18 @@ function calcParticipantStats(participantId) {
         badgeClass = 'badge-secondary';
     }
 
-    return { totalTagihan, totalDibayar, sisa: sisaTagihanAktif, kelebihan, status, badgeClass, rawSisa: sisa };
+    return {
+        totalTagihan,
+        totalDibayar,
+        rawTotalDibayar: raw.rawTotalDibayar,
+        sisa: sisaTagihanAktif,
+        kelebihan,
+        status,
+        badgeClass,
+        rawSisa,
+        isManualPayment: raw.hasExplicitManual,
+        isSyncedWithFamily
+    };
 }
 
 function calcFamilyStats(familyName) {
@@ -184,9 +306,9 @@ function calcFamilyStats(familyName) {
     let fTagihan = 0, fDibayar = 0;
     
     members.forEach(m => {
-        const stats = calcParticipantStats(m.id);
-        fTagihan += stats.totalTagihan;
-        fDibayar += stats.totalDibayar;
+        const raw = getRawParticipantTotals(m.id);
+        fTagihan += raw.totalTagihan;
+        fDibayar += raw.rawTotalDibayar;
     });
 
     // Perhitungan kolektif 1 keluarga: kelebihan bayar anggota otomatis menutupi kekurangan anggota lain

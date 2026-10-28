@@ -1250,12 +1250,70 @@ input[type="checkbox"] {
 }
 
 /* ==========================================================================
+   WATERMARK RESMI DAVKA TOUR DI SEMUA NOTA & LAPORAN
+   ========================================================================== */
+.nota-watermark-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    user-select: none;
+    z-index: 3;
+    overflow: hidden;
+}
+
+.nota-watermark-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-22deg);
+    opacity: 0.085;
+    text-align: center;
+    padding: 18px 28px;
+    border: 2.5px dashed #0369a1;
+    border-radius: 16px;
+}
+
+.nota-watermark-inner.watermark-lg {
+    transform: rotate(-20deg) scale(1.12);
+}
+
+.nota-watermark-logo {
+    width: 240px;
+    max-width: 65vw;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.nota-watermark-stamp {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: #0369a1;
+    text-transform: uppercase;
+    border-top: 1.5px solid #0369a1;
+    padding-top: 4px;
+    margin-top: 2px;
+    white-space: nowrap;
+}
+
+/* ==========================================================================
    REVISI PERBAIKAN PRATINJAU RINGKASAN & LAPORAN KEUANGAN
    ========================================================================== */
 #report-print-area {
     width: 100%;
     max-width: 100%;
     background: #ffffff;
+    position: relative;
+    overflow: hidden;
 }
 
 #report-output-container {
@@ -1263,6 +1321,13 @@ input[type="checkbox"] {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     padding: 15px;
+    position: relative;
+    z-index: 1;
+}
+
+.report-header {
+    position: relative;
+    z-index: 1;
 }
 
 .report-table-wrap {
@@ -1388,9 +1453,9 @@ input[type="checkbox"] {
 }
 
 #ringkasan-print-area .print-wrap {
-    width: max-content !important; /* REVISI: Mengikuti lebar asli tabel/konten agar tidak ada grey space */
-    min-width: 100% !important; /* REVISI: Pastikan minimal seluas layar HP */
-    max-width: max-content !important; /* REVISI: Menghapus batas 720px di layar kecil */
+    width: max-content !important;
+    min-width: 100% !important;
+    max-width: max-content !important;
     margin: 0 auto !important;
     padding: 24px !important;
     background: #ffffff !important;
@@ -1398,10 +1463,12 @@ input[type="checkbox"] {
     box-sizing: border-box !important;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    position: relative !important;
+    overflow: hidden !important;
 }
 
 #ringkasan-print-area .print-wrap.print-wrap-wide {
-    max-width: max-content !important; /* REVISI: Bebaskan batasan 100% lebar layar */
+    max-width: max-content !important;
     width: max-content !important;
     min-width: 100% !important;
 }
@@ -1453,6 +1520,8 @@ input[type="checkbox"] {
     }
     #report-print-area {
         display: block !important;
+        position: relative !important;
+        overflow: hidden !important;
     }
     #report-output-container {
         padding: 0 !important;
@@ -1481,6 +1550,13 @@ input[type="checkbox"] {
     }
     .text-danger { color: #dc2626 !important; }
     .text-success { color: #16a34a !important; }
+
+    .nota-watermark-layer,
+    .nota-watermark-inner,
+    .nota-watermark-logo {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
 
     /* Mode Cetak Khusus Ringkasan Biaya Individu & Keluarga */
     body.printing-ringkasan .app-container {
@@ -1533,6 +1609,8 @@ input[type="checkbox"] {
         margin: 0 !important;
         box-shadow: none !important;
         border: none !important;
+        position: relative !important;
+        overflow: hidden !important;
     }
     body.printing-ringkasan .print-table {
         width: 100% !important;

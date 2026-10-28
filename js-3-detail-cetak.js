@@ -79,17 +79,29 @@ function renderDetailParticipant(id) {
     const tbodyPays = document.querySelector('#table-detail-payments tbody');
     tbodyPays.innerHTML = '';
     let hasPayment = false;
+    const rawAllocCount = db.payments.reduce((cnt, pay) => {
+        if (pay.allocations && pay.allocations.some(a => a.participantId === id && a.amount > 0)) return cnt + 1;
+        return cnt;
+    }, 0);
+
     db.payments.forEach(pay => {
         if(pay.allocations) {
-            const alloc = pay.allocations.find(a => a.participantId === id);
+            const alloc = pay.allocations.find(a => a.participantId === id && a.amount > 0);
             if(alloc) {
                 hasPayment = true;
+                // Jika sinkron keluarga (bukan manual) dan hanya 1 pembayaran yang menutup lunas tagihan, tampilkan nilai yang sinkron dengan tagihan peserta
+                const displayAmount = (!stats.isManualPayment && stats.isSyncedWithFamily && stats.status === 'LUNAS' && rawAllocCount === 1)
+                    ? stats.totalDibayar
+                    : alloc.amount;
+                const modeNote = (!stats.isManualPayment && stats.isSyncedWithFamily)
+                    ? (pay.notes ? `${pay.notes} (Kolektif Keluarga)` : 'Alokasi Kolektif Keluarga')
+                    : (pay.notes || '-');
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${formatDate(pay.date)}</td>
-                    <td class="text-success text-bold">${formatRp(alloc.amount)}</td>
+                    <td class="text-success text-bold">${formatRp(displayAmount)}</td>
                     <td>${escapeHTML(pay.method)}</td>
-                    <td>${escapeHTML(pay.notes || '-')}</td>
+                    <td>${escapeHTML(modeNote)}</td>
                 `;
                 tbodyPays.appendChild(tr);
             }
@@ -349,11 +361,12 @@ document.getElementById('btn-add-cost-from-detail').addEventListener('click', ()
     prepareIndividualCostForm(currentDetailId);
 });
 
-// REVISI: Modifikasi style injeksi CSS print (hapus nowrap dari th kategori, biarkan wrap alami)
+// Style injeksi CSS print dilengkapi Watermark Resmi Davka Tour
 const getPrintStyles = () => `
     <style>
-        .print-wrap { width: 100%; max-width: 720px; margin: 0 auto; padding: 24px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ffffff; color: #1e293b; box-sizing: border-box; }
+        .print-wrap { position: relative; overflow: hidden; width: 100%; max-width: 720px; margin: 0 auto; padding: 24px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ffffff; color: #1e293b; box-sizing: border-box; }
         .print-wrap.print-wrap-wide { max-width: 100%; }
+        .print-header, .print-info, .print-section-title, .print-table, .print-summary, .print-footer { position: relative; z-index: 1; }
         .print-header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px; }
         .print-header h2 { margin: 0; color: #0f172a; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
         .print-header p { margin: 4px 0 0; font-size: 13px; font-weight: 600; color: #64748b; letter-spacing: 1px; }
@@ -364,10 +377,10 @@ const getPrintStyles = () => `
         .print-section-title { font-weight: 700; font-size: 13.5px; color: #0f172a; margin: 16px 0 8px 0; text-transform: uppercase; letter-spacing: 0.3px; }
         .print-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12.5px; table-layout: auto; }
         .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; vertical-align: middle; }
-        .print-table th { background-color: #f1f5f9; font-weight: 700; color: #0f172a; white-space: normal; line-height: 1.3; }
-        .print-table tr:nth-child(even) { background-color: #f8fafc; }
-        .print-table tr.matrix-total-row td { background-color: #f1f5f9 !important; font-weight: 700; color: #0f172a; border-top: 2px solid #94a3b8; }
-        .print-table tr.matrix-grand-row td { background-color: #e0f2fe !important; font-weight: 800; color: #0369a1; font-size: 13.5px; border-top: 1px solid #94a3b8; }
+        .print-table th { background-color: rgba(241, 245, 249, 0.92); font-weight: 700; color: #0f172a; white-space: normal; line-height: 1.3; }
+        .print-table tr:nth-child(even) { background-color: rgba(248, 250, 252, 0.88); }
+        .print-table tr.matrix-total-row td { background-color: rgba(241, 245, 249, 0.94) !important; font-weight: 700; color: #0f172a; border-top: 2px solid #94a3b8; }
+        .print-table tr.matrix-grand-row td { background-color: rgba(224, 242, 254, 0.94) !important; font-weight: 800; color: #0369a1; font-size: 13.5px; border-top: 1px solid #94a3b8; }
         .print-table td.nowrap, .print-table th.nowrap { white-space: nowrap !important; }
         .print-table th.cat-header { min-width: 85px; max-width: 130px; word-wrap: break-word; }
         .print-wrap .text-right { text-align: right !important; }
@@ -376,11 +389,16 @@ const getPrintStyles = () => `
         .print-wrap .text-danger { color: #dc2626 !important; font-weight: 700; }
         .print-wrap .text-info { color: #0284c7 !important; font-weight: 700; }
         .print-wrap .text-bold { font-weight: 700; }
-        .print-summary { background: #f8fafc; padding: 16px 18px; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 16px; }
+        .print-summary { background: rgba(248, 250, 252, 0.92); padding: 16px 18px; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 16px; }
         .print-summary-title { font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 8px; text-transform: uppercase; }
         .print-summary-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 13.5px; color: #334155; }
         .print-summary-row.total-row { border-top: 1px solid #cbd5e1; margin-top: 8px; padding-top: 10px; font-size: 15px; font-weight: 800; color: #0f172a; }
         .print-footer { margin-top: 20px; text-align: center; font-size: 11.5px; color: #94a3b8; border-top: 1px dashed #cbd5e1; padding-top: 10px; }
+        .nota-watermark-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; user-select: none; z-index: 3; overflow: hidden; }
+        .nota-watermark-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-22deg); opacity: 0.085; text-align: center; padding: 18px 28px; border: 2.5px dashed #0369a1; border-radius: 16px; }
+        .nota-watermark-inner.watermark-lg { transform: rotate(-20deg) scale(1.12); }
+        .nota-watermark-logo { width: 240px; height: auto; object-fit: contain; display: block; margin-bottom: 6px; }
+        .nota-watermark-stamp { font-size: 13px; font-weight: 800; letter-spacing: 3px; color: #0369a1; text-transform: uppercase; border-top: 1.5px solid #0369a1; padding-top: 4px; margin-top: 2px; white-space: nowrap; }
     </style>
 `;
 
@@ -393,6 +411,7 @@ document.getElementById('btn-print-individual').addEventListener('click', () => 
     const pCosts = db.costs.filter(c => c.participantId === p.id);
     
     let html = getPrintStyles() + `<div class="print-wrap">`;
+    html += getWatermarkHTML(false);
     html += `
         <div class="print-header">
             <h2>RINGKASAN BIAYA INDIVIDU</h2>
@@ -443,22 +462,34 @@ document.getElementById('btn-print-individual').addEventListener('click', () => 
             <tbody>
     `;
     
-    let payCount = 0;
+    const individualPayEntries = [];
     db.payments.forEach(pay => {
         if(pay.allocations) {
-            const alloc = pay.allocations.find(a => a.participantId === p.id);
+            const alloc = pay.allocations.find(a => a.participantId === p.id && a.amount > 0);
             if(alloc) {
-                payCount++;
-                html += `<tr>
-                    <td class="text-center">${payCount}</td>
-                    <td class="nowrap">${formatDate(pay.date)}</td>
-                    <td>${escapeHTML(pay.method || '-')}</td>
-                    <td class="text-right nowrap text-success">${formatRp(alloc.amount)}</td>
-                </tr>`;
+                individualPayEntries.push({ pay, alloc });
             }
         }
     });
-    if(payCount === 0) html += `<tr><td colspan="4" class="text-center text-muted">Belum ada riwayat pembayaran</td></tr>`;
+
+    if(individualPayEntries.length === 0) {
+        html += `<tr><td colspan="4" class="text-center text-muted">Belum ada riwayat pembayaran</td></tr>`;
+    } else {
+        individualPayEntries.forEach((entry, idx) => {
+            // Jika alokasi berasal dari pembayaran kolektif/bagi rata keluarga (bukan manual) dan keluarga sudah lunas,
+            // sinkronkan nominal tampil agar sesuai dengan tagihan individu peserta
+            let shownAmount = entry.alloc.amount;
+            if (!stats.isManualPayment && stats.isSyncedWithFamily && stats.status === 'LUNAS' && individualPayEntries.length === 1) {
+                shownAmount = stats.totalDibayar;
+            }
+            html += `<tr>
+                <td class="text-center">${idx + 1}</td>
+                <td class="nowrap">${formatDate(entry.pay.date)}</td>
+                <td>${escapeHTML(entry.pay.method || '-')}</td>
+                <td class="text-right nowrap text-success">${formatRp(shownAmount)}</td>
+            </tr>`;
+        });
+    }
     html += `</tbody></table>`;
     
     html += `
@@ -474,20 +505,47 @@ document.getElementById('btn-print-individual').addEventListener('click', () => 
             </div>
     `;
     
-    if(stats.kelebihan > 0) {
-        html += `
-            <div class="print-summary-row total-row">
-                <span>TOTAL KELEBIHAN BAYAR:</span>
-                <span class="text-info nowrap">+${formatRp(stats.kelebihan)}</span>
-            </div>
-        `;
+    // Sisa Tagihan atau Kelebihan Bayar pada Nota Individu HANYA muncul jika diinput Manual per Peserta
+    // atau jika memang masih ada sisa tagihan yang belum terbayar
+    if (stats.isManualPayment) {
+        if(stats.kelebihan > 0) {
+            html += `
+                <div class="print-summary-row total-row">
+                    <span>TOTAL KELEBIHAN BAYAR:</span>
+                    <span class="text-info nowrap">+${formatRp(stats.kelebihan)}</span>
+                </div>
+            `;
+        } else if (stats.sisa > 0) {
+            html += `
+                <div class="print-summary-row total-row">
+                    <span>TOTAL SISA DIBAYAR:</span>
+                    <span class="text-danger nowrap">${formatRp(stats.sisa)}</span>
+                </div>
+            `;
+        } else {
+            html += `
+                <div class="print-summary-row total-row">
+                    <span>STATUS PEMBAYARAN:</span>
+                    <span class="text-success nowrap">LUNAS</span>
+                </div>
+            `;
+        }
     } else {
-        html += `
-            <div class="print-summary-row total-row">
-                <span>TOTAL SISA DIBAYAR:</span>
-                <span class="text-danger nowrap">${formatRp(stats.sisa)}</span>
-            </div>
-        `;
+        if (stats.sisa > 0) {
+            html += `
+                <div class="print-summary-row total-row">
+                    <span>TOTAL SISA DIBAYAR:</span>
+                    <span class="text-danger nowrap">${formatRp(stats.sisa)}</span>
+                </div>
+            `;
+        } else {
+            html += `
+                <div class="print-summary-row total-row">
+                    <span>STATUS PEMBAYARAN:</span>
+                    <span class="text-success nowrap">LUNAS (SINKRON KELUARGA)</span>
+                </div>
+            `;
+        }
     }
     
     html += `</div>
@@ -512,6 +570,7 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
     const isWideMatrix = matrix.usedCategories.length >= 3;
 
     let html = getPrintStyles() + `<div class="print-wrap ${isWideMatrix ? 'print-wrap-wide' : ''}">`;
+    html += getWatermarkHTML(isWideMatrix);
     html += `
         <div class="print-header">
             <h2>RINGKASAN BIAYA & PEMBAYARAN KELUARGA</h2>
@@ -545,7 +604,6 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
         html += `<table class="print-table"><thead><tr>
             <th style="width: 38px;" class="text-center">No</th>
             <th>Nama Peserta</th>`;
-        // REVISI: Mengubah class "nowrap" menjadi "cat-header" yang mengizinkan wrapping secara natural
         matrix.usedCategories.forEach(cat => {
             html += `<th class="text-right cat-header">${escapeHTML(cat)}</th>`;
         });
@@ -580,42 +638,10 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
         html += `</tbody></table>`;
     }
 
-    // B. TABEL RINGKASAN TAGIHAN & STATUS PER ANGGOTA
+    // REVISI POIN 1: Bagian "Ringkasan Tagihan & Pembayaran Anggota" dihapus dari Nota Keluarga.
+    // Bagian Riwayat Pembayaran menjadi "B. Rincian Riwayat Pembayaran Keluarga"
     html += `
-        <div class="print-section-title">B. Ringkasan Tagihan & Pembayaran Anggota</div>
-        <table class="print-table">
-            <thead>
-                <tr>
-                    <th style="width: 38px;" class="text-center">No</th>
-                    <th>Nama Peserta</th>
-                    <th class="text-center" style="width: 120px;">Status</th>
-                    <th class="text-right nowrap" style="width: 130px;">Tagihan</th>
-                    <th class="text-right nowrap" style="width: 130px;">Dibayar</th>
-                    <th class="text-right nowrap" style="width: 130px;">Sisa / Lebih</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    matrix.sortedMembers.forEach((m, idx) => {
-        const stats = calcParticipantStats(m.id);
-        let sisaStr = stats.kelebihan > 0
-            ? `<span class="text-info">+${formatRp(stats.kelebihan)}</span>`
-            : `<span class="text-danger">${formatRp(stats.sisa)}</span>`;
-        html += `<tr>
-            <td class="text-center">${idx + 1}</td>
-            <td class="nowrap"><strong>${escapeHTML(m.name)}</strong></td>
-            <td class="text-center nowrap" style="font-size:11.5px; font-weight:700; color:#475569;">${stats.status}</td>
-            <td class="text-right nowrap">${formatRp(stats.totalTagihan)}</td>
-            <td class="text-right nowrap text-success">${formatRp(stats.totalDibayar)}</td>
-            <td class="text-right nowrap">${sisaStr}</td>
-        </tr>`;
-    });
-    html += `</tbody></table>`;
-
-    // C. TABEL RINCIAN RIWAYAT PEMBAYARAN 1 KELUARGA
-    html += `
-        <div class="print-section-title">C. Rincian Riwayat Pembayaran Keluarga</div>
+        <div class="print-section-title">B. Rincian Riwayat Pembayaran Keluarga</div>
         <table class="print-table">
             <thead>
                 <tr>
@@ -635,7 +661,7 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
     sortedPayments.forEach(pay => {
         if (pay.allocations) {
             pay.allocations.forEach(alloc => {
-                if (matrix.memberIds.includes(alloc.participantId)) {
+                if (matrix.memberIds.includes(alloc.participantId) && alloc.amount > 0) {
                     const memberObj = matrix.sortedMembers.find(m => m.id === alloc.participantId);
                     const infoParts = [];
                     if (pay.ref) infoParts.push(pay.ref);
@@ -722,8 +748,6 @@ function triggerSystemPrintRingkasan() {
 
 window.addEventListener('afterprint', cleanupPrintRingkasanClass);
 
-// Pastikan class printing-ringkasan selalu保持 aktif selama di dialog Android Print Spooler
-// dan otomatis dibersihkan saat fokus kembali ke aplikasi atau saat modal ditutup
 window.addEventListener('focus', () => {
     if (document.body.classList.contains('printing-ringkasan')) {
         setTimeout(cleanupPrintRingkasanClass, 300);
@@ -847,26 +871,43 @@ function buildThermalRingkasanText() {
         }
         out += line;
         out += 'B. RIWAYAT PEMBAYARAN:\n';
-        let payCount = 0;
+        const individualPayEntries = [];
         db.payments.forEach(pay => {
             if (pay.allocations) {
-                const alloc = pay.allocations.find(a => a.participantId === p.id);
+                const alloc = pay.allocations.find(a => a.participantId === p.id && a.amount > 0);
                 if (alloc) {
-                    payCount++;
-                    out += `${payCount}. ${formatDate(pay.date)} (${pay.method || '-'}): ${formatRp(alloc.amount)}\n`;
+                    individualPayEntries.push({ pay, alloc });
                 }
             }
         });
-        if (payCount === 0) {
+        if (individualPayEntries.length === 0) {
             out += '- Belum ada pembayaran\n';
+        } else {
+            individualPayEntries.forEach((entry, idx) => {
+                let shownAmount = entry.alloc.amount;
+                if (!stats.isManualPayment && stats.isSyncedWithFamily && stats.status === 'LUNAS' && individualPayEntries.length === 1) {
+                    shownAmount = stats.totalDibayar;
+                }
+                out += `${idx + 1}. ${formatDate(entry.pay.date)} (${entry.pay.method || '-'}): ${formatRp(shownAmount)}\n`;
+            });
         }
         out += line;
         out += `Total Tagihan : ${formatRp(stats.totalTagihan)}\n`;
         out += `Total Dibayar : ${formatRp(stats.totalDibayar)}\n`;
-        if (stats.kelebihan > 0) {
-            out += `Kelebihan Byr : +${formatRp(stats.kelebihan)}\n`;
+        if (stats.isManualPayment) {
+            if (stats.kelebihan > 0) {
+                out += `Kelebihan Byr : +${formatRp(stats.kelebihan)}\n`;
+            } else if (stats.sisa > 0) {
+                out += `Total Sisa    : ${formatRp(stats.sisa)}\n`;
+            } else {
+                out += `Status        : LUNAS\n`;
+            }
         } else {
-            out += `Total Sisa    : ${formatRp(stats.sisa)}\n`;
+            if (stats.sisa > 0) {
+                out += `Total Sisa    : ${formatRp(stats.sisa)}\n`;
+            } else {
+                out += `Status        : LUNAS (SINKRON KELUARGA)\n`;
+            }
         }
     } else {
         let targetFamily = currentDetailFamily;
@@ -911,23 +952,14 @@ function buildThermalRingkasanText() {
         out += `TOTAL SEMUA: ${formatRp(matrix.grandTotal)}\n`;
         out += line;
 
-        out += 'B. STATUS PER ANGGOTA:\n';
-        matrix.sortedMembers.forEach((m, idx) => {
-            const ms = calcParticipantStats(m.id);
-            const sisaTxt = ms.kelebihan > 0 ? `+${formatRp(ms.kelebihan)}` : formatRp(ms.sisa);
-            out += `${idx + 1}. ${m.name} (${ms.status})\n`;
-            out += `   Tagihan: ${formatRp(ms.totalTagihan)} | Dibayar: ${formatRp(ms.totalDibayar)}\n`;
-            out += `   Sisa/Lebih: ${sisaTxt}\n`;
-        });
-        out += line;
-
-        out += 'C. RIWAYAT PEMBAYARAN KELUARGA:\n';
+        // REVISI POIN 1: Bagian Status per Anggota dihapus, langsung ke B. Riwayat Pembayaran Keluarga
+        out += 'B. RIWAYAT PEMBAYARAN KELUARGA:\n';
         let famPayCount = 0;
         const sortedPayments = [...db.payments].sort((a, b) => new Date(a.date) - new Date(b.date));
         sortedPayments.forEach(pay => {
             if (pay.allocations) {
                 pay.allocations.forEach(alloc => {
-                    if (matrix.memberIds.includes(alloc.participantId)) {
+                    if (matrix.memberIds.includes(alloc.participantId) && alloc.amount > 0) {
                         famPayCount++;
                         const memberObj = matrix.sortedMembers.find(m => m.id === alloc.participantId);
                         const memberName = memberObj ? memberObj.name : '-';
@@ -953,7 +985,7 @@ function buildThermalRingkasanText() {
 
     out += line;
     out += '\x1B\x61\x01'; // Align Center
-    out += 'Dicetak oleh Sistem Davka Travel\n\n\n\n';
+    out += 'DOKUMEN ASLI - DAVKA TRAVEL\n\n\n\n';
     return out;
 }
 
@@ -969,7 +1001,6 @@ document.getElementById('btn-download-jpeg').addEventListener('click', async () 
 
     try {
         if (typeof html2canvas === 'function') {
-            // REVISI: Mengandalkan ukuran canvas mutlak (scrollWidth) dari elemen tabel agar tidak terjadi stretch
             const requiredWidth = Math.max(targetEl.scrollWidth + 48, 720); 
 
             const canvas = await html2canvas(targetEl, {
@@ -986,6 +1017,8 @@ document.getElementById('btn-download-jpeg').addEventListener('click', async () 
                         clonedWrap.style.margin = '0';
                         clonedWrap.style.boxShadow = 'none';
                         clonedWrap.style.transform = 'none';
+                        clonedWrap.style.position = 'relative';
+                        clonedWrap.style.overflow = 'hidden';
                     }
                 }
             });

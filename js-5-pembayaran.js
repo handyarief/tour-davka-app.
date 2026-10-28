@@ -104,6 +104,8 @@ function renderPaymentAllocTable(existingAllocations = []) {
         const existing = existingAllocations.find(a => a.participantId === p.id);
         const allocVal = existing ? existing.amount : 0;
         const isChecked = allocVal > 0 ? 'checked' : '';
+        // Jika sedang edit transaksi yang sudah punya alokasi untuk peserta ini, tambahkan kembali allocVal ke sisa dasar agar akurat
+        const baseRemaining = Math.max(0, stats.rawSisa + allocVal);
         
         const tr = document.createElement('tr');
         tr.setAttribute('data-family', p.family);
@@ -119,7 +121,7 @@ function renderPaymentAllocTable(existingAllocations = []) {
         }
 
         tr.innerHTML = `
-            <td><input type="checkbox" class="chk-alloc" data-id="${p.id}" ${isChecked}></td>
+            <td><input type="checkbox" class="chk-alloc" data-id="${p.id}" data-need="${baseRemaining}" ${isChecked}></td>
             <td>${escapeHTML(p.name)}<br><small class="text-muted">${escapeHTML(p.family)}</small></td>
             <td>${formatRp(stats.rawSisa)}</td>
             <td><input type="number" class="form-control input-sm alloc-input" data-id="${p.id}" value="${allocVal}" readonly step="1"></td>
@@ -173,13 +175,46 @@ function calculateAllocSplit() {
     document.querySelectorAll('.alloc-input').forEach(i => i.value = 0);
     
     if (count > 0 && totalReceived > 0) {
-        const base = Math.floor(totalReceived / count);
-        const remainder = totalReceived % count;
-        
-        checkedBoxes.forEach((chk, idx) => {
-            const input = document.querySelector(`.alloc-input[data-id="${chk.getAttribute('data-id')}"]`);
-            input.value = base + (idx < remainder ? 1 : 0); 
-        });
+        // Distribusi sinkron terhadap tagihan peserta terpilih:
+        // Prioritaskan menutup sisa tagihan tiap peserta secara proporsional agar tidak ada anggota keluarga
+        // yang berstatus kurang bayar sementara anggota lain kelebihan bayar
+        const needs = checkedBoxes.map(chk => Math.max(0, parseFloat(chk.getAttribute('data-need')) || 0));
+        const totalNeed = needs.reduce((sum, val) => sum + val, 0);
+
+        if (totalNeed > 0 && totalReceived >= totalNeed) {
+            // Uang diterima cukup atau lebih dari total tagihan peserta terpilih:
+            // Lunasi tagihan masing-masing peserta, lalu kelebihan bayarnya dibagi rata
+            const excess = totalReceived - totalNeed;
+            const baseExcess = Math.floor(excess / count);
+            const remExcess = excess % count;
+
+            checkedBoxes.forEach((chk, idx) => {
+                const input = document.querySelector(`.alloc-input[data-id="${chk.getAttribute('data-id')}"]`);
+                input.value = needs[idx] + baseExcess + (idx < remExcess ? 1 : 0);
+            });
+        } else if (totalNeed > 0 && totalReceived < totalNeed) {
+            // Pembayaran cicilan kolektif: bagi proporsional sesuai porsi tagihan masing-masing
+            let allocatedSoFar = 0;
+            const rawShares = needs.map(n => Math.floor((n / totalNeed) * totalReceived));
+            allocatedSoFar = rawShares.reduce((s, v) => s + v, 0);
+            let remainder = totalReceived - allocatedSoFar;
+
+            checkedBoxes.forEach((chk, idx) => {
+                const input = document.querySelector(`.alloc-input[data-id="${chk.getAttribute('data-id')}"]`);
+                const add = remainder > 0 ? 1 : 0;
+                if (remainder > 0) remainder--;
+                input.value = rawShares[idx] + add;
+            });
+        } else {
+            // Jika semua peserta terpilih belum memiliki tagihan, bagi rata murni
+            const base = Math.floor(totalReceived / count);
+            const remainder = totalReceived % count;
+            
+            checkedBoxes.forEach((chk, idx) => {
+                const input = document.querySelector(`.alloc-input[data-id="${chk.getAttribute('data-id')}"]`);
+                input.value = base + (idx < remainder ? 1 : 0); 
+            });
+        }
     }
     updatePaymentSummary();
 }
@@ -213,6 +248,7 @@ function updatePaymentSummary() {
 document.getElementById('form-payment').addEventListener('submit', async (e) => {
     e.preventDefault();
     const received = parseFloat(document.getElementById('pay-amount').value) || 0;
+    const allocMethod = document.getElementById('pay-alloc-method').value || 'manual';
     
     let allocatedSum = 0;
     const allocs = [];
@@ -221,7 +257,11 @@ document.getElementById('form-payment').addEventListener('submit', async (e) => 
         const val = parseFloat(document.querySelector(`.alloc-input[data-id="${pId}"]`).value) || 0;
         if (val > 0) {
             allocatedSum += val;
-            allocs.push({ participantId: pId, amount: val });
+            allocs.push({
+                participantId: pId,
+                amount: val,
+                allocMethod: allocMethod
+            });
         }
     });
     
@@ -245,7 +285,6 @@ document.getElementById('form-payment').addEventListener('submit', async (e) => 
         data.id = id;
         const index = db.payments.findIndex(x => x.id === id);
         
-        // UPDATE: Tambahkan error handling
         const { error } = await supabaseClient.from('payments').upsert([data]);
         if (error) {
             showToast('Gagal memperbarui transaksi: ' + error.message, 'danger');
@@ -257,7 +296,6 @@ document.getElementById('form-payment').addEventListener('submit', async (e) => 
     } else {
         data.id = generateId('PAY');
         
-        // UPDATE: Tambahkan error handling
         const { error } = await supabaseClient.from('payments').insert([data]);
         if (error) {
             showToast('Gagal mencatat transaksi kas: ' + error.message, 'danger');
@@ -300,18 +338,21 @@ window.editPaymentAllocation = function(id) {
     document.getElementById('pay-bank-acc').value = pay.notes || '';
     document.getElementById('payment-form-title').textContent = 'Edit Transaksi & Alokasi';
     
-    document.getElementById('pay-alloc-method').value = 'manual'; 
+    const savedMethod = (pay.allocations && pay.allocations.length > 0 && pay.allocations[0].allocMethod)
+        ? pay.allocations[0].allocMethod
+        : 'manual';
+    document.getElementById('pay-alloc-method').value = savedMethod;
     document.getElementById('pay-method').dispatchEvent(new Event('change'));
     
     renderPaymentAllocTable(pay.allocations);
-    document.querySelectorAll('.alloc-input').forEach(input => input.readOnly = false);
+    const isManual = savedMethod === 'manual';
+    document.querySelectorAll('.alloc-input').forEach(input => input.readOnly = !isManual);
     updatePaymentSummary();
     openModal('modal-payment-form');
 }
 
 window.deletePayment = async function(id) {
     confirmAction('Hapus Transaksi Penerimaan', 'Hapus penerimaan kas ini dari database cloud?', async () => {
-        // UPDATE: Tambahkan error handling
         const { error } = await supabaseClient.from('payments').delete().eq('id', id);
         if (error) {
             showToast('Gagal menghapus transaksi: ' + error.message, 'danger');
