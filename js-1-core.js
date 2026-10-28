@@ -181,32 +181,37 @@ function calcParticipantStats(participantId) {
 
 function calcFamilyStats(familyName) {
     const members = db.participants.filter(p => p.family === familyName);
-    let fTagihan = 0, fDibayar = 0, fSisa = 0, fKelebihan = 0;
+    let fTagihan = 0, fDibayar = 0;
     
     members.forEach(m => {
         const stats = calcParticipantStats(m.id);
         fTagihan += stats.totalTagihan;
         fDibayar += stats.totalDibayar;
-        fSisa += stats.sisa;
-        fKelebihan += stats.kelebihan;
     });
 
+    // Perhitungan kolektif 1 keluarga: kelebihan bayar anggota otomatis menutupi kekurangan anggota lain
     const rawNetSisa = fTagihan - fDibayar;
+    let fSisa = 0;
+    let fKelebihan = 0;
     let status = 'BELUM BAYAR';
     let badgeClass = 'badge-danger';
 
     if (fTagihan === 0 && fDibayar === 0) {
         status = 'BELUM ADA TAGIHAN';
         badgeClass = 'badge-secondary';
-    } else if (fSisa === 0 && fKelebihan === 0 && fTagihan > 0) {
+    } else if (rawNetSisa === 0 && fTagihan > 0) {
         status = 'LUNAS';
         badgeClass = 'badge-success';
-    } else if (fSisa === 0 && fKelebihan > 0) {
+    } else if (rawNetSisa < 0) {
         status = 'KELEBIHAN BAYAR';
         badgeClass = 'badge-info';
-    } else if (fSisa > 0 && fDibayar > 0) {
+        fKelebihan = Math.abs(rawNetSisa);
+    } else if (rawNetSisa > 0 && fDibayar > 0) {
         status = 'CICILAN';
         badgeClass = 'badge-warning';
+        fSisa = rawNetSisa;
+    } else if (rawNetSisa > 0) {
+        fSisa = rawNetSisa;
     }
 
     return { totalTagihan: fTagihan, totalDibayar: fDibayar, sisa: fSisa, kelebihan: fKelebihan, rawNetSisa, status, badgeClass, members };
