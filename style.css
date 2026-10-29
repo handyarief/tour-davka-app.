@@ -1308,43 +1308,19 @@ input[type="checkbox"] {
 /* ==========================================================================
    REVISI PERBAIKAN PRATINJAU RINGKASAN & LAPORAN KEUANGAN
    ========================================================================== */
-
-/* PEMBUNGKUS PRATINJAU KERTAS (PREVIEW MODE) */
-.report-preview-wrapper {
-    background-color: #334155 !important; /* Latar gelap kontras menyerupai pratinjau PDF */
-    padding: 20px 10px;
-    border-radius: 8px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    margin-top: 15px;
-}
-
 #report-print-area {
-    display: inline-block;
-    width: max-content !important;
-    min-width: 100%;
+    width: 100%;
+    max-width: 100%;
     background: #ffffff;
     position: relative;
-    padding: 30px 40px !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    border-radius: 4px;
-    margin: 0 auto;
-    overflow: visible !important;
-}
-
-/* Tampilkan Header Secara Eksklusif di Dalam Layar Pratinjau Kertas */
-#report-print-area .print-only-show {
-    display: block !important;
-    margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid #0f172a;
+    overflow: hidden;
 }
 
 #report-output-container {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 0px; 
+    padding: 15px;
     position: relative;
     z-index: 1;
 }
@@ -1542,24 +1518,10 @@ input[type="checkbox"] {
         margin: 0 !important;
         padding: 0 !important;
     }
-    
-    /* REVISI MEDIA PRINT LAPORAN AGAR TIDAK TERPOTONG */
     #report-print-area {
         display: block !important;
         position: relative !important;
-        overflow: visible !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        box-shadow: none !important;
-        width: 100% !important;
-        min-width: 0 !important;
-        transform: none !important;
-    }
-    .report-preview-wrapper {
-        background-color: transparent !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        overflow: visible !important;
+        overflow: hidden !important;
     }
     #report-output-container {
         padding: 0 !important;
@@ -1569,16 +1531,6 @@ input[type="checkbox"] {
         overflow: visible !important;
         border: none !important;
     }
-    
-    #report-output-container .table th,
-    #report-output-container .table td {
-        padding: 6px 8px !important;      /* Kurangi padding agar muat di kertas A4 */
-        font-size: 11px !important;       /* Perkecil font untuk muat semua kolom */
-        white-space: normal !important;   /* MENGIZINKAN BUNGKUS TEKS ANTI-TERPOTONG */
-        word-wrap: break-word !important;
-    }
-    /* END REVISI MEDIA PRINT */
-
     .print-only-show {
         display: block !important;
         padding-top: 10px;
@@ -1594,6 +1546,7 @@ input[type="checkbox"] {
     }
     .table th, .table td {
         border: 1px solid #334155 !important;
+        padding: 5px 7px !important;
     }
     .text-danger { color: #dc2626 !important; }
     .text-success { color: #16a34a !important; }
