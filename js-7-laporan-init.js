@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MODUL 8: LAPORAN KEUANGAN, CETAK PRINTER (WIFI/LAN/BLUETOOTH) & UNDUH JPG
+   MODUL 8: LAPORAN KEUANGAN, PRATINJAU DOKUMEN (GAMBAR 3) & UNDUH JPG UTUH
    ========================================================================== */
 function ensureReportWatermark() {
     const reportArea = document.getElementById('report-print-area');
@@ -46,44 +46,184 @@ document.getElementById('btn-generate-report').addEventListener('click', () => {
     ensureReportWatermark();
 });
 
-// 1. FUNGSI CETAK PRINTER WI-FI / LAN / SISTEM BAWAAN (TETAP DIPERTAHANKAN 100%)
+// 1. FUNGSI CETAK PRINTER WI-FI / LAN / SISTEM BAWAAN (TETAP DIPERTAHANKAN 100% TANPA DIUBAH)
 document.getElementById('btn-print-report').addEventListener('click', () => {
     ensureReportWatermark();
     window.print();
 });
 
-// 2. FUNGSI SIMPAN SEBAGAI JPG (DOWNLOAD LANGSUNG KE HP)
-document.getElementById('btn-download-jpg-report').addEventListener('click', async () => {
-    const btn = document.getElementById('btn-download-jpg-report');
+/* ==========================================================================
+   SISTEM PRATINJAU (PREVIEW) SEBELUM DOWNLOAD JPG / CETAK BLUETOOTH (GAMBAR 3)
+   ========================================================================== */
+let currentPreviewActionMode = 'jpg'; // 'jpg' | 'bluetooth'
+let currentPreviewSourceType = 'report'; // 'report' | 'ringkasan'
+
+function fitPreviewPaperToScreen() {
+    const viewport = document.getElementById('doc-preview-viewport');
+    const scaler = document.getElementById('doc-preview-scaler');
+    const paper = document.getElementById('doc-preview-paper');
+    if (!viewport || !scaler || !paper) return;
+
+    paper.style.transform = 'none';
+    scaler.style.height = 'auto';
+
+    // Hitung lebar aktual tabel terdalam agar kertas tidak memotong kolom kanan
+    let maxTableWidth = 760;
+    paper.querySelectorAll('table').forEach(tbl => {
+        if (tbl.scrollWidth > maxTableWidth) {
+            maxTableWidth = tbl.scrollWidth;
+        }
+    });
+
+    const fullPaperWidth = Math.max(maxTableWidth + 68, paper.scrollWidth);
+    paper.style.width = `${fullPaperWidth}px`;
+    paper.style.minWidth = `${fullPaperWidth}px`;
+
+    const availableWidth = Math.max(viewport.clientWidth - 24, 280);
+    if (fullPaperWidth > availableWidth) {
+        const scaleRatio = availableWidth / fullPaperWidth;
+        paper.style.transform = `scale(${scaleRatio})`;
+        paper.style.transformOrigin = 'top center';
+        const scaledHeight = Math.ceil(paper.offsetHeight * scaleRatio);
+        scaler.style.height = `${scaledHeight + 20}px`;
+    }
+}
+
+window.addEventListener('resize', () => {
+    const modal = document.getElementById('modal-doc-preview');
+    if (modal && modal.classList.contains('show')) {
+        fitPreviewPaperToScreen();
+    }
+});
+
+window.openDocumentPreviewModal = function(mode, source) {
+    currentPreviewActionMode = mode;
+    currentPreviewSourceType = source;
+
+    const paper = document.getElementById('doc-preview-paper');
+    const badge = document.getElementById('doc-preview-badge');
+    const headerTitle = document.getElementById('doc-preview-header-title');
+    const sizeLabel = document.getElementById('doc-preview-size-label');
+    const fabIcon = document.getElementById('doc-preview-fab-icon');
+    const fabLabel = document.getElementById('doc-preview-fab-label');
+    const confirmBtn = document.getElementById('btn-doc-preview-confirm');
+
+    if (!paper) return;
+
+    // Suntikkan isi dokumen yang akan dipratinjau
+    if (source === 'report') {
+        ensureReportWatermark();
+        const reportArea = document.getElementById('report-print-area');
+        paper.innerHTML = reportArea ? reportArea.innerHTML : '';
+    } else {
+        const ringkasanArea = document.getElementById('ringkasan-print-area');
+        paper.innerHTML = ringkasanArea ? ringkasanArea.innerHTML : '';
+    }
+
+    // Atur label & tombol sesuai aksi yang dipilih (Simpan sebagai JPG atau Cetak Bluetooth)
+    if (mode === 'jpg') {
+        if (badge) {
+            badge.textContent = 'JPG';
+            badge.className = 'doc-preview-badge';
+        }
+        if (headerTitle) headerTitle.textContent = 'Simpan sebagai JPG';
+        if (sizeLabel) sizeLabel.textContent = 'ISO A4 ( Penuh )';
+        if (fabIcon) fabIcon.innerHTML = '&#11015;';
+        if (fabLabel) fabLabel.textContent = 'JPG';
+        if (confirmBtn) confirmBtn.innerHTML = '&#11015; Download JPG';
+    } else if (mode === 'bluetooth') {
+        if (badge) {
+            badge.textContent = 'BT';
+            badge.className = 'doc-preview-badge badge-bt';
+        }
+        if (headerTitle) headerTitle.textContent = 'Pratinjau Cetak Bluetooth';
+        if (sizeLabel) sizeLabel.textContent = 'Thermal / Struk';
+        if (fabIcon) fabIcon.innerHTML = '&#128424;';
+        if (fabLabel) fabLabel.textContent = 'CETAK';
+        if (confirmBtn) confirmBtn.innerHTML = '&#128424; Cetak Bluetooth';
+    }
+
+    openModal('modal-doc-preview');
+    setTimeout(fitPreviewPaperToScreen, 60);
+};
+
+async function triggerPreviewExecution(triggerBtn) {
+    if (currentPreviewActionMode === 'jpg') {
+        if (currentPreviewSourceType === 'report') {
+            await executeDownloadReportJpg(triggerBtn);
+        } else if (typeof window.executeDownloadRingkasanJpg === 'function') {
+            await window.executeDownloadRingkasanJpg(triggerBtn);
+        }
+    } else if (currentPreviewActionMode === 'bluetooth') {
+        if (currentPreviewSourceType === 'report') {
+            await executeBluetoothReport(triggerBtn);
+        } else if (typeof window.executeBluetoothRingkasan === 'function') {
+            await window.executeBluetoothRingkasan(triggerBtn);
+        }
+    }
+}
+
+const btnPreviewFab = document.getElementById('btn-doc-preview-action');
+if (btnPreviewFab) {
+    btnPreviewFab.addEventListener('click', () => triggerPreviewExecution(btnPreviewFab));
+}
+
+const btnPreviewConfirm = document.getElementById('btn-doc-preview-confirm');
+if (btnPreviewConfirm) {
+    btnPreviewConfirm.addEventListener('click', () => triggerPreviewExecution(btnPreviewConfirm));
+}
+
+const btnPreviewClose = document.getElementById('btn-doc-preview-close');
+if (btnPreviewClose) {
+    btnPreviewClose.addEventListener('click', () => closeModal('modal-doc-preview'));
+}
+
+// 2. FUNGSI SIMPAN SEBAGAI JPG (BUKA PREVIEW DULU -> KLIK DOWNLOAD, HASIL 100% UTUH TANPA TERPOTONG)
+async function executeDownloadReportJpg(triggerBtn) {
+    const btn = triggerBtn || document.getElementById('btn-download-jpg-report');
     const reportArea = document.getElementById('report-print-area');
     const type = document.getElementById('report-type').value;
 
     ensureReportWatermark();
 
-    const originalText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = 'Memproses JPG...';
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Memproses JPG...';
+    }
 
     try {
         if (typeof html2canvas === 'function') {
+            // Hitung lebar riil seluruh tabel di dalam laporan agar tidak terpotong di sebelah kanan
+            let maxTableWidth = 820;
+            reportArea.querySelectorAll('table').forEach(tbl => {
+                if (tbl.scrollWidth > maxTableWidth) {
+                    maxTableWidth = tbl.scrollWidth;
+                }
+            });
+            const requiredWidth = Math.max(maxTableWidth + 68, 880);
+
             const canvas = await html2canvas(reportArea, {
                 scale: 2,
                 backgroundColor: '#ffffff',
                 useCORS: true,
                 logging: false,
-                windowWidth: 900,
+                width: requiredWidth,
+                windowWidth: requiredWidth + 120,
                 onclone: (clonedDoc) => {
                     const clonedArea = clonedDoc.getElementById('report-print-area');
                     if (clonedArea) {
                         clonedArea.style.display = 'block';
-                        clonedArea.style.width = '820px';
-                        clonedArea.style.maxWidth = '820px';
-                        clonedArea.style.padding = '25px';
+                        clonedArea.style.width = `${requiredWidth}px`;
+                        clonedArea.style.minWidth = `${requiredWidth}px`;
+                        clonedArea.style.maxWidth = `${requiredWidth}px`;
+                        clonedArea.style.padding = '28px 32px';
                         clonedArea.style.margin = '0';
                         clonedArea.style.border = 'none';
                         clonedArea.style.boxShadow = 'none';
                         clonedArea.style.position = 'relative';
                         clonedArea.style.overflow = 'hidden';
+                        clonedArea.style.boxSizing = 'border-box';
                     }
                     const clonedHeader = clonedDoc.querySelector('#report-print-area .print-only-show');
                     if (clonedHeader) {
@@ -97,12 +237,17 @@ document.getElementById('btn-download-jpg-report').addEventListener('click', asy
                     const clonedContainer = clonedDoc.getElementById('report-output-container');
                     if (clonedContainer) {
                         clonedContainer.style.overflow = 'visible';
+                        clonedContainer.style.width = '100%';
                         clonedContainer.style.padding = '0';
                         clonedContainer.style.position = 'relative';
                         clonedContainer.style.zIndex = '1';
                     }
                     clonedDoc.querySelectorAll('.report-table-wrap').forEach(wrap => {
                         wrap.style.overflow = 'visible';
+                        wrap.style.width = '100%';
+                    });
+                    clonedDoc.querySelectorAll('#report-output-container .table').forEach(tbl => {
+                        tbl.style.width = '100%';
                     });
                 }
             });
@@ -123,25 +268,33 @@ document.getElementById('btn-download-jpg-report').addEventListener('click', asy
         console.error('Download Report JPG Error:', err);
         showToast('Gagal menyimpan laporan sebagai JPG.', 'danger');
     } finally {
-        btn.disabled = false;
-        btn.textContent = originalText;
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
     }
+}
+
+document.getElementById('btn-download-jpg-report').addEventListener('click', () => {
+    window.openDocumentPreviewModal('jpg', 'report');
 });
 
-// 3. FUNGSI CETAK PRINTER BLUETOOTH (WEB BLUETOOTH API ESC/POS & FALLBACK)
+// 3. FUNGSI CETAK PRINTER BLUETOOTH (BUKA PREVIEW DULU -> KLIK CETAK BLUETOOTH)
 let btCharacteristic = null;
 
-document.getElementById('btn-print-bluetooth').addEventListener('click', async () => {
+async function executeBluetoothReport(triggerBtn) {
     if (!navigator.bluetooth) {
         showToast('Membuka dialog printer sistem (Pilih printer Bluetooth Anda)...', 'warning');
         setTimeout(() => window.print(), 600);
         return;
     }
 
-    const btn = document.getElementById('btn-print-bluetooth');
-    const originalText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = 'Menghubungkan BT...';
+    const btn = triggerBtn || document.getElementById('btn-print-bluetooth');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Menghubungkan BT...';
+    }
 
     try {
         if (!btCharacteristic) {
@@ -197,9 +350,15 @@ document.getElementById('btn-print-bluetooth').addEventListener('click', async (
             showToast('Pencarian printer Bluetooth dibatalkan.', 'warning');
         }
     } finally {
-        btn.disabled = false;
-        btn.textContent = originalText;
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
     }
+}
+
+document.getElementById('btn-print-bluetooth').addEventListener('click', () => {
+    window.openDocumentPreviewModal('bluetooth', 'report');
 });
 
 function buildThermalReportText() {

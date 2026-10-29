@@ -32,6 +32,40 @@
         </div>
     </div>
 
+    <!-- Modal Pratinjau Dokumen (Gaya Layar Preview Gambar 3 Sebelum Download JPG / Cetak Bluetooth) -->
+    <div id="modal-doc-preview" class="modal doc-preview-modal">
+        <div class="doc-preview-container">
+            <div class="doc-preview-topbar">
+                <div class="doc-preview-title-row">
+                    <div class="doc-preview-badge" id="doc-preview-badge">JPG</div>
+                    <h3 id="doc-preview-header-title">Simpan sebagai JPG</h3>
+                </div>
+                <div class="doc-preview-meta-row">
+                    <span>Salinan: <strong>1</strong></span>
+                    <span>Ukuran: <strong id="doc-preview-size-label">Penuh (Utuh)</strong></span>
+                </div>
+                <button type="button" class="doc-preview-fab" id="btn-doc-preview-action" title="Proses Sekarang">
+                    <span id="doc-preview-fab-icon">&#11015;</span>
+                    <small id="doc-preview-fab-label">JPG</small>
+                </button>
+            </div>
+
+            <div class="doc-preview-viewport" id="doc-preview-viewport">
+                <div class="doc-preview-paper-scaler" id="doc-preview-scaler">
+                    <div class="doc-preview-paper" id="doc-preview-paper">
+                        <!-- Konten Pratinjau Utuh Disuntikkan via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="doc-preview-bottombar">
+                <button type="button" class="btn btn-sm btn-secondary doc-preview-back-btn" id="btn-doc-preview-close">&larr; Kembali</button>
+                <span class="doc-preview-page-indicator">1/1</span>
+                <button type="button" class="btn btn-sm btn-success doc-preview-confirm-btn" id="btn-doc-preview-confirm">&#10004; Download JPG</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Ringkasan -->
     <div id="modal-ringkasan" class="modal">
         <div class="modal-content modal-lg">

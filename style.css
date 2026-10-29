@@ -914,6 +914,230 @@ input[type="checkbox"] {
 }
 
 /* ==========================================================================
+   MODAL PRATINJAU DOKUMEN (GAYA GAMBAR 3 SEBELUM DOWNLOAD JPG / CETAK BT)
+   ========================================================================== */
+.modal.doc-preview-modal {
+    padding: 0 !important;
+    background-color: #161d24 !important;
+    z-index: 3500;
+    align-items: stretch !important;
+}
+
+.doc-preview-container {
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background-color: #161d24;
+    color: #f8fafc;
+    overflow: hidden;
+}
+
+.doc-preview-topbar {
+    background-color: #1e2630;
+    padding: 16px 20px 22px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    z-index: 10;
+}
+
+.doc-preview-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-right: 70px;
+}
+
+.doc-preview-badge {
+    background-color: #0284c7;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 11px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+    border: 1.5px solid #38bdf8;
+    flex-shrink: 0;
+}
+
+.doc-preview-badge.badge-bt {
+    background-color: #2563eb;
+    border-color: #60a5fa;
+}
+
+.doc-preview-title-row h3 {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.doc-preview-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    font-size: 14px;
+    color: #94a3b8;
+    padding-right: 70px;
+}
+
+.doc-preview-meta-row strong {
+    color: #ffffff;
+    font-size: 16px;
+    margin-left: 6px;
+}
+
+.doc-preview-fab {
+    position: absolute;
+    right: 20px;
+    bottom: -24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: #bae6fd;
+    color: #0369a1;
+    border: 3px solid #161d24;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.2s ease;
+    z-index: 20;
+}
+
+.doc-preview-fab:hover:not(:disabled) {
+    background-color: #7dd3fc;
+    transform: scale(1.06);
+}
+
+.doc-preview-fab:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.doc-preview-fab span {
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 800;
+}
+
+.doc-preview-fab small {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+.doc-preview-viewport {
+    flex: 1;
+    overflow: auto;
+    padding: 36px 14px 24px 14px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    -webkit-overflow-scrolling: touch;
+}
+
+.doc-preview-paper-scaler {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    transform-origin: top center;
+}
+
+.doc-preview-paper {
+    background-color: #ffffff;
+    color: #0f172a;
+    padding: 28px 32px;
+    border-radius: 3px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+    position: relative;
+    overflow: hidden;
+    width: max-content;
+    min-width: 780px;
+    box-sizing: border-box;
+    transform-origin: top center;
+}
+
+.doc-preview-paper .print-only-show {
+    display: block !important;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #0f172a;
+}
+
+.doc-preview-paper #report-output-container,
+.doc-preview-paper .report-table-wrap,
+.doc-preview-paper .table-responsive {
+    overflow: visible !important;
+    padding: 0 !important;
+}
+
+.doc-preview-paper .table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+
+.doc-preview-paper .table th,
+.doc-preview-paper .table td {
+    padding: 8px 11px !important;
+    font-size: 12px !important;
+    border: 1px solid #cbd5e1 !important;
+    white-space: nowrap !important;
+    color: #0f172a;
+}
+
+.doc-preview-paper .table th {
+    background-color: #f1f5f9 !important;
+    font-weight: 700 !important;
+    position: static !important;
+}
+
+.doc-preview-paper .text-success { color: #16a34a !important; }
+.doc-preview-paper .text-danger { color: #dc2626 !important; }
+.doc-preview-paper .text-info { color: #0284c7 !important; }
+
+.doc-preview-bottombar {
+    background-color: #9e9e9e;
+    color: #ffffff;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.doc-preview-page-indicator {
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.doc-preview-back-btn {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 7px 14px !important;
+}
+
+.doc-preview-confirm-btn {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+    border: 1.5px solid #bae6fd !important;
+    padding: 7px 14px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* ==========================================================================
    UTILITAS & KELAS BANTU
    ========================================================================== */
 .flex-between { display: flex; justify-content: space-between; }
@@ -1474,7 +1698,7 @@ input[type="checkbox"] {
 }
 
 /* ==========================================================================
-   TAMPILAN CETAK (PRINT WI-FI / LAN / SISTEM)
+   TAMPILAN CETAK (PRINT WI-FI / LAN / SISTEM — BEBAS TERPOTONG)
    ========================================================================== */
 .print-only-show {
     display: none;
@@ -1482,7 +1706,7 @@ input[type="checkbox"] {
 
 @media print {
     @page {
-        margin: 10mm;
+        margin: 8mm;
     }
     html, body {
         width: 100% !important;
@@ -1490,7 +1714,7 @@ input[type="checkbox"] {
         overflow: visible !important;
         background-color: #fff !important;
         color: #000 !important;
-        font-size: 10.5pt;
+        font-size: 9.5pt;
         margin: 0 !important;
         padding: 0 !important;
     }
@@ -1521,19 +1745,37 @@ input[type="checkbox"] {
     #report-print-area {
         display: block !important;
         position: relative !important;
-        overflow: hidden !important;
+        overflow: visible !important;
+        width: 100% !important;
     }
     #report-output-container {
         padding: 0 !important;
         overflow: visible !important;
+        width: 100% !important;
     }
     .report-table-wrap {
         overflow: visible !important;
         border: none !important;
+        width: 100% !important;
+    }
+    #report-output-container .table {
+        width: 100% !important;
+        table-layout: auto !important;
+    }
+    #report-output-container .table th,
+    #report-output-container .table td {
+        padding: 5px 6px !important;
+        font-size: 9pt !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+    #report-output-container .table td.text-right,
+    #report-output-container .table th.text-right {
+        white-space: nowrap !important;
     }
     .print-only-show {
         display: block !important;
-        padding-top: 10px;
+        padding-top: 6px;
     }
     .report-cash-summary {
         grid-template-columns: repeat(4, 1fr) !important;
@@ -1546,7 +1788,7 @@ input[type="checkbox"] {
     }
     .table th, .table td {
         border: 1px solid #334155 !important;
-        padding: 5px 7px !important;
+        padding: 5px 6px !important;
     }
     .text-danger { color: #dc2626 !important; }
     .text-success { color: #16a34a !important; }
@@ -1614,11 +1856,11 @@ input[type="checkbox"] {
     }
     body.printing-ringkasan .print-table {
         width: 100% !important;
-        font-size: 10.5px !important;
+        font-size: 9.5px !important;
     }
     body.printing-ringkasan .print-table th,
     body.printing-ringkasan .print-table td {
-        padding: 5px 6px !important;
+        padding: 4px 5px !important;
     }
     body.printing-ringkasan .print-table th.cat-header {
         min-width: 0 !important;

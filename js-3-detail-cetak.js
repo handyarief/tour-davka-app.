@@ -89,7 +89,6 @@ function renderDetailParticipant(id) {
             const alloc = pay.allocations.find(a => a.participantId === id && a.amount > 0);
             if(alloc) {
                 hasPayment = true;
-                // Jika sinkron keluarga (bukan manual) dan hanya 1 pembayaran yang menutup lunas tagihan, tampilkan nilai yang sinkron dengan tagihan peserta
                 const displayAmount = (!stats.isManualPayment && stats.isSyncedWithFamily && stats.status === 'LUNAS' && rawAllocCount === 1)
                     ? stats.totalDibayar
                     : alloc.amount;
@@ -476,8 +475,6 @@ document.getElementById('btn-print-individual').addEventListener('click', () => 
         html += `<tr><td colspan="4" class="text-center text-muted">Belum ada riwayat pembayaran</td></tr>`;
     } else {
         individualPayEntries.forEach((entry, idx) => {
-            // Jika alokasi berasal dari pembayaran kolektif/bagi rata keluarga (bukan manual) dan keluarga sudah lunas,
-            // sinkronkan nominal tampil agar sesuai dengan tagihan individu peserta
             let shownAmount = entry.alloc.amount;
             if (!stats.isManualPayment && stats.isSyncedWithFamily && stats.status === 'LUNAS' && individualPayEntries.length === 1) {
                 shownAmount = stats.totalDibayar;
@@ -505,8 +502,6 @@ document.getElementById('btn-print-individual').addEventListener('click', () => 
             </div>
     `;
     
-    // Sisa Tagihan atau Kelebihan Bayar pada Nota Individu HANYA muncul jika diinput Manual per Peserta
-    // atau jika memang masih ada sisa tagihan yang belum terbayar
     if (stats.isManualPayment) {
         if(stats.kelebihan > 0) {
             html += `
@@ -638,8 +633,7 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
         html += `</tbody></table>`;
     }
 
-    // REVISI POIN 1: Bagian "Ringkasan Tagihan & Pembayaran Anggota" dihapus dari Nota Keluarga.
-    // Bagian Riwayat Pembayaran menjadi "B. Rincian Riwayat Pembayaran Keluarga"
+    // B. Rincian Riwayat Pembayaran Keluarga
     html += `
         <div class="print-section-title">B. Rincian Riwayat Pembayaran Keluarga</div>
         <table class="print-table">
@@ -736,7 +730,7 @@ document.getElementById('btn-print-family').addEventListener('click', () => {
     openModal('modal-ringkasan');
 });
 
-// 1. FUNGSI CETAK (PRINT) WI-FI / LAN / SISTEM PADA MODAL RINGKASAN (INDIVIDU & KELUARGA)
+// 1. FUNGSI CETAK (PRINT) WI-FI / LAN / SISTEM PADA MODAL RINGKASAN (TIDAK DIUBAH SAMA SEKALI)
 function cleanupPrintRingkasanClass() {
     document.body.classList.remove('printing-ringkasan');
 }
@@ -767,76 +761,89 @@ if (btnPrintRingkasan) {
     });
 }
 
-// 2. FUNGSI CETAK BLUETOOTH (ESC/POS & FALLBACK) PADA MODAL RINGKASAN (INDIVIDU & KELUARGA)
-const btnPrintBtRingkasan = document.getElementById('btn-print-bluetooth-ringkasan');
-if (btnPrintBtRingkasan) {
-    btnPrintBtRingkasan.addEventListener('click', async () => {
-        if (!navigator.bluetooth) {
-            showToast('Membuka dialog printer sistem (Pilih printer Bluetooth Anda)...', 'warning');
-            setTimeout(() => triggerSystemPrintRingkasan(), 600);
-            return;
+// 2. FUNGSI EKSEKUSI CETAK BLUETOOTH RINGKASAN (DIPANGGIL SETELAH KLIK DI HALAMAN PREVIEW)
+window.executeBluetoothRingkasan = async function(triggerBtn) {
+    if (!navigator.bluetooth) {
+        showToast('Membuka dialog printer sistem (Pilih printer Bluetooth Anda)...', 'warning');
+        setTimeout(() => triggerSystemPrintRingkasan(), 600);
+        return;
+    }
+
+    const btn = triggerBtn || document.getElementById('btn-print-bluetooth-ringkasan');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Menghubungkan BT...';
+    }
+
+    try {
+        if (typeof btCharacteristic === 'undefined' || !btCharacteristic) {
+            const device = await navigator.bluetooth.requestDevice({
+                acceptAllDevices: true,
+                optionalServices: [
+                    '000018f0-0000-1000-8000-00805f9b34fb',
+                    'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+                    '49535343-fe7d-4ae5-8fa9-9fafd205e455'
+                ]
+            });
+
+            const server = await device.gatt.connect();
+            const services = await server.getPrimaryServices();
+            for (const service of services) {
+                const characteristics = await service.getCharacteristics();
+                for (const char of characteristics) {
+                    if (char.properties.write || char.properties.writeWithoutResponse) {
+                        btCharacteristic = char;
+                        break;
+                    }
+                }
+                if (btCharacteristic) break;
+            }
         }
 
-        const originalText = btnPrintBtRingkasan.textContent;
-        btnPrintBtRingkasan.disabled = true;
-        btnPrintBtRingkasan.textContent = 'Menghubungkan BT...';
+        if (!btCharacteristic) {
+            throw new Error('Karakteristik tulis printer Bluetooth tidak ditemukan.');
+        }
 
-        try {
-            if (typeof btCharacteristic === 'undefined' || !btCharacteristic) {
-                const device = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true,
-                    optionalServices: [
-                        '000018f0-0000-1000-8000-00805f9b34fb',
-                        'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
-                        '49535343-fe7d-4ae5-8fa9-9fafd205e455'
-                    ]
-                });
+        const receiptText = buildThermalRingkasanText();
+        const encoder = new TextEncoder();
+        const dataBytes = encoder.encode(receiptText);
 
-                const server = await device.gatt.connect();
-                const services = await server.getPrimaryServices();
-                for (const service of services) {
-                    const characteristics = await service.getCharacteristics();
-                    for (const char of characteristics) {
-                        if (char.properties.write || char.properties.writeWithoutResponse) {
-                            btCharacteristic = char;
-                            break;
-                        }
-                    }
-                    if (btCharacteristic) break;
-                }
-            }
-
-            if (!btCharacteristic) {
-                throw new Error('Karakteristik tulis printer Bluetooth tidak ditemukan.');
-            }
-
-            const receiptText = buildThermalRingkasanText();
-            const encoder = new TextEncoder();
-            const dataBytes = encoder.encode(receiptText);
-
-            const chunkSize = 100;
-            for (let i = 0; i < dataBytes.length; i += chunkSize) {
-                const chunk = dataBytes.slice(i, i + chunkSize);
-                if (btCharacteristic.properties.writeWithoutResponse) {
-                    await btCharacteristic.writeValueWithoutResponse(chunk);
-                } else {
-                    await btCharacteristic.writeValue(chunk);
-                }
-            }
-
-            showToast('Berhasil mencetak ke Printer Bluetooth!');
-        } catch (err) {
-            console.warn('Bluetooth Print Ringkasan Info:', err);
-            if (typeof btCharacteristic !== 'undefined') btCharacteristic = null;
-            if (err.name !== 'NotFoundError') {
-                showToast('Gagal koneksi langsung BT. Membuka dialog cetak sistem...', 'warning');
-                setTimeout(() => triggerSystemPrintRingkasan(), 800);
+        const chunkSize = 100;
+        for (let i = 0; i < dataBytes.length; i += chunkSize) {
+            const chunk = dataBytes.slice(i, i + chunkSize);
+            if (btCharacteristic.properties.writeWithoutResponse) {
+                await btCharacteristic.writeValueWithoutResponse(chunk);
             } else {
-                showToast('Pencarian printer Bluetooth dibatalkan.', 'warning');
+                await btCharacteristic.writeValue(chunk);
             }
-        } finally {
-            btnPrintBtRingkasan.disabled = false;
-            btnPrintBtRingkasan.textContent = originalText;
+        }
+
+        showToast('Berhasil mencetak ke Printer Bluetooth!');
+    } catch (err) {
+        console.warn('Bluetooth Print Ringkasan Info:', err);
+        if (typeof btCharacteristic !== 'undefined') btCharacteristic = null;
+        if (err.name !== 'NotFoundError') {
+            showToast('Gagal koneksi langsung BT. Membuka dialog cetak sistem...', 'warning');
+            setTimeout(() => triggerSystemPrintRingkasan(), 800);
+        } else {
+            showToast('Pencarian printer Bluetooth dibatalkan.', 'warning');
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+};
+
+const btnPrintBtRingkasan = document.getElementById('btn-print-bluetooth-ringkasan');
+if (btnPrintBtRingkasan) {
+    btnPrintBtRingkasan.addEventListener('click', () => {
+        if (typeof window.openDocumentPreviewModal === 'function') {
+            window.openDocumentPreviewModal('bluetooth', 'ringkasan');
+        } else {
+            window.executeBluetoothRingkasan(btnPrintBtRingkasan);
         }
     });
 }
@@ -952,7 +959,6 @@ function buildThermalRingkasanText() {
         out += `TOTAL SEMUA: ${formatRp(matrix.grandTotal)}\n`;
         out += line;
 
-        // REVISI POIN 1: Bagian Status per Anggota dihapus, langsung ke B. Riwayat Pembayaran Keluarga
         out += 'B. RIWAYAT PEMBAYARAN KELUARGA:\n';
         let famPayCount = 0;
         const sortedPayments = [...db.payments].sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -989,32 +995,43 @@ function buildThermalRingkasanText() {
     return out;
 }
 
-// 3. FUNGSI SIMPAN SEBAGAI JPG PADA MODAL RINGKASAN (INDIVIDU & KELUARGA)
-document.getElementById('btn-download-jpeg').addEventListener('click', async () => {
-    const btn = document.getElementById('btn-download-jpeg');
+// 3. FUNGSI EKSEKUSI SIMPAN SEBAGAI JPG PADA MODAL RINGKASAN (100% UTUH TANPA TERPOTONG)
+window.executeDownloadRingkasanJpg = async function(triggerBtn) {
+    const btn = triggerBtn || document.getElementById('btn-download-jpeg');
     const printArea = document.getElementById('ringkasan-print-area');
     const targetEl = printArea.querySelector('.print-wrap') || printArea;
 
-    const originalText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = 'Memproses JPG...';
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Memproses JPG...';
+    }
 
     try {
         if (typeof html2canvas === 'function') {
-            const requiredWidth = Math.max(targetEl.scrollWidth + 48, 720); 
+            let maxInnerWidth = targetEl.scrollWidth;
+            targetEl.querySelectorAll('table').forEach(tbl => {
+                if (tbl.scrollWidth > maxInnerWidth) {
+                    maxInnerWidth = tbl.scrollWidth;
+                }
+            });
+            const requiredWidth = Math.max(maxInnerWidth + 64, 760);
 
             const canvas = await html2canvas(targetEl, {
                 scale: 2,
                 backgroundColor: '#ffffff',
                 useCORS: true,
                 logging: false,
-                windowWidth: requiredWidth + 80,
+                width: requiredWidth,
+                windowWidth: requiredWidth + 100,
                 onclone: (clonedDoc) => {
                     const clonedWrap = clonedDoc.querySelector('.print-wrap');
                     if (clonedWrap) {
                         clonedWrap.style.width = `${requiredWidth}px`;
+                        clonedWrap.style.minWidth = `${requiredWidth}px`;
                         clonedWrap.style.maxWidth = `${requiredWidth}px`;
                         clonedWrap.style.margin = '0';
+                        clonedWrap.style.padding = '28px';
                         clonedWrap.style.boxShadow = 'none';
                         clonedWrap.style.transform = 'none';
                         clonedWrap.style.position = 'relative';
@@ -1039,7 +1056,17 @@ document.getElementById('btn-download-jpeg').addEventListener('click', async () 
         console.error('Download JPEG Error:', err);
         showToast('Gagal memproses gambar.', 'danger');
     } finally {
-        btn.disabled = false;
-        btn.textContent = originalText;
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+};
+
+document.getElementById('btn-download-jpeg').addEventListener('click', () => {
+    if (typeof window.openDocumentPreviewModal === 'function') {
+        window.openDocumentPreviewModal('jpg', 'ringkasan');
+    } else {
+        window.executeDownloadRingkasanJpg(document.getElementById('btn-download-jpeg'));
     }
 });
