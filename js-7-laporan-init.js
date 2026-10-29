@@ -12,7 +12,6 @@ function ensureReportWatermark() {
 document.getElementById('btn-generate-report').addEventListener('click', () => {
     const type = document.getElementById('report-type').value;
     
-    document.getElementById('report-print-area').style.display = 'block';
     document.getElementById('btn-print-report').style.display = 'inline-flex';
     document.getElementById('btn-print-bluetooth').style.display = 'inline-flex';
     document.getElementById('btn-download-jpg-report').style.display = 'inline-flex';
@@ -44,9 +43,62 @@ document.getElementById('btn-generate-report').addEventListener('click', () => {
     }
 
     ensureReportWatermark();
+
+    /* --- REVISI: WRAPPER PRATINJAU KERTAS --- */
+    const reportArea = document.getElementById('report-print-area');
+    reportArea.style.display = 'inline-block';
+    
+    if (!reportArea.parentElement.classList.contains('report-preview-wrapper')) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'report-preview-wrapper';
+        reportArea.parentNode.insertBefore(wrapper, reportArea);
+        wrapper.appendChild(reportArea);
+    }
+
+    // Terapkan auto-scale secara asinkron agar DOM ter-render dulu
+    setTimeout(applyPreviewScale, 100);
 });
 
-// 1. FUNGSI CETAK PRINTER WI-FI / LAN / SISTEM BAWAAN (TETAP DIPERTAHANKAN 100%)
+// FUNGSI AUTO-SCALE (PRATINJAU PROPORSIONAL RESPONSIVE)
+function applyPreviewScale() {
+    const reportArea = document.getElementById('report-print-area');
+    const wrapper = reportArea.parentElement;
+    if (!wrapper || !wrapper.classList.contains('report-preview-wrapper')) return;
+
+    reportArea.style.transform = 'none';
+    reportArea.style.width = 'max-content';
+    wrapper.style.height = 'auto';
+    wrapper.style.overflowX = 'auto';
+
+    if (window.innerWidth <= 768) {
+        const table = reportArea.querySelector('.table');
+        let reqWidth = table ? table.scrollWidth + 80 : reportArea.scrollWidth;
+        reqWidth = Math.max(reqWidth, 820);
+        
+        reportArea.style.width = `${reqWidth}px`;
+        
+        const wrapWidth = wrapper.clientWidth - 20;
+        const scale = wrapWidth / reqWidth;
+        
+        // Pengecilan auto-fit di mobile agar tidak blur
+        if (scale < 1) {
+            reportArea.style.transform = `scale(${scale})`;
+            reportArea.style.transformOrigin = 'top left';
+            wrapper.style.height = `${(reportArea.offsetHeight * scale) + 40}px`;
+            wrapper.style.overflowX = 'hidden';
+        }
+    }
+}
+
+// Pantau orientasi/resize layar
+window.addEventListener('resize', () => {
+    const reportArea = document.getElementById('report-print-area');
+    if (reportArea && reportArea.style.display !== 'none') {
+        applyPreviewScale();
+    }
+});
+
+// 1. FUNGSI CETAK PRINTER WI-FI / LAN / SISTEM BAWAAN
 document.getElementById('btn-print-report').addEventListener('click', () => {
     ensureReportWatermark();
     window.print();
@@ -64,28 +116,42 @@ document.getElementById('btn-download-jpg-report').addEventListener('click', asy
     btn.disabled = true;
     btn.textContent = 'Memproses JPG...';
 
+    // REVISI KUNCI: Hitung lebar dinamis asli (scrollWidth) tabel untuk html2canvas 
+    // agar sisi kanan dokumen TIDAK TERPOTONG sama sekali
+    const origTransform = reportArea.style.transform;
+    const origWidth = reportArea.style.width;
+    
+    // Matikan skala sementara agar kanvas dirender di ukuran resolusi tertinggi (tajam)
+    reportArea.style.transform = 'none';
+    reportArea.style.width = 'max-content';
+
+    const table = reportArea.querySelector('.table');
+    let requiredWidth = table ? table.scrollWidth + 80 : reportArea.scrollWidth;
+    requiredWidth = Math.max(requiredWidth, 900); // Ukuran minimal proporsional
+
     try {
         if (typeof html2canvas === 'function') {
             const canvas = await html2canvas(reportArea, {
-                scale: 2,
+                scale: 2, // Resolusi tinggi agar teks tidak pecah
                 backgroundColor: '#ffffff',
                 useCORS: true,
                 logging: false,
-                windowWidth: 900,
+                windowWidth: requiredWidth + 100,
                 onclone: (clonedDoc) => {
                     const clonedArea = clonedDoc.getElementById('report-print-area');
                     if (clonedArea) {
                         clonedArea.style.display = 'block';
-                        clonedArea.style.width = '820px';
-                        clonedArea.style.maxWidth = '820px';
-                        clonedArea.style.padding = '25px';
+                        clonedArea.style.width = `${requiredWidth}px`;
+                        clonedArea.style.maxWidth = `${requiredWidth}px`;
+                        clonedArea.style.padding = '40px';
                         clonedArea.style.margin = '0';
                         clonedArea.style.border = 'none';
                         clonedArea.style.boxShadow = 'none';
                         clonedArea.style.position = 'relative';
-                        clonedArea.style.overflow = 'hidden';
+                        clonedArea.style.overflow = 'visible'; // Anti terpotong
+                        clonedArea.style.transform = 'none'; // Bersihkan skala sisa
                     }
-                    const clonedHeader = clonedDoc.querySelector('#report-print-area .print-only-show');
+                    const clonedHeader = clonedDoc.querySelector('.print-only-show');
                     if (clonedHeader) {
                         clonedHeader.style.display = 'block';
                         clonedHeader.style.marginBottom = '20px';
@@ -107,6 +173,10 @@ document.getElementById('btn-download-jpg-report').addEventListener('click', asy
                 }
             });
 
+            // Kembalikan pratinjau antarmuka kembali seperti semula (auto-fit di layar)
+            reportArea.style.transform = origTransform;
+            reportArea.style.width = origWidth;
+
             const jpgUrl = canvas.toDataURL('image/jpeg', 0.95);
             const link = document.createElement('a');
             link.download = `Laporan_${type}_${Date.now()}.jpg`;
@@ -122,6 +192,9 @@ document.getElementById('btn-download-jpg-report').addEventListener('click', asy
     } catch (err) {
         console.error('Download Report JPG Error:', err);
         showToast('Gagal menyimpan laporan sebagai JPG.', 'danger');
+        
+        reportArea.style.transform = origTransform;
+        reportArea.style.width = origWidth;
     } finally {
         btn.disabled = false;
         btn.textContent = originalText;
