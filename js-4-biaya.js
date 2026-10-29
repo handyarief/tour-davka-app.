@@ -128,7 +128,7 @@ function addCostRow() {
             </div>
             <div class="form-group col-price">
                 <label>Harga (Rp)</label>
-                <input type="number" class="form-control cost-ind-price-input" required step="1" placeholder="0">
+                <input type="text" inputmode="numeric" class="form-control cost-ind-price-input rp-input" required placeholder="Rp. 0" autocomplete="off">
             </div>
             <div class="form-group col-action">
                 <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removeCostRow('${rowId}')">&times; Hapus</button>
@@ -155,7 +155,7 @@ function calculateIndTotal() {
     let sum = 0;
     const inputs = document.querySelectorAll('#cost-ind-dynamic-container .cost-ind-price-input');
     inputs.forEach(inp => {
-        sum += parseFloat(inp.value) || 0;
+        sum += parseRpInput(inp.value);
     });
     document.getElementById('cost-ind-total-sum').textContent = formatRp(sum);
 }
@@ -183,7 +183,7 @@ document.getElementById('form-cost-ind').addEventListener('submit', async (e) =>
         if (!catEl || !priceEl) return;
 
         const cat = catEl.value;
-        const price = parseFloat(priceEl.value) || 0;
+        const price = parseRpInput(priceEl.value);
         
         if (cat && price > 0) {
             newCosts.push({
@@ -355,7 +355,7 @@ function addFamilyCostRow() {
             </div>
             <div class="form-group col-price">
                 <label>Harga (Rp)</label>
-                <input type="number" class="form-control cost-fam-price-input" required step="1" placeholder="0">
+                <input type="text" inputmode="numeric" class="form-control cost-fam-price-input rp-input" required placeholder="Rp. 0" autocomplete="off">
             </div>
             <div class="form-group col-action">
                 <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removeFamilyCostRow('${rowId}')">&times; Hapus</button>
@@ -382,7 +382,7 @@ function calculateFamCostTotal() {
     let sumPerPerson = 0;
     const inputs = document.querySelectorAll('#cost-fam-dynamic-container .cost-fam-price-input');
     inputs.forEach(inp => {
-        sumPerPerson += parseFloat(inp.value) || 0;
+        sumPerPerson += parseRpInput(inp.value);
     });
 
     const count = selectedFamilyCostParticipants.length;
@@ -416,7 +416,7 @@ document.getElementById('form-cost-fam').addEventListener('submit', async (e) =>
         if (!catEl || !priceEl) return;
 
         const cat = catEl.value;
-        const price = parseFloat(priceEl.value) || 0;
+        const price = parseRpInput(priceEl.value);
 
         if (cat && price > 0) {
             costItems.push({ category: cat, price: price });
@@ -493,7 +493,7 @@ function renderSharedParticipantTable() {
             <td><input type="checkbox" class="chk-shared" data-id="${p.id}" value="${p.id}"></td>
             <td>${escapeHTML(p.name)}</td>
             <td>${escapeHTML(p.family)}</td>
-            <td><input type="number" class="form-control input-sm shared-input" data-id="${p.id}" value="0" readonly step="1"></td>
+            <td><input type="text" inputmode="numeric" class="form-control input-sm shared-input rp-input" data-id="${p.id}" value="Rp. 0" readonly autocomplete="off"></td>
         `;
         tbody.appendChild(tr);
     });
@@ -554,11 +554,11 @@ function calculateSharedSplit() {
         return;
     }
     
-    const totalInput = parseFloat(document.getElementById('cost-shared-total').value) || 0;
+    const totalInput = parseRpInput(document.getElementById('cost-shared-total').value);
     const checkedBoxes = Array.from(document.querySelectorAll('.chk-shared:checked'));
     const count = checkedBoxes.length;
     
-    document.querySelectorAll('.shared-input').forEach(i => i.value = 0);
+    document.querySelectorAll('.shared-input').forEach(i => i.value = 'Rp. 0');
     
     if (count > 0 && totalInput > 0) {
         const base = Math.floor(totalInput / count);
@@ -566,7 +566,8 @@ function calculateSharedSplit() {
         
         checkedBoxes.forEach((chk, idx) => {
             const input = document.querySelector(`.shared-input[data-id="${chk.value}"]`);
-            input.value = base + (idx < remainder ? 1 : 0); 
+            const shareVal = base + (idx < remainder ? 1 : 0);
+            input.value = formatRpInput(shareVal, true);
         });
     }
     calculateSharedManualSum();
@@ -577,14 +578,14 @@ function calculateSharedManualSum() {
     document.querySelectorAll('.chk-shared').forEach(chk => {
         const input = document.querySelector(`.shared-input[data-id="${chk.value}"]`);
         if (chk.checked) {
-            sum += parseFloat(input.value) || 0;
+            sum += parseRpInput(input.value);
         } else {
-            input.value = 0; 
+            input.value = 'Rp. 0'; 
         }
     });
     
     document.getElementById('shared-allocated-sum').textContent = formatRp(sum);
-    const targetTotal = parseFloat(document.getElementById('cost-shared-total').value) || 0;
+    const targetTotal = parseRpInput(document.getElementById('cost-shared-total').value);
     const alertBox = document.getElementById('shared-diff-alert');
     
     if (sum !== targetTotal && targetTotal > 0) {
@@ -597,13 +598,13 @@ function calculateSharedManualSum() {
 
 document.getElementById('form-cost-shared').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const targetTotal = parseFloat(document.getElementById('cost-shared-total').value) || 0;
+    const targetTotal = parseRpInput(document.getElementById('cost-shared-total').value);
     let sum = 0;
     const allocs = [];
     
     document.querySelectorAll('.chk-shared:checked').forEach(chk => {
         const input = document.querySelector(`.shared-input[data-id="${chk.value}"]`);
-        const val = parseFloat(input.value) || 0;
+        const val = parseRpInput(input.value);
         if (val > 0) {
             sum += val;
             allocs.push({ pId: chk.value, amount: val });

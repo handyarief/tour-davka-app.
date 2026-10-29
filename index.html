@@ -78,7 +78,7 @@
                     </div>
                     <div class="form-group">
                         <label for="edit-cost-price">Total (Rp) *</label>
-                        <input type="number" id="edit-cost-price" class="form-control form-control-lg text-bold text-danger" required step="1">
+                        <input type="text" inputmode="numeric" id="edit-cost-price" class="form-control form-control-lg text-bold text-danger rp-input" required placeholder="Rp. 0" autocomplete="off">
                     </div>
                     <div class="form-group">
                         <label for="edit-cost-notes">Catatan Tambahan (Opsional)</label>
@@ -194,7 +194,7 @@
                     </div>
                     <div class="form-group">
                         <label for="cost-shared-total">Total Biaya Keseluruhan (Rp) *</label>
-                        <input type="number" id="cost-shared-total" class="form-control" required min="1" step="1">
+                        <input type="text" inputmode="numeric" id="cost-shared-total" class="form-control rp-input" required placeholder="Rp. 0" autocomplete="off">
                     </div>
                     <div class="form-group">
                         <label>Metode Pembagian</label>
@@ -736,7 +736,7 @@
                                         </div>
                                         <div class="form-group">
                                             <label for="pay-amount">Nominal Uang Diterima (Rp) *</label>
-                                            <input type="number" id="pay-amount" class="form-control form-control-lg text-bold" required min="1" step="1">
+                                            <input type="text" inputmode="numeric" id="pay-amount" class="form-control form-control-lg text-bold rp-input" required placeholder="Rp. 0" autocomplete="off">
                                             <small class="help-text">Uang riil yang masuk ke kas/rekening.</small>
                                         </div>
                                         
@@ -901,7 +901,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="exp-amount">Nominal Aktual Keluar (Rp) *</label>
-                                        <input type="number" id="exp-amount" class="form-control form-control-lg text-bold text-danger" required min="1" step="1">
+                                        <input type="text" inputmode="numeric" id="exp-amount" class="form-control form-control-lg text-bold text-danger rp-input" required placeholder="Rp. 0" autocomplete="off">
                                         <small class="help-text">Jumlah uang riil yang dibayarkan dan mengurangi kas.</small>
                                     </div>
                                     

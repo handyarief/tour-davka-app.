@@ -158,11 +158,87 @@ function generateId(prefix = 'ID') {
     return prefix + '-' + Date.now().toString() + '-' + Math.floor(Math.random() * 1000);
 }
 
-// Format Rupiah
+// Format Rupiah (Tampilan Teks / Tabel)
 function formatRp(angka) {
     if (isNaN(angka) || angka === null || angka === '') return 'Rp0';
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.round(angka));
 }
+
+// Format Rupiah Khusus Kolom Input Form (Contoh: Rp. 200.000)
+function formatRpInput(val, allowZero = false) {
+    if (val === null || val === undefined || val === '') return allowZero ? 'Rp. 0' : '';
+    const str = String(val).trim();
+    const isNegative = str.startsWith('-');
+    const digits = str.replace(/[^0-9]/g, '');
+    if (!digits) {
+        if (isNegative) return '-';
+        return allowZero ? 'Rp. 0' : '';
+    }
+    const num = parseInt(digits, 10);
+    if (isNaN(num)) return allowZero ? 'Rp. 0' : '';
+    if (num === 0) return allowZero ? 'Rp. 0' : '';
+    const formatted = num.toLocaleString('id-ID');
+    return (isNegative ? '-Rp. ' : 'Rp. ') + formatted;
+}
+
+// Mengambil Nilai Angka Murni dari Kolom Input Berformat Rp. 200.000
+function parseRpInput(val) {
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    if (!val) return 0;
+    const str = String(val).trim();
+    const isNegative = str.startsWith('-');
+    const digits = str.replace(/[^0-9]/g, '');
+    if (!digits) return 0;
+    const num = parseInt(digits, 10) || 0;
+    return isNegative ? -num : num;
+}
+
+// Event Listener Global Auto-Format Input Kolom Harga (Rp. 200.000)
+document.addEventListener('input', function(e) {
+    if (e.target && e.target.classList && e.target.classList.contains('rp-input')) {
+        const el = e.target;
+        if (el.readOnly) return;
+        const isTableAlloc = el.classList.contains('alloc-input') || el.classList.contains('shared-input');
+        const rawVal = el.value;
+        const digits = rawVal.replace(/[^0-9]/g, '');
+        if (!digits) {
+            if (rawVal.trim() === '-') {
+                el.value = '-';
+            } else {
+                el.value = '';
+            }
+            return;
+        }
+        const num = parseInt(digits, 10);
+        if (num === 0) {
+            el.value = isTableAlloc ? 'Rp. 0' : '';
+        } else {
+            el.value = formatRpInput(rawVal, isTableAlloc);
+        }
+    }
+}, true);
+
+document.addEventListener('blur', function(e) {
+    if (e.target && e.target.classList && e.target.classList.contains('rp-input')) {
+        const el = e.target;
+        const isTableAlloc = el.classList.contains('alloc-input') || el.classList.contains('shared-input');
+        if (isTableAlloc && !el.value.trim()) {
+            el.value = 'Rp. 0';
+        } else if (el.value.trim() === '-') {
+            el.value = '';
+        }
+    }
+}, true);
+
+document.addEventListener('focus', function(e) {
+    if (e.target && e.target.classList && e.target.classList.contains('rp-input')) {
+        const el = e.target;
+        if (el.readOnly) return;
+        if (el.value === 'Rp. 0') {
+            el.value = '';
+        }
+    }
+}, true);
 
 // Format Tanggal
 function formatDate(dateStr) {

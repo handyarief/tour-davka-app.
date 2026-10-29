@@ -321,7 +321,7 @@ window.openEditCostModal = function(costId) {
 
     document.getElementById('edit-cost-id').value = cost.id;
     document.getElementById('edit-cost-cat').value = cost.category;
-    document.getElementById('edit-cost-price').value = cost.price;
+    document.getElementById('edit-cost-price').value = formatRpInput(cost.price, true);
     document.getElementById('edit-cost-notes').value = cost.notes || '';
 
     openModal('modal-edit-cost');
@@ -331,7 +331,7 @@ document.getElementById('form-edit-cost').addEventListener('submit', async (e) =
     e.preventDefault();
     const costId = document.getElementById('edit-cost-id').value;
     const newCat = document.getElementById('edit-cost-cat').value;
-    const newPrice = parseFloat(document.getElementById('edit-cost-price').value) || 0;
+    const newPrice = parseRpInput(document.getElementById('edit-cost-price').value);
     const newNotes = document.getElementById('edit-cost-notes').value.trim();
 
     const costIndex = db.costs.findIndex(c => c.id === costId);

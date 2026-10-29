@@ -124,7 +124,7 @@ function renderPaymentAllocTable(existingAllocations = []) {
             <td><input type="checkbox" class="chk-alloc" data-id="${p.id}" data-need="${baseRemaining}" ${isChecked}></td>
             <td>${escapeHTML(p.name)}<br><small class="text-muted">${escapeHTML(p.family)}</small></td>
             <td>${formatRp(stats.rawSisa)}</td>
-            <td><input type="number" class="form-control input-sm alloc-input" data-id="${p.id}" value="${allocVal}" readonly step="1"></td>
+            <td><input type="text" inputmode="numeric" class="form-control input-sm alloc-input rp-input" data-id="${p.id}" value="${formatRpInput(allocVal, true)}" readonly autocomplete="off"></td>
         `;
         tbody.appendChild(tr);
     });
@@ -168,11 +168,11 @@ function calculateAllocSplit() {
         return;
     }
     
-    const totalReceived = parseFloat(document.getElementById('pay-amount').value) || 0;
+    const totalReceived = parseRpInput(document.getElementById('pay-amount').value);
     const checkedBoxes = Array.from(document.querySelectorAll('.chk-alloc:checked'));
     const count = checkedBoxes.length;
     
-    document.querySelectorAll('.alloc-input').forEach(i => i.value = 0);
+    document.querySelectorAll('.alloc-input').forEach(i => i.value = 'Rp. 0');
     
     if (count > 0 && totalReceived > 0) {
         // Distribusi sinkron terhadap tagihan peserta terpilih:
@@ -190,7 +190,8 @@ function calculateAllocSplit() {
 
             checkedBoxes.forEach((chk, idx) => {
                 const input = document.querySelector(`.alloc-input[data-id="${chk.getAttribute('data-id')}"]`);
-                input.value = needs[idx] + baseExcess + (idx < remExcess ? 1 : 0);
+                const val = needs[idx] + baseExcess + (idx < remExcess ? 1 : 0);
+                input.value = formatRpInput(val, true);
             });
         } else if (totalNeed > 0 && totalReceived < totalNeed) {
             // Pembayaran cicilan kolektif: bagi proporsional sesuai porsi tagihan masing-masing
@@ -203,7 +204,8 @@ function calculateAllocSplit() {
                 const input = document.querySelector(`.alloc-input[data-id="${chk.getAttribute('data-id')}"]`);
                 const add = remainder > 0 ? 1 : 0;
                 if (remainder > 0) remainder--;
-                input.value = rawShares[idx] + add;
+                const val = rawShares[idx] + add;
+                input.value = formatRpInput(val, true);
             });
         } else {
             // Jika semua peserta terpilih belum memiliki tagihan, bagi rata murni
@@ -212,7 +214,8 @@ function calculateAllocSplit() {
             
             checkedBoxes.forEach((chk, idx) => {
                 const input = document.querySelector(`.alloc-input[data-id="${chk.getAttribute('data-id')}"]`);
-                input.value = base + (idx < remainder ? 1 : 0); 
+                const val = base + (idx < remainder ? 1 : 0);
+                input.value = formatRpInput(val, true);
             });
         }
     }
@@ -220,15 +223,15 @@ function calculateAllocSplit() {
 }
 
 function updatePaymentSummary() {
-    const received = parseFloat(document.getElementById('pay-amount').value) || 0;
+    const received = parseRpInput(document.getElementById('pay-amount').value);
     let allocated = 0;
     
     document.querySelectorAll('.chk-alloc').forEach(chk => {
         const input = document.querySelector(`.alloc-input[data-id="${chk.getAttribute('data-id')}"]`);
         if (chk.checked) {
-            allocated += parseFloat(input.value) || 0;
+            allocated += parseRpInput(input.value);
         } else {
-            input.value = 0;
+            input.value = 'Rp. 0';
         }
     });
     
@@ -247,14 +250,19 @@ function updatePaymentSummary() {
 
 document.getElementById('form-payment').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const received = parseFloat(document.getElementById('pay-amount').value) || 0;
+    const received = parseRpInput(document.getElementById('pay-amount').value);
     const allocMethod = document.getElementById('pay-alloc-method').value || 'manual';
+
+    if (received <= 0) {
+        showToast('Nominal uang diterima harus lebih dari Rp. 0!', 'warning');
+        return;
+    }
     
     let allocatedSum = 0;
     const allocs = [];
     document.querySelectorAll('.chk-alloc:checked').forEach(chk => {
         const pId = chk.getAttribute('data-id');
-        const val = parseFloat(document.querySelector(`.alloc-input[data-id="${pId}"]`).value) || 0;
+        const val = parseRpInput(document.querySelector(`.alloc-input[data-id="${pId}"]`).value);
         if (val > 0) {
             allocatedSum += val;
             allocs.push({
@@ -332,7 +340,7 @@ window.editPaymentAllocation = function(id) {
     document.getElementById('pay-id').value = pay.id;
     document.getElementById('pay-date').value = pay.date;
     document.getElementById('pay-name').value = pay.name;
-    document.getElementById('pay-amount').value = pay.amount;
+    document.getElementById('pay-amount').value = formatRpInput(pay.amount);
     document.getElementById('pay-method').value = pay.method;
     document.getElementById('pay-bank-name').value = pay.ref || '';
     document.getElementById('pay-bank-acc').value = pay.notes || '';

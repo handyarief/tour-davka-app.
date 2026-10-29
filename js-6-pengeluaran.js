@@ -69,12 +69,18 @@ document.getElementById('btn-add-expense').addEventListener('click', () => {
 
 document.getElementById('form-expense').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const expAmount = parseRpInput(document.getElementById('exp-amount').value);
+    if (expAmount <= 0) {
+        showToast('Nominal pengeluaran harus lebih dari Rp. 0!', 'warning');
+        return;
+    }
+
     const data = {
         date: document.getElementById('exp-date').value,
         category: document.getElementById('exp-category').value,
         desc: document.getElementById('exp-desc').value.trim(),
         vendor: document.getElementById('exp-vendor').value.trim(),
-        amount: parseFloat(document.getElementById('exp-amount').value) || 0,
+        amount: expAmount,
         method: document.getElementById('exp-method').value,
         ref: "",
         notes: ""
@@ -120,7 +126,7 @@ window.editExpense = function(id) {
     document.getElementById('exp-category').value = e.category;
     document.getElementById('exp-desc').value = e.desc;
     document.getElementById('exp-vendor').value = e.vendor;
-    document.getElementById('exp-amount').value = e.amount;
+    document.getElementById('exp-amount').value = formatRpInput(e.amount);
     document.getElementById('exp-method').value = e.method;
     
     document.getElementById('expense-form-title').textContent = 'Edit Pengeluaran';
