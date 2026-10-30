@@ -1,42 +1,55 @@
 /* ==========================================================================
-   VARIABEL & RESET DASAR
+   VARIABEL TEMA MODERN DAVKA TRAVEL & RESET DASAR
    ========================================================================== */
 :root {
-    --primary: #0369a1;
-    --primary-hover: #0284c7;
-    --primary-light: #e0f2fe;
-    --secondary: #64748b;
-    --secondary-hover: #475569;
-    --success: #16a34a;
-    --success-hover: #15803d;
-    --success-light: #dcfce7;
-    --danger: #dc2626;
-    --danger-hover: #b91c1c;
+    /* Identitas Warna Resmi Logo Davka Travel (Royal Blue, Sky Cyan & Swoop Orange) */
+    --primary: #0052cc;
+    --primary-hover: #003d99;
+    --primary-light: #e6f0ff;
+    --primary-glow: rgba(0, 82, 204, 0.22);
+
+    --davka-cyan: #0088ff;
+    --davka-cyan-light: #e0f2fe;
+    --davka-orange: #ff6b00;
+    --davka-orange-hover: #e65c00;
+    --davka-orange-light: #fff3e6;
+    --davka-navy: #07162c;
+    --davka-navy-mid: #0d2346;
+
+    --secondary: #475569;
+    --secondary-hover: #334155;
+    --success: #10b981;
+    --success-hover: #059669;
+    --success-light: #d1fae5;
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
     --danger-light: #fee2e2;
-    --warning: #d97706;
-    --warning-hover: #b45309;
+    --warning: #f59e0b;
+    --warning-hover: #d97706;
     --warning-light: #fef3c7;
-    --info: #0284c7;
+    --info: #0088ff;
     --info-light: #e0f2fe;
     
-    --bg-main: #f8fafc;
+    --bg-main: #f2f6fc;
     --bg-card: #ffffff;
-    --text-main: #334155;
+    --text-main: #1e293b;
     --text-muted: #64748b;
-    --border-color: #e2e8f0;
+    --border-color: #dbe4f0;
     
     --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --border-radius: 8px;
-    --transition: all 0.2s ease-in-out;
+    --shadow-sm: 0 2px 8px -2px rgba(7, 22, 44, 0.06), 0 1px 3px -1px rgba(7, 22, 44, 0.04);
+    --shadow-md: 0 8px 20px -4px rgba(0, 82, 204, 0.09), 0 4px 8px -2px rgba(7, 22, 44, 0.05);
+    --shadow-lg: 0 16px 32px -6px rgba(7, 22, 44, 0.14), 0 6px 14px -3px rgba(0, 82, 204, 0.08);
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
+    --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 html, body {
@@ -46,16 +59,19 @@ html, body {
 
 body {
     font-family: var(--font-family);
+    background: linear-gradient(160deg, #eef4fc 0%, #f5f8fd 55%, #fefaf6 100%);
     background-color: var(--bg-main);
     color: var(--text-main);
     line-height: 1.5;
     font-size: 14px;
+    -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    color: #0f172a;
+    color: #0b192c;
     margin-bottom: 0.5rem;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
 p {
@@ -68,11 +84,11 @@ a {
 }
 
 strong {
-    font-weight: 600;
+    font-weight: 700;
 }
 
 /* ==========================================================================
-   LAYOUT UTAMA
+   LAYOUT UTAMA & SIDEBAR MODERN DAVKA
    ========================================================================== */
 .app-container {
     display: flex;
@@ -82,115 +98,155 @@ strong {
 }
 
 .sidebar {
-    width: 250px;
-    background-color: #1e293b;
+    width: 260px;
+    background: linear-gradient(180deg, #061224 0%, #0b1e3b 55%, #08172e 100%);
     color: #fff;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    transition: transform 0.3s ease;
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), left 0.32s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 1000;
+    border-right: 1px solid rgba(56, 189, 248, 0.14);
+    box-shadow: 4px 0 24px rgba(6, 18, 36, 0.25);
 }
 
 .sidebar-header {
-    padding: 24px 20px;
-    background: linear-gradient(145deg, #090e17 0%, #0f172a 60%, #1e293b 100%);
+    padding: 28px 20px 24px 20px;
+    background: radial-gradient(circle at 50% 0%, rgba(0, 136, 255, 0.24) 0%, rgba(6, 18, 36, 0.92) 75%);
     text-align: center;
-    border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+    border-bottom: 1px solid rgba(56, 189, 248, 0.18);
     position: relative;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .sidebar-header::after {
     content: "";
     position: absolute;
-    bottom: 0;
-    left: 20%;
-    width: 60%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #38bdf8, #f59e0b, transparent);
+    bottom: -1px;
+    left: 12%;
+    width: 76%;
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, transparent, #0088ff, #ff6b00, #0088ff, transparent);
 }
 
 .sidebar-header h2 {
-    background: linear-gradient(135deg, #ffffff 0%, #bae6fd 50%, #38bdf8 100%);
+    background: linear-gradient(135deg, #ffffff 0%, #bae6fd 45%, #38bdf8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     color: #fff;
-    font-size: 21px;
+    font-size: 22px;
     font-weight: 800;
     margin: 0;
-    letter-spacing: 2px;
+    letter-spacing: 2.2px;
     text-transform: uppercase;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(0 2px 6px rgba(0, 136, 255, 0.35));
 }
 
 .sidebar-header p {
-    color: #f59e0b;
+    color: #ff7b1c;
     font-size: 11px;
-    font-weight: 700;
-    margin: 4px 0 0 0;
-    letter-spacing: 4.5px;
+    font-weight: 800;
+    margin: 5px 0 0 0;
+    letter-spacing: 4.8px;
     text-transform: uppercase;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 1px 4px rgba(255, 107, 0, 0.4);
 }
 
 .nav-list {
     list-style: none;
-    padding: 10px 0;
+    padding: 16px 12px;
     flex-grow: 1;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .nav-link {
-    display: block;
-    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
     color: #cbd5e1;
+    border-radius: 11px;
     border-left: 4px solid transparent;
     transition: var(--transition);
     font-size: 14px;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
 }
 
 .nav-link:hover {
-    background-color: #334155;
-    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    transform: translateX(4px);
 }
 
 .nav-link.active {
-    background-color: #334155;
-    color: #fff;
-    border-left-color: var(--primary);
-    font-weight: 600;
+    background: linear-gradient(90deg, rgba(0, 119, 255, 0.32) 0%, rgba(255, 107, 0, 0.14) 100%);
+    color: #ffffff;
+    border-left-color: var(--davka-orange);
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0, 18, 46, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .main-content {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    width: calc(100% - 250px);
+    width: calc(100% - 260px);
     height: 100%;
     overflow: hidden; 
 }
 
 .topbar {
-    background-color: #fff;
-    padding: 12px 20px;
-    border-bottom: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 12px 22px;
+    border-bottom: 1px solid rgba(0, 82, 204, 0.12);
     display: flex;
     align-items: center;
     position: sticky;
     top: 0;
     z-index: 900;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 4px 16px -4px rgba(7, 22, 44, 0.07);
+}
+
+.topbar::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2.5px;
+    background: linear-gradient(90deg, #004aad 0%, #0088ff 45%, #ff6b00 85%, #ff9900 100%);
 }
 
 .btn-mobile-menu {
     display: none;
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: var(--text-main);
+    background: linear-gradient(145deg, #f0f7ff, #e0eeff);
+    border: 1px solid rgba(0, 82, 204, 0.22);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 20px;
+    color: var(--primary);
     cursor: pointer;
-    margin-right: 15px;
+    margin-right: 14px;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 82, 204, 0.12);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.btn-mobile-menu:hover,
+.btn-mobile-menu:active {
+    background: linear-gradient(135deg, var(--primary), var(--davka-cyan));
+    color: #ffffff;
+    transform: scale(0.95);
 }
 
 .topbar h1 {
@@ -201,24 +257,27 @@ strong {
     flex-direction: column;
     justify-content: center;
     line-height: 1.2;
+    font-weight: 800;
+    color: #07162c;
+    letter-spacing: 0.5px;
 }
 
 .topbar-title-main {
     font-size: 19px;
     font-weight: 800;
     letter-spacing: 1.5px;
-    background: linear-gradient(135deg, #0f172a 0%, #0369a1 60%, #0284c7 100%);
+    background: linear-gradient(135deg, #061a3a 0%, #0052cc 55%, #0088ff 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    color: #0f172a;
+    color: #061a3a;
     display: block;
 }
 
 .topbar-title-sub {
     font-size: 10.5px;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: 2.8px;
-    color: #d97706;
+    color: var(--davka-orange);
     margin-top: 2px;
     display: block;
 }
@@ -232,7 +291,7 @@ strong {
 
 .view-section {
     display: none;
-    animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .view-section.active {
@@ -240,31 +299,48 @@ strong {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 /* ==========================================================================
-   KARTU (CARD) & GRID
+   KARTU (CARD) & GRID INTERAKTIF MODERN
    ========================================================================== */
 .card {
     background-color: var(--bg-card);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(203, 213, 225, 0.65);
     margin-bottom: 20px;
     overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .card-header {
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--border-color);
-    background-color: #f8fafc;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e8eff8;
+    background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    position: relative;
 }
 
 .card-header h3 {
     margin: 0;
     font-size: 16px;
+    font-weight: 800;
+    color: #07162c;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-header h3::before {
+    content: "";
+    display: inline-block;
+    width: 4px;
+    height: 16px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--davka-orange) 100%);
+    flex-shrink: 0;
 }
 
 .card-body {
@@ -273,8 +349,8 @@ strong {
 
 .card-footer {
     padding: 15px 20px;
-    border-top: 1px solid var(--border-color);
-    background-color: #f8fafc;
+    border-top: 1px solid #e8eff8;
+    background: linear-gradient(180deg, #f8fbff 0%, #f1f6fd 100%);
 }
 
 .card-grid {
@@ -283,23 +359,34 @@ strong {
     gap: 15px;
 }
 
+/* Kartu Statistik Utama (Total Peserta & Total Keluarga) */
 .summary-card {
-    padding: 15px;
-    border-left: 4px solid var(--secondary);
+    padding: 16px 18px;
+    border-left: 5px solid var(--primary);
+    position: relative;
+    background: linear-gradient(135deg, #ffffff 0%, #f7faff 100%);
+    transition: var(--transition);
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .summary-card h3 {
-    font-size: 13px;
+    font-size: 12px;
+    font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 5px;
+    letter-spacing: 0.7px;
+    margin-bottom: 6px;
 }
 
 .summary-card .stat-value {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 5px;
+    font-size: 25px;
+    font-weight: 800;
+    color: #07162c;
+    margin-bottom: 4px;
     word-break: break-word;
 }
 
@@ -309,26 +396,45 @@ strong {
 }
 
 .dashboard-summary-grid {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+    gap: 12px;
+}
+
+/* Warna Selaras Logo Davka pada Kartu Dashboard */
+.dashboard-summary-grid .summary-card:nth-child(1) {
+    border-left-color: var(--primary);
+    background: linear-gradient(135deg, #ffffff 0%, #eef5ff 100%);
+}
+
+.dashboard-summary-grid .summary-card:nth-child(1) .stat-value {
+    color: var(--primary);
+}
+
+.dashboard-summary-grid .summary-card:nth-child(2) {
+    border-left-color: var(--davka-orange);
+    background: linear-gradient(135deg, #ffffff 0%, #fff6ed 100%);
+}
+
+.dashboard-summary-grid .summary-card:nth-child(2) .stat-value {
+    color: var(--davka-orange);
 }
 
 .summary-card-sm {
-    padding: 10px 15px;
-    border-left-width: 3px;
+    padding: 14px 16px;
+    border-left-width: 5px;
 }
 
 .summary-card-sm h3 {
-    font-size: 11px;
-    margin-bottom: 2px;
+    font-size: 11.5px;
+    margin-bottom: 4px;
 }
 
 .summary-card-sm .stat-value {
-    font-size: 18px;
+    font-size: 22px;
     margin-bottom: 0;
 }
 
-/* GRID RINGKASAN DETAIL PESERTA & KELUARGA (RAPI & PROPORSIONAL) */
+/* GRID RINGKASAN DETAIL PESERTA & KELUARGA (MODERN & KONTRAS) */
 .detail-summary-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
@@ -339,7 +445,7 @@ strong {
 }
 
 .detail-summary-grid .summary-card {
-    padding: 14px 16px;
+    padding: 15px 18px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -349,9 +455,9 @@ strong {
 .detail-summary-grid .summary-card h3 {
     font-size: 11.5px;
     font-weight: 700;
-    color: #64748b;
+    color: #475569;
     margin-bottom: 4px;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
 }
 
 .detail-summary-grid .summary-card .stat-value {
@@ -363,55 +469,69 @@ strong {
 
 .summary-card-tagihan {
     border-left-color: var(--primary);
+    background: linear-gradient(135deg, #ffffff 0%, #f0f6ff 100%) !important;
 }
 
 .summary-card-dibayar {
     border-left-color: var(--success);
+    background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%) !important;
 }
 
 .summary-card-sisa {
     border-left-color: var(--danger);
+    background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%) !important;
 }
 
 .summary-card-sisa.is-lebih {
-    border-left-color: var(--info);
+    border-left-color: var(--davka-cyan);
+    background: linear-gradient(135deg, #ffffff 0%, #e6f4ff 100%) !important;
 }
 
+/* ITEM KATEGORI BIAYA DASHBOARD (INTERAKTIF & KEREN) */
 .category-summary-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 12px;
 }
 
 .cat-sum-item {
-    background: #f8fafc;
-    padding: 10px 12px;
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
+    background: linear-gradient(145deg, #ffffff 0%, #f6f9ff 100%);
+    padding: 13px 15px;
+    border-radius: 13px;
+    border: 1px solid #dce7f7;
+    border-left: 4px solid var(--primary);
     display: flex;
     flex-direction: column;
     cursor: pointer;
     transition: var(--transition);
     user-select: none;
+    box-shadow: 0 2px 6px rgba(0, 82, 204, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.cat-sum-item:nth-child(even) {
+    border-left-color: var(--davka-orange);
 }
 
 .cat-sum-item:hover {
-    background-color: var(--primary-light);
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
+    background: linear-gradient(145deg, #ffffff 0%, #ebf4ff 100%);
+    border-color: var(--davka-cyan);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px -5px rgba(0, 82, 204, 0.16);
 }
 
 .cat-sum-item:active {
-    transform: translateY(0);
+    transform: translateY(0) scale(0.98);
 }
 
 .cat-sum-label {
-    font-size: 11px;
-    color: var(--text-muted);
+    font-size: 11.5px;
+    color: #334155;
     text-transform: uppercase;
-    font-weight: 600;
-    margin-bottom: 4px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -426,17 +546,22 @@ strong {
     justify-content: space-between;
     align-items: center;
     margin-top: auto;
+    gap: 8px;
 }
 
 .cat-sum-qty {
-    font-size: 12px;
-    color: var(--text-muted);
-    font-weight: 500;
+    font-size: 11.5px;
+    color: #c2410c;
+    background-color: var(--davka-orange-light);
+    border: 1px solid rgba(255, 107, 0, 0.22);
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-weight: 700;
 }
 
 .cat-sum-value {
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 800;
     color: var(--primary);
 }
 
@@ -450,13 +575,25 @@ strong {
     font-weight: 600;
 }
 
+/* BANNER HEADER DETAIL PESERTA & KELUARGA (MODERN DAVKA STYLE) */
 .profile-header {
-    padding: 20px;
-    background: linear-gradient(to right, #f8fafc, #e2e8f0);
+    padding: 22px;
+    background: linear-gradient(135deg, #ffffff 0%, #eef6ff 60%, #fff4eb 100%);
+    border: 1px solid #cde0fb;
+    border-top: 4px solid var(--primary);
+    position: relative;
+    box-shadow: var(--shadow-md);
+}
+
+.profile-header h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #061a3a;
+    letter-spacing: 0.3px;
 }
 
 /* ==========================================================================
-   FORM & INPUT
+   FORM & INPUT MODERN
    ========================================================================== */
 .form-group {
     margin-bottom: 15px;
@@ -465,41 +602,51 @@ strong {
 .form-group label {
     display: block;
     margin-bottom: 6px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 13px;
-    color: #475569;
+    color: #334155;
 }
 
 .form-control {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: var(--border-radius);
+    padding: 10px 14px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
     font-family: var(--font-family);
     font-size: 14px;
-    transition: border-color 0.2s;
-    background-color: #fff;
+    color: var(--text-main);
+    transition: var(--transition);
+    background-color: #ffffff;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.form-control:hover:not(:disabled) {
+    border-color: #94a3b8;
 }
 
 .form-control:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.1);
+    box-shadow: 0 0 0 3.5px var(--primary-glow);
+    background-color: #ffffff;
 }
 
 .form-control:disabled {
     background-color: #f1f5f9;
+    color: #94a3b8;
     cursor: not-allowed;
 }
 
 .form-control-lg {
     font-size: 18px;
-    padding: 12px 15px;
+    padding: 12px 16px;
+    font-weight: 700;
 }
 
 .input-sm {
-    padding: 6px 10px;
+    padding: 7px 12px;
     font-size: 13px;
+    border-radius: 8px;
 }
 
 textarea.form-control {
@@ -509,7 +656,7 @@ textarea.form-control {
 .help-text {
     font-size: 12px;
     color: var(--text-muted);
-    margin-top: 4px;
+    margin-top: 5px;
     display: block;
 }
 
@@ -530,9 +677,10 @@ textarea.form-control {
 }
 
 input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
+    width: 17px;
+    height: 17px;
     cursor: pointer;
+    accent-color: var(--primary);
 }
 
 /* CUSTOM COMBO / SINGLE-INPUT DROPDOWN KELUARGA */
@@ -557,7 +705,7 @@ input[type="checkbox"] {
     top: 50%;
     transform: translateY(-50%);
     font-size: 14px;
-    color: #334155;
+    color: var(--primary);
     cursor: pointer;
     user-select: none;
     padding: 4px;
@@ -566,14 +714,14 @@ input[type="checkbox"] {
 .custom-dropdown-list {
     display: none;
     position: absolute;
-    top: calc(100% + 4px);
+    top: calc(100% + 6px);
     left: 0;
     width: 100%;
     max-height: 220px;
     overflow-y: auto;
     background-color: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: var(--border-radius);
+    border-radius: 12px;
     box-shadow: var(--shadow-lg);
     list-style: none;
     z-index: 2500;
@@ -581,10 +729,11 @@ input[type="checkbox"] {
 
 .custom-dropdown-list.show {
     display: block;
+    animation: fadeIn 0.18s ease;
 }
 
 .custom-dropdown-list li {
-    padding: 10px 14px;
+    padding: 11px 15px;
     font-size: 14px;
     color: var(--text-main);
     border-bottom: 1px solid #f1f5f9;
@@ -600,12 +749,13 @@ input[type="checkbox"] {
 .custom-dropdown-list li:active {
     background-color: var(--primary-light);
     color: var(--primary);
+    font-weight: 600;
 }
 
 .custom-dropdown-list li.opt-new-family {
-    color: var(--primary);
+    color: var(--davka-orange);
     font-weight: 700;
-    background-color: #f8fafc;
+    background-color: #fffaf5;
 }
 
 .custom-dropdown-list li.opt-default-none {
@@ -618,9 +768,11 @@ input[type="checkbox"] {
     display: flex;
     gap: 10px;
     align-items: flex-start;
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px dashed #cbd5e1;
+    margin-bottom: 12px;
+    padding: 12px;
+    background-color: #f8fbff;
+    border-radius: 10px;
+    border: 1px dashed #cbd5e1;
 }
 .dynamic-row .form-group {
     margin-bottom: 0;
@@ -637,25 +789,31 @@ input[type="checkbox"] {
 }
 .dynamic-row .col-action {
     flex: 1;
-    padding-top: 28px;
+    padding-top: 26px;
 }
 
 /* ==========================================================================
-   TOMBOL (BUTTONS)
+   TOMBOL INTERAKTIF (BUTTONS) SELARAS LOGO DAVKA
    ========================================================================== */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 8px 16px;
+    padding: 9px 18px;
     font-size: 14px;
-    font-weight: 600;
-    border-radius: var(--border-radius);
-    border: 1px solid transparent;
+    font-weight: 700;
+    border-radius: 10px;
+    border: 1.5px solid transparent;
     cursor: pointer;
     transition: var(--transition);
     font-family: var(--font-family);
     text-align: center;
+    letter-spacing: 0.2px;
+    user-select: none;
+}
+
+.btn:active:not(:disabled) {
+    transform: scale(0.97);
 }
 
 .btn:disabled {
@@ -664,77 +822,120 @@ input[type="checkbox"] {
 }
 
 .btn-primary {
-    background-color: var(--primary);
+    background: linear-gradient(135deg, #0052cc 0%, #0077ff 100%);
     color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 82, 204, 0.28);
 }
-.btn-primary:hover:not(:disabled) { background-color: var(--primary-hover); }
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #003d99 0%, #005ce6 100%);
+    box-shadow: 0 6px 16px rgba(0, 82, 204, 0.38);
+    transform: translateY(-1px);
+}
+
+/* Khusus Tombol ke-2 di Rincian Biaya (Input Biaya Keluarga) diberi Aksen Oranye Davka */
+#btn-open-cost-family {
+    background: linear-gradient(135deg, #ff6b00 0%, #ff8800 100%);
+    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.28);
+}
+#btn-open-cost-family:hover:not(:disabled) {
+    background: linear-gradient(135deg, #e65c00 0%, #ff6b00 100%);
+    box-shadow: 0 6px 16px rgba(255, 107, 0, 0.38);
+}
 
 .btn-secondary {
-    background-color: var(--secondary);
+    background: linear-gradient(135deg, #475569 0%, #64748b 100%);
     color: #fff;
+    box-shadow: 0 3px 10px rgba(71, 85, 105, 0.22);
 }
-.btn-secondary:hover:not(:disabled) { background-color: var(--secondary-hover); }
+.btn-secondary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #334155 0%, #475569 100%);
+    transform: translateY(-1px);
+}
 
 /* Tombol abu-abu identik btn-secondary khusus aksi cetak di dalam modal agar tidak memicu auto-close */
 .btn-print-gray {
-    background-color: var(--secondary);
+    background: linear-gradient(135deg, #475569 0%, #64748b 100%);
     color: #fff;
+    box-shadow: 0 3px 10px rgba(71, 85, 105, 0.22);
 }
-.btn-print-gray:hover:not(:disabled) { background-color: var(--secondary-hover); }
+.btn-print-gray:hover:not(:disabled) {
+    background: linear-gradient(135deg, #334155 0%, #475569 100%);
+}
 
 .btn-success {
-    background-color: var(--success);
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
     color: #fff;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.28);
 }
-.btn-success:hover:not(:disabled) { background-color: var(--success-hover); }
+.btn-success:hover:not(:disabled) {
+    background: linear-gradient(135deg, #047857 0%, #059669 100%);
+    transform: translateY(-1px);
+}
 
 .btn-danger {
-    background-color: var(--danger);
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
     color: #fff;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.26);
 }
-.btn-danger:hover:not(:disabled) { background-color: var(--danger-hover); }
+.btn-danger:hover:not(:disabled) {
+    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+    transform: translateY(-1px);
+}
 
 .btn-warning {
-    background-color: var(--warning);
+    background: linear-gradient(135deg, #ea580c 0%, #f59e0b 100%);
     color: #fff;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.28);
 }
-.btn-warning:hover:not(:disabled) { background-color: var(--warning-hover); }
+.btn-warning:hover:not(:disabled) {
+    background: linear-gradient(135deg, #c2410c 0%, #d97706 100%);
+}
 
 .btn-outline-primary {
-    background-color: transparent;
+    background-color: #ffffff;
     border-color: var(--primary);
     color: var(--primary);
+    box-shadow: 0 2px 6px rgba(0, 82, 204, 0.08);
 }
 .btn-outline-primary:hover:not(:disabled) {
-    background-color: var(--primary-light);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--davka-cyan) 100%);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 82, 204, 0.25);
 }
 
 .btn-outline-secondary {
-    background-color: transparent;
-    border-color: var(--secondary);
+    background-color: #ffffff;
+    border-color: #cbd5e1;
     color: var(--secondary);
 }
 .btn-outline-secondary:hover:not(:disabled) {
     background-color: #f1f5f9;
+    border-color: var(--secondary);
+    color: #0f172a;
 }
 
 .btn-outline-danger {
-    background-color: transparent;
-    border-color: var(--danger);
+    background-color: #ffffff;
+    border-color: #fca5a5;
     color: var(--danger);
 }
 .btn-outline-danger:hover:not(:disabled) {
-    background-color: var(--danger-light);
+    background-color: var(--danger);
+    border-color: var(--danger);
+    color: #ffffff;
 }
 
 .btn-sm {
-    padding: 5px 10px;
+    padding: 6px 12px;
     font-size: 12px;
+    border-radius: 8px;
 }
 
 .btn-lg {
-    padding: 12px 20px;
-    font-size: 16px;
+    padding: 14px 22px;
+    font-size: 15.5px;
+    border-radius: 12px;
 }
 
 .w-100 {
@@ -742,22 +943,34 @@ input[type="checkbox"] {
 }
 
 .btn-close {
-    background: none;
+    background: #f1f5f9;
     border: none;
-    font-size: 24px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 20px;
     line-height: 1;
     color: var(--text-muted);
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
 }
-.btn-close:hover { color: var(--danger); }
+.btn-close:hover {
+    background-color: var(--danger-light);
+    color: var(--danger);
+    transform: rotate(90deg);
+}
 
 /* ==========================================================================
-   TABEL
+   TABEL MODERN & RESPONSIF
    ========================================================================== */
 .table-responsive {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
 }
 
 .max-h-250 { max-height: 250px; overflow-y: auto; }
@@ -772,46 +985,53 @@ input[type="checkbox"] {
 .table th, .table td {
     padding: 12px 15px;
     text-align: left;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #e8eff8;
 }
 
 .table th {
-    background-color: #f8fafc;
-    font-weight: 600;
-    color: #475569;
-    font-size: 13px;
+    background: linear-gradient(180deg, #f0f6ff 0%, #e6effc 100%);
+    font-weight: 800;
+    color: #0b2545;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
     position: sticky;
     top: 0;
     z-index: 10;
+    border-bottom: 2px solid #cbd5e1;
+}
+
+.table tbody tr {
+    transition: background-color 0.15s ease;
 }
 
 .table tbody tr:hover {
-    background-color: #f1f5f9;
+    background-color: #f4f9ff;
 }
 
 .table-sm th, .table-sm td {
-    padding: 8px 10px;
+    padding: 9px 11px;
     font-size: 13px;
 }
 
 /* Baris Total pada Tabel Matriks Rincian Biaya Keluarga */
 .table tr.fam-cost-summary-row td {
-    background-color: #f8fafc;
+    background-color: #f0f6ff;
     font-weight: 700;
-    color: #0f172a;
-    border-top: 2px solid #cbd5e1;
+    color: #07162c;
+    border-top: 2px solid #93c5fd;
 }
 
 .table tr.fam-cost-grand-row td {
-    background-color: #f1f5f9;
+    background: linear-gradient(90deg, #e6f0ff 0%, #fff3e6 100%);
     font-weight: 800;
     color: var(--primary);
-    border-top: 1px solid #cbd5e1;
+    border-top: 2px solid var(--primary);
     font-size: 14px;
 }
 
 /* ==========================================================================
-   MODAL / DIALOG
+   MODAL / DIALOG MODERN
    ========================================================================== */
 .modal {
     display: none; 
@@ -821,31 +1041,34 @@ input[type="checkbox"] {
     width: 100%;
     height: 100%;
     height: 100dvh;
-    background-color: rgba(15, 23, 42, 0.6);
+    background-color: rgba(7, 22, 44, 0.65);
     z-index: 2000;
     align-items: center;
     justify-content: center;
     padding: 20px;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 
 .modal.show {
     display: flex;
-    animation: modalFadeIn 0.2s ease;
+    animation: modalFadeIn 0.22s ease;
 }
 
 .modal-content {
     background-color: #fff;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-lg);
     width: 100%;
     max-width: 500px;
     max-height: 90vh;
     max-height: 90dvh;
     display: flex;
     flex-direction: column;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 24px 48px -12px rgba(7, 22, 44, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.8);
     position: relative;
-    animation: modalSlideIn 0.3s ease;
+    animation: modalSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
 }
 
 .modal-content form {
@@ -859,18 +1082,31 @@ input[type="checkbox"] {
 .modal-lg { max-width: 800px; }
 
 .modal-header {
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--border-color);
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #f8fafc;
-    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    position: relative;
+}
+
+.modal-header::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary), var(--davka-orange), transparent);
 }
 
 .modal-header h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 17px;
+    font-weight: 800;
+    color: #07162c;
 }
 
 .modal-body {
@@ -882,12 +1118,12 @@ input[type="checkbox"] {
 
 .modal-actions {
     padding: 15px 20px;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid #e2e8f0;
     display: flex;
     justify-content: flex-end;
     gap: 10px;
     background-color: #f8fafc;
-    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
 }
 
 /* Grup Tombol Cetak pada Modal Ringkasan (Individu & Keluarga) */
@@ -909,8 +1145,8 @@ input[type="checkbox"] {
 }
 
 @keyframes modalSlideIn {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from { transform: translateY(16px) scale(0.97); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 /* ==========================================================================
@@ -1104,9 +1340,10 @@ input[type="checkbox"] {
 .doc-preview-paper .text-info { color: #0284c7 !important; }
 
 .doc-preview-bottombar {
-    background-color: #9e9e9e;
+    background-color: #1e2630;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     color: #ffffff;
-    padding: 10px 18px;
+    padding: 12px 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1116,25 +1353,24 @@ input[type="checkbox"] {
 
 .doc-preview-page-indicator {
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
     color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .doc-preview-back-btn {
     background-color: #334155 !important;
     color: #ffffff !important;
     border: none !important;
-    padding: 7px 14px !important;
+    padding: 8px 16px !important;
 }
 
 .doc-preview-confirm-btn {
-    background-color: #0284c7 !important;
+    background: linear-gradient(135deg, #0052cc 0%, #0088ff 100%) !important;
     color: #ffffff !important;
-    border: 1.5px solid #bae6fd !important;
-    padding: 7px 14px !important;
+    border: 1.5px solid #7dd3fc !important;
+    padding: 8px 16px !important;
     font-weight: 700 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 136, 255, 0.35);
 }
 
 /* ==========================================================================
@@ -1170,12 +1406,13 @@ input[type="checkbox"] {
 .text-info { color: var(--info); }
 .text-muted { color: var(--text-muted); }
 
-.bg-light { background-color: #f8fafc; }
+.bg-light { background-color: #f4f8fd; }
 .bg-danger-light { background-color: var(--danger-light); }
+.bg-warning-light { background-color: #fffbeb; }
 .border-danger { border-color: var(--danger); }
 .border-top { border-top: 1px solid var(--border-color); }
 .border-bottom { border-bottom: 1px solid var(--border-color); }
-.box-rounded { border-radius: var(--border-radius); border: 1px solid var(--border-color); }
+.box-rounded { border-radius: 10px; border: 1px solid var(--border-color); }
 
 .mt-5 { margin-top: 5px; }
 .mt-10 { margin-top: 10px; }
@@ -1196,58 +1433,99 @@ input[type="checkbox"] {
 .pl-15 { padding-left: 15px; }
 .gap-10 { gap: 10px; }
 
-/* Status Badge */
+/* Status Badge Modern */
 .badge {
     display: inline-block;
-    padding: 4px 8px;
+    padding: 5px 11px;
     font-size: 11px;
-    font-weight: 600;
-    border-radius: 12px;
+    font-weight: 800;
+    border-radius: 20px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
 }
-.badge-success { background-color: var(--success-light); color: var(--success-hover); }
-.badge-danger { background-color: var(--danger-light); color: var(--danger-hover); }
-.badge-warning { background-color: var(--warning-light); color: var(--warning-hover); }
-.badge-info { background-color: var(--info-light); color: var(--info); }
-.badge-secondary { background-color: #f1f5f9; color: var(--secondary-hover); }
+.badge-success {
+    background-color: var(--success-light);
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+.badge-danger {
+    background-color: var(--danger-light);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+.badge-warning {
+    background-color: var(--warning-light);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.badge-info {
+    background-color: var(--info-light);
+    color: #0052cc;
+    border: 1px solid rgba(0, 136, 255, 0.25);
+}
+.badge-secondary {
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
 
-/* Tag Kategori */
+/* Tag Kategori Modern Interaktif */
 .tag-container {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 .tag {
-    background-color: var(--primary-light);
+    background: linear-gradient(135deg, #eef6ff 0%, #e0efff 100%);
     color: var(--primary);
-    padding: 6px 12px;
-    border-radius: 16px;
-    font-size: 12px;
-    font-weight: 600;
+    border: 1px solid rgba(0, 82, 204, 0.2);
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 700;
     display: inline-flex;
     align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 82, 204, 0.06);
+    transition: var(--transition);
+}
+.tag:hover {
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    border-color: var(--primary);
+    transform: translateY(-1px);
 }
 .tag-btn-del {
-    margin-left: 6px;
-    color: var(--primary);
-    background: none;
+    margin-left: 8px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    color: var(--davka-orange);
+    background: rgba(255, 107, 0, 0.12);
     border: none;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 800;
+    font-size: 13px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
 }
-.tag-btn-del:hover { color: var(--danger); }
+.tag-btn-del:hover {
+    background: var(--danger);
+    color: #ffffff;
+}
 
 /* Alert Box */
 .alert {
-    padding: 12px 15px;
-    border-radius: var(--border-radius);
+    padding: 13px 16px;
+    border-radius: 12px;
     border: 1px solid transparent;
     font-size: 14px;
 }
 .alert-warning {
-    background-color: var(--warning-light);
-    border-color: #fde68a;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #fcd34d;
+    border-left: 4px solid var(--davka-orange);
     color: #92400e;
 }
 
@@ -1265,24 +1543,25 @@ input[type="checkbox"] {
 }
 
 .toast {
-    background-color: #334155;
+    background-color: #0b1e3b;
     color: #fff;
-    padding: 12px 20px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-md);
+    padding: 13px 20px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
     font-size: 14px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-width: 250px;
+    min-width: 260px;
     animation: toastSlideIn 0.3s ease forwards, toastFadeOut 0.3s ease 2.7s forwards;
     opacity: 0;
     transform: translateX(100%);
 }
 
-.toast.success { background-color: var(--success); }
-.toast.danger { background-color: var(--danger); }
-.toast.warning { background-color: var(--warning); color: #000; }
+.toast.success { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
+.toast.danger { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); }
+.toast.warning { background: linear-gradient(135deg, #ff6b00 0%, #f59e0b 100%); color: #fff; }
 
 @keyframes toastSlideIn {
     to { opacity: 1; transform: translateX(0); }
@@ -1302,8 +1581,9 @@ input[type="checkbox"] {
     /* Layout */
     .sidebar {
         position: fixed;
-        left: -250px;
+        left: -260px;
         height: 100vh;
+        height: 100dvh;
         box-shadow: var(--shadow-lg);
     }
     .sidebar.open {
@@ -1313,16 +1593,24 @@ input[type="checkbox"] {
         width: 100%;
     }
     .btn-mobile-menu {
-        display: block;
+        display: inline-flex;
+    }
+
+    .topbar {
+        padding: 11px 16px;
     }
 
     .topbar-title-main {
-        font-size: 16px;
+        font-size: 16.5px;
         letter-spacing: 1.2px;
     }
     .topbar-title-sub {
         font-size: 9.5px;
-        letter-spacing: 2px;
+        letter-spacing: 2.2px;
+    }
+
+    .content-body {
+        padding: 15px;
     }
 
     /* Ringkasan Tagihan, Dibayar, Sisa di Mobile */
@@ -1334,14 +1622,14 @@ input[type="checkbox"] {
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 16px;
+        padding: 14px 16px;
     }
     .detail-summary-grid .summary-card h3 {
         margin-bottom: 0;
         font-size: 12px;
     }
     .detail-summary-grid .summary-card .stat-value {
-        font-size: 17px;
+        font-size: 17.5px;
         text-align: right;
     }
 
@@ -1365,8 +1653,8 @@ input[type="checkbox"] {
 
     .dynamic-row {
         flex-direction: column;
-        gap: 5px;
-        padding-bottom: 15px;
+        gap: 8px;
+        padding: 12px;
     }
     .dynamic-row .form-group {
         width: 100%;
@@ -1378,7 +1666,7 @@ input[type="checkbox"] {
     }
     .dynamic-row .col-action {
         width: 100%;
-        padding-top: 5px;
+        padding-top: 4px;
         text-align: right;
     }
     .dynamic-row .col-action .btn {
@@ -1399,7 +1687,7 @@ input[type="checkbox"] {
 
     .modal {
         align-items: flex-start;
-        padding-top: 20px;
+        padding: 16px;
         overflow-y: auto; 
     }
     .modal-content {
@@ -1446,7 +1734,7 @@ input[type="checkbox"] {
         align-items: center;
     }
     .card-header.flex-between .btn {
-        padding: 5px 10px;
+        padding: 6px 12px;
         font-size: 12px;
     }
     .profile-header .text-right {
@@ -1465,7 +1753,9 @@ input[type="checkbox"] {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0,0,0,0.5);
+        background-color: rgba(6, 18, 36, 0.55);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
         z-index: 999;
     }
     .sidebar-overlay.active {
@@ -1530,7 +1820,7 @@ input[type="checkbox"] {
 }
 
 /* ==========================================================================
-   REVISI PERBAIKAN PRATINJAU RINGKASAN & LAPORAN KEUANGAN
+   PRATINJAU RINGKASAN & LAPORAN KEUANGAN
    ========================================================================== */
 #report-print-area {
     width: 100%;
@@ -1560,7 +1850,7 @@ input[type="checkbox"] {
     -webkit-overflow-scrolling: touch;
     margin-bottom: 15px;
     border: 1px solid #cbd5e1;
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
 #report-output-container .table {
@@ -1585,7 +1875,7 @@ input[type="checkbox"] {
 }
 
 #report-output-container .table th {
-    background-color: #f1f5f9 !important;
+    background: #f1f5f9 !important;
     color: #0f172a !important;
     font-weight: 700 !important;
     position: static !important;
@@ -1603,13 +1893,13 @@ input[type="checkbox"] {
 
 .report-family-title {
     margin: 18px 0 8px 0;
-    background: #f1f5f9;
-    padding: 10px 14px;
-    border-left: 4px solid var(--primary);
-    border-radius: 4px;
+    background: linear-gradient(90deg, #eef6ff 0%, #f8fafc 100%);
+    padding: 11px 15px;
+    border-left: 5px solid var(--primary);
+    border-radius: 8px;
     font-size: 14px;
-    font-weight: 700;
-    color: #0f172a;
+    font-weight: 800;
+    color: #07162c;
 }
 
 .report-family-title:first-child {
@@ -1618,10 +1908,10 @@ input[type="checkbox"] {
 
 .report-grand-total {
     margin-top: 20px;
-    padding: 16px;
-    background: #f8fafc;
-    border: 2px solid #0f172a;
-    border-radius: 8px;
+    padding: 18px;
+    background: linear-gradient(135deg, #f8fbff 0%, #fff7ed 100%);
+    border: 2px solid #07162c;
+    border-radius: 12px;
 }
 
 .report-grand-total h3 {
@@ -1629,7 +1919,7 @@ input[type="checkbox"] {
     margin-bottom: 12px;
     padding-bottom: 8px;
     border-bottom: 1px solid #cbd5e1;
-    color: #0f172a;
+    color: #07162c;
 }
 
 .report-grand-row {
@@ -1648,10 +1938,11 @@ input[type="checkbox"] {
 }
 
 .report-cash-box {
-    background: #f8fafc;
-    padding: 12px 14px;
-    border-radius: 8px;
+    background: linear-gradient(135deg, #ffffff 0%, #f4f8fd 100%);
+    padding: 13px 15px;
+    border-radius: 10px;
     border: 1px solid #cbd5e1;
+    border-left: 4px solid var(--primary);
 }
 
 .report-cash-box h4 {
@@ -1712,6 +2003,7 @@ input[type="checkbox"] {
         width: 100% !important;
         height: auto !important;
         overflow: visible !important;
+        background: #fff !important;
         background-color: #fff !important;
         color: #000 !important;
         font-size: 9.5pt;
