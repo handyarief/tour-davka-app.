@@ -1,20 +1,20 @@
 /* ==========================================================================
-   VARIABEL TEMA MODERN DAVKA TRAVEL & RESET DASAR
+   VARIABEL TEMA MODERN 3D DAVKA TRAVEL & TIPOGRAFI 3D TIMBUL
    ========================================================================== */
 :root {
-    /* Identitas Warna Resmi Logo Davka Travel (Royal Blue, Sky Cyan & Swoop Orange) */
-    --primary: #0052cc;
-    --primary-hover: #003d99;
+    /* Identitas Warna Resmi Logo Davka Travel (Royal Blue, Globe Cyan & Swoop Orange) */
+    --primary: #0047b3;
+    --primary-hover: #003380;
     --primary-light: #e6f0ff;
-    --primary-glow: rgba(0, 82, 204, 0.22);
+    --primary-glow: rgba(0, 102, 255, 0.28);
 
-    --davka-cyan: #0088ff;
-    --davka-cyan-light: #e0f2fe;
+    --davka-cyan: #0095ff;
+    --davka-cyan-light: #e0f4ff;
     --davka-orange: #ff6b00;
-    --davka-orange-hover: #e65c00;
-    --davka-orange-light: #fff3e6;
-    --davka-navy: #07162c;
-    --davka-navy-mid: #0d2346;
+    --davka-orange-hover: #e05500;
+    --davka-orange-light: #fff2e6;
+    --davka-navy: #051329;
+    --davka-navy-mid: #0b2247;
 
     --secondary: #475569;
     --secondary-hover: #334155;
@@ -27,22 +27,33 @@
     --warning: #f59e0b;
     --warning-hover: #d97706;
     --warning-light: #fef3c7;
-    --info: #0088ff;
+    --info: #0095ff;
     --info-light: #e0f2fe;
     
-    --bg-main: #f2f6fc;
+    --bg-main: #eef4fc;
     --bg-card: #ffffff;
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    --border-color: #dbe4f0;
+    --text-main: #0f172a;
+    --text-muted: #526580;
+    --border-color: #d5e2f2;
     
-    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --shadow-sm: 0 2px 8px -2px rgba(7, 22, 44, 0.06), 0 1px 3px -1px rgba(7, 22, 44, 0.04);
-    --shadow-md: 0 8px 20px -4px rgba(0, 82, 204, 0.09), 0 4px 8px -2px rgba(7, 22, 44, 0.05);
-    --shadow-lg: 0 16px 32px -6px rgba(7, 22, 44, 0.14), 0 6px 14px -3px rgba(0, 82, 204, 0.08);
-    --border-radius: 12px;
-    --border-radius-lg: 16px;
-    --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    /* Font Modern & 3D Display */
+    --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+
+    /* Efek Teks 3D Timbul (3D Extruded Text Shadows) */
+    --text-3d-blue: 0 1px 0 #ffffff, 0 2px 0 #c7dfff, 0 3px 0 #99c4ff, 0 5px 10px rgba(0, 71, 179, 0.22);
+    --text-3d-orange: 0 1px 0 #ffffff, 0 2px 0 #ffd8b8, 0 3px 0 #ffb57a, 0 5px 10px rgba(255, 107, 0, 0.24);
+    --text-3d-green: 0 1px 0 #ffffff, 0 2px 0 #b8f5dc, 0 3px 0 #7ce8be, 0 5px 10px rgba(16, 185, 129, 0.22);
+    --text-3d-red: 0 1px 0 #ffffff, 0 2px 0 #fecaca, 0 3px 0 #fca5a5, 0 5px 10px rgba(239, 68, 68, 0.22);
+    --text-3d-dark: 0 1px 0 #ffffff, 0 2px 0 #d5e2f2, 0 4px 8px rgba(5, 19, 41, 0.14);
+
+    /* Bayangan Kartu 3D Berlapis */
+    --shadow-sm: 0 4px 10px -2px rgba(5, 19, 41, 0.07), 0 2px 4px -1px rgba(0, 71, 179, 0.05);
+    --shadow-md: 0 10px 24px -5px rgba(0, 71, 179, 0.12), 0 4px 10px -2px rgba(5, 19, 41, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    --shadow-lg: 0 20px 36px -8px rgba(5, 19, 41, 0.18), 0 8px 16px -4px rgba(0, 71, 179, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    --border-radius: 14px;
+    --border-radius-lg: 20px;
+    --transition: all 0.26s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
@@ -59,18 +70,23 @@ html, body {
 
 body {
     font-family: var(--font-family);
-    background: linear-gradient(160deg, #eef4fc 0%, #f5f8fd 55%, #fefaf6 100%);
+    background:
+        radial-gradient(circle at 0% 0%, rgba(0, 149, 255, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 100% 15%, rgba(255, 107, 0, 0.10) 0%, transparent 40%),
+        linear-gradient(160deg, #eaf2fd 0%, #f3f8ff 55%, #fff8f2 100%);
     background-color: var(--bg-main);
     color: var(--text-main);
     line-height: 1.5;
     font-size: 14px;
+    font-weight: 500;
     -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    color: #0b192c;
+    font-family: var(--font-display);
+    color: #061833;
     margin-bottom: 0.5rem;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: -0.01em;
 }
 
@@ -84,11 +100,126 @@ a {
 }
 
 strong {
-    font-weight: 700;
+    font-weight: 800;
+}
+
+.mr-8 {
+    margin-right: 8px;
 }
 
 /* ==========================================================================
-   LAYOUT UTAMA & SIDEBAR MODERN DAVKA
+   SISTEM KOMPONEN 3D GLOSSY / CLAY ICON BADGE
+   ========================================================================== */
+.icon-3d {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    position: relative;
+    flex-shrink: 0;
+    user-select: none;
+    font-style: normal;
+    line-height: 1;
+    transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s ease;
+    /* Efek 3D Dome & Specular Highlight */
+    border-top: 1.5px solid rgba(255, 255, 255, 0.78);
+    border-left: 1px solid rgba(255, 255, 255, 0.55);
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 3.5px solid rgba(0, 0, 0, 0.25);
+    filter: drop-shadow(0 4px 6px rgba(5, 19, 41, 0.15));
+}
+
+/* Kilau kaca atas (Glossy Reflection) */
+.icon-3d::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 14%;
+    right: 14%;
+    height: 36%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.68) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border-radius: 999px;
+    pointer-events: none;
+}
+
+/* Ukuran 3D Icon */
+.icon-3d-sm {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    border-radius: 12px;
+    border-bottom-width: 3px;
+}
+
+.icon-3d-md {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+    border-radius: 14px;
+    border-bottom-width: 3.5px;
+}
+
+.icon-3d-lg {
+    width: 52px;
+    height: 52px;
+    font-size: 26px;
+    border-radius: 16px;
+    border-bottom-width: 4px;
+}
+
+.icon-3d-xl {
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+    border-radius: 18px;
+    border-bottom-width: 4.5px;
+}
+
+/* Varian Warna 3D Selaras Logo Davka */
+.icon-3d-blue {
+    background: radial-gradient(circle at 30% 25%, #4da6ff 0%, #0066ff 55%, #003d99 100%);
+    border-bottom-color: #002966;
+    box-shadow: 0 7px 15px -3px rgba(0, 82, 204, 0.45), inset 0 -3px 6px rgba(0, 25, 77, 0.45);
+    color: #ffffff;
+}
+
+.icon-3d-orange {
+    background: radial-gradient(circle at 30% 25%, #ffb366 0%, #ff6b00 55%, #cc4400 100%);
+    border-bottom-color: #993300;
+    box-shadow: 0 7px 15px -3px rgba(255, 107, 0, 0.45), inset 0 -3px 6px rgba(128, 43, 0, 0.45);
+    color: #ffffff;
+}
+
+.icon-3d-cyan {
+    background: radial-gradient(circle at 30% 25%, #80dfff 0%, #0095ff 55%, #005ce6 100%);
+    border-bottom-color: #004099;
+    box-shadow: 0 7px 15px -3px rgba(0, 149, 255, 0.42), inset 0 -3px 6px rgba(0, 51, 128, 0.4);
+    color: #ffffff;
+}
+
+.icon-3d-green {
+    background: radial-gradient(circle at 30% 25%, #6ee7b7 0%, #10b981 55%, #047857 100%);
+    border-bottom-color: #064e3b;
+    box-shadow: 0 7px 15px -3px rgba(16, 185, 129, 0.42), inset 0 -3px 6px rgba(4, 78, 56, 0.4);
+    color: #ffffff;
+}
+
+.icon-3d-red {
+    background: radial-gradient(circle at 30% 25%, #fca5a5 0%, #ef4444 55%, #b91c1c 100%);
+    border-bottom-color: #7f1d1d;
+    box-shadow: 0 7px 15px -3px rgba(239, 68, 68, 0.42), inset 0 -3px 6px rgba(127, 29, 29, 0.4);
+    color: #ffffff;
+}
+
+.icon-3d-purple {
+    background: radial-gradient(circle at 30% 25%, #c4b5fd 0%, #7c3aed 55%, #4c1d95 100%);
+    border-bottom-color: #3b0764;
+    box-shadow: 0 7px 15px -3px rgba(124, 58, 237, 0.42), inset 0 -3px 6px rgba(59, 7, 100, 0.4);
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   LAYOUT UTAMA & SIDEBAR MODERN 3D DAVKA
    ========================================================================== */
 .app-container {
     display: flex;
@@ -98,120 +229,185 @@ strong {
 }
 
 .sidebar {
-    width: 260px;
-    background: linear-gradient(180deg, #061224 0%, #0b1e3b 55%, #08172e 100%);
+    width: 268px;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(0, 149, 255, 0.22) 0%, transparent 55%),
+        linear-gradient(180deg, #041022 0%, #091d3e 52%, #051329 100%);
     color: #fff;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
     transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), left 0.32s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 1000;
-    border-right: 1px solid rgba(56, 189, 248, 0.14);
-    box-shadow: 4px 0 24px rgba(6, 18, 36, 0.25);
+    border-right: 1px solid rgba(56, 189, 248, 0.22);
+    box-shadow: 8px 0 30px rgba(4, 16, 34, 0.42);
 }
 
 .sidebar-header {
-    padding: 28px 20px 24px 20px;
-    background: radial-gradient(circle at 50% 0%, rgba(0, 136, 255, 0.24) 0%, rgba(6, 18, 36, 0.92) 75%);
+    padding: 24px 20px 22px 20px;
+    background: radial-gradient(circle at 50% 10%, rgba(0, 149, 255, 0.30) 0%, rgba(5, 19, 41, 0.92) 78%);
     text-align: center;
-    border-bottom: 1px solid rgba(56, 189, 248, 0.18);
+    border-bottom: 1px solid rgba(56, 189, 248, 0.22);
     position: relative;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
 .sidebar-header::after {
     content: "";
     position: absolute;
-    bottom: -1px;
-    left: 12%;
-    width: 76%;
-    height: 3px;
-    border-radius: 3px;
-    background: linear-gradient(90deg, transparent, #0088ff, #ff6b00, #0088ff, transparent);
+    bottom: -2px;
+    left: 10%;
+    width: 80%;
+    height: 3.5px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, transparent, #0095ff, #ff6b00, #0095ff, transparent);
+    box-shadow: 0 0 12px rgba(255, 107, 0, 0.6);
+}
+
+/* Emblem Logo 3D pada Sidebar */
+.sidebar-logo-3d-wrap {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 10px auto;
+    padding: 7px;
+    border-radius: 20px;
+    background: linear-gradient(145deg, #ffffff 0%, #e6f2ff 100%);
+    border-top: 2px solid #ffffff;
+    border-bottom: 4px solid #99c2ff;
+    box-shadow:
+        0 10px 22px rgba(0, 0, 0, 0.45),
+        0 0 0 3px rgba(0, 149, 255, 0.28),
+        inset 0 2px 4px rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sidebar-logo-3d-wrap:hover {
+    transform: translateY(-3px) scale(1.05) rotate(-2deg);
+}
+
+.sidebar-logo-3d {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 3px rgba(0, 51, 128, 0.22));
 }
 
 .sidebar-header h2 {
-    background: linear-gradient(135deg, #ffffff 0%, #bae6fd 45%, #38bdf8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: #fff;
-    font-size: 22px;
-    font-weight: 800;
+    font-family: var(--font-display);
+    color: #ffffff;
+    font-size: 23px;
+    font-weight: 900;
     margin: 0;
     letter-spacing: 2.2px;
     text-transform: uppercase;
-    filter: drop-shadow(0 2px 6px rgba(0, 136, 255, 0.35));
+    /* Efek Huruf 3D Timbul di Sidebar */
+    text-shadow:
+        0 1px 0 #99d6ff,
+        0 2px 0 #38bdf8,
+        0 3px 0 #0284c7,
+        0 4px 0 #0369a1,
+        0 7px 14px rgba(0, 0, 0, 0.65);
 }
 
 .sidebar-header p {
-    color: #ff7b1c;
-    font-size: 11px;
-    font-weight: 800;
-    margin: 5px 0 0 0;
+    font-family: var(--font-display);
+    color: #ff852b;
+    font-size: 11.5px;
+    font-weight: 900;
+    margin: 6px 0 0 0;
     letter-spacing: 4.8px;
     text-transform: uppercase;
-    text-shadow: 0 1px 4px rgba(255, 107, 0, 0.4);
+    text-shadow:
+        0 1px 0 #4a1c00,
+        0 2px 0 #2b1000,
+        0 4px 10px rgba(255, 107, 0, 0.55);
 }
 
 .nav-list {
     list-style: none;
-    padding: 16px 12px;
+    padding: 16px 14px;
     flex-grow: 1;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 9px;
 }
 
 .nav-link {
     display: flex;
     align-items: center;
-    padding: 12px 16px;
-    color: #cbd5e1;
-    border-radius: 11px;
+    gap: 13px;
+    padding: 10px 14px;
+    color: #dbeafe;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-left: 4px solid transparent;
+    background: rgba(255, 255, 255, 0.03);
     transition: var(--transition);
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 700;
     position: relative;
     overflow: hidden;
 }
 
+.nav-link-text {
+    letter-spacing: 0.2px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
 .nav-link:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: linear-gradient(90deg, rgba(0, 149, 255, 0.20) 0%, rgba(255, 255, 255, 0.06) 100%);
     color: #ffffff;
-    transform: translateX(4px);
+    border-color: rgba(56, 189, 248, 0.28);
+    transform: translateX(5px);
+}
+
+.nav-link:hover .icon-3d {
+    transform: scale(1.12) rotate(-5deg);
 }
 
 .nav-link.active {
-    background: linear-gradient(90deg, rgba(0, 119, 255, 0.32) 0%, rgba(255, 107, 0, 0.14) 100%);
+    background: linear-gradient(95deg, rgba(0, 119, 255, 0.48) 0%, rgba(255, 107, 0, 0.26) 100%);
     color: #ffffff;
-    border-left-color: var(--davka-orange);
-    font-weight: 700;
-    box-shadow: 0 4px 14px rgba(0, 18, 46, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    border-color: rgba(125, 211, 252, 0.35);
+    border-left: 5px solid var(--davka-orange);
+    font-weight: 800;
+    box-shadow:
+        0 8px 18px rgba(0, 10, 28, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.nav-link.active .icon-3d {
+    transform: scale(1.08);
 }
 
 .main-content {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    width: calc(100% - 260px);
+    width: calc(100% - 268px);
     height: 100%;
     overflow: hidden; 
 }
 
+/* ==========================================================================
+   TOPBAR MODERN DENGAN BADGE LOGO & TULISAN 3D TIMBUL
+   ========================================================================== */
 .topbar {
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 12px 22px;
-    border-bottom: 1px solid rgba(0, 82, 204, 0.12);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(242, 248, 255, 0.95) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(0, 71, 179, 0.14);
     display: flex;
     align-items: center;
     position: sticky;
     top: 0;
     z-index: 900;
-    box-shadow: 0 4px 16px -4px rgba(7, 22, 44, 0.07);
+    box-shadow: 0 8px 22px -6px rgba(5, 19, 41, 0.10);
 }
 
 .topbar::after {
@@ -220,24 +416,27 @@ strong {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 2.5px;
-    background: linear-gradient(90deg, #004aad 0%, #0088ff 45%, #ff6b00 85%, #ff9900 100%);
+    height: 3.5px;
+    background: linear-gradient(90deg, #003d99 0%, #0095ff 42%, #ff6b00 78%, #ffaa00 100%);
 }
 
+/* Tombol Hamburger 3D Tactile */
 .btn-mobile-menu {
     display: none;
-    background: linear-gradient(145deg, #f0f7ff, #e0eeff);
-    border: 1px solid rgba(0, 82, 204, 0.22);
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #e3f0ff 100%);
+    border: 1.5px solid #b8d4fe;
+    border-bottom: 3.5px solid #6ba5f2;
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
     font-size: 20px;
+    font-weight: 900;
     color: var(--primary);
     cursor: pointer;
-    margin-right: 14px;
+    margin-right: 12px;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 6px rgba(0, 82, 204, 0.12);
+    box-shadow: 0 5px 12px rgba(0, 71, 179, 0.18), inset 0 1px 0 #ffffff;
     transition: var(--transition);
     flex-shrink: 0;
 }
@@ -246,38 +445,73 @@ strong {
 .btn-mobile-menu:active {
     background: linear-gradient(135deg, var(--primary), var(--davka-cyan));
     color: #ffffff;
-    transform: scale(0.95);
+    border-color: var(--primary);
+    border-bottom-color: #002966;
+    transform: translateY(1px);
+}
+
+/* Emblem Mini Logo Davka di Topbar */
+.topbar-brand-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #ffffff 0%, #eaf3ff 100%);
+    border: 1.5px solid #c7dfff;
+    border-bottom: 3px solid #8cb8f6;
+    box-shadow: 0 4px 10px rgba(0, 71, 179, 0.14);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.topbar-brand-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .topbar h1 {
-    font-size: 18px;
+    font-family: var(--font-display);
+    font-size: 19px;
     margin: 0;
     text-transform: uppercase;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    line-height: 1.2;
-    font-weight: 800;
-    color: #07162c;
-    letter-spacing: 0.5px;
+    line-height: 1.15;
+    font-weight: 900;
+    color: #06224a;
+    letter-spacing: 0.7px;
+    /* Efek 3D untuk Judul Halaman seperti DETAIL KELUARGA */
+    text-shadow: var(--text-3d-blue);
 }
 
 .topbar-title-main {
-    font-size: 19px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    background: linear-gradient(135deg, #061a3a 0%, #0052cc 55%, #0088ff 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: #061a3a;
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 1.4px;
+    color: #0047b3;
+    text-shadow:
+        0 1px 0 #ffffff,
+        0 2px 0 #cfe4ff,
+        0 3px 0 #99c4ff,
+        0 5px 10px rgba(0, 71, 179, 0.25);
     display: block;
 }
 
 .topbar-title-sub {
+    font-family: var(--font-display);
     font-size: 10.5px;
-    font-weight: 800;
+    font-weight: 900;
     letter-spacing: 2.8px;
     color: var(--davka-orange);
+    text-shadow:
+        0 1px 0 #ffffff,
+        0 2px 4px rgba(255, 107, 0, 0.28);
     margin-top: 2px;
     display: block;
 }
@@ -304,13 +538,14 @@ strong {
 }
 
 /* ==========================================================================
-   KARTU (CARD) & GRID INTERAKTIF MODERN
+   KARTU (CARD) 3D ELEVATED & GRID INTERAKTIF MODERN
    ========================================================================== */
 .card {
-    background-color: var(--bg-card);
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
-    border: 1px solid rgba(203, 213, 225, 0.65);
+    border: 1.5px solid #d8e6f8;
+    border-bottom: 4px solid #bfd6f6;
     margin-bottom: 20px;
     overflow: hidden;
     transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -318,28 +553,32 @@ strong {
 
 .card-header {
     padding: 16px 20px;
-    border-bottom: 1px solid #e8eff8;
-    background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    border-bottom: 1.5px solid #e5effc;
+    background: linear-gradient(180deg, #ffffff 0%, #f3f8ff 100%);
     position: relative;
 }
 
 .card-header h3 {
+    font-family: var(--font-display);
     margin: 0;
-    font-size: 16px;
-    font-weight: 800;
-    color: #07162c;
+    font-size: 17px;
+    font-weight: 900;
+    color: #061c3d;
+    text-shadow: var(--text-3d-dark);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
+/* Pill 3D Aksen Biru-Oranye di samping Judul Card */
 .card-header h3::before {
     content: "";
     display: inline-block;
-    width: 4px;
-    height: 16px;
-    border-radius: 4px;
-    background: linear-gradient(180deg, var(--primary) 0%, var(--davka-orange) 100%);
+    width: 6px;
+    height: 20px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--davka-cyan) 48%, var(--davka-orange) 100%);
+    box-shadow: 0 2px 6px rgba(0, 102, 255, 0.35);
     flex-shrink: 0;
 }
 
@@ -349,8 +588,8 @@ strong {
 
 .card-footer {
     padding: 15px 20px;
-    border-top: 1px solid #e8eff8;
-    background: linear-gradient(180deg, #f8fbff 0%, #f1f6fd 100%);
+    border-top: 1.5px solid #e5effc;
+    background: linear-gradient(180deg, #f7fbff 0%, #edf5ff 100%);
 }
 
 .card-grid {
@@ -359,35 +598,46 @@ strong {
     gap: 15px;
 }
 
-/* Kartu Statistik Utama (Total Peserta & Total Keluarga) */
+/* ==========================================================================
+   KARTU STATISTIK 3D (TOTAL PESERTA, TOTAL KELUARGA, TAGIHAN, DIBAYAR, SISA)
+   ========================================================================== */
 .summary-card {
     padding: 16px 18px;
-    border-left: 5px solid var(--primary);
+    border-left: 6px solid var(--primary);
+    border-bottom: 4px solid #bfd6f6;
     position: relative;
-    background: linear-gradient(135deg, #ffffff 0%, #f7faff 100%);
+    background: linear-gradient(140deg, #ffffff 0%, #f4f9ff 100%);
     transition: var(--transition);
 }
 
 .summary-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
 }
 
+.summary-card:hover .icon-3d {
+    transform: scale(1.1) rotate(-6deg);
+}
+
 .summary-card h3 {
+    font-family: var(--font-display);
     font-size: 12px;
-    font-weight: 700;
-    color: var(--text-muted);
+    font-weight: 800;
+    color: #475569;
     text-transform: uppercase;
-    letter-spacing: 0.7px;
+    letter-spacing: 0.8px;
     margin-bottom: 6px;
 }
 
 .summary-card .stat-value {
-    font-size: 25px;
-    font-weight: 800;
-    color: #07162c;
-    margin-bottom: 4px;
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 900;
+    color: #061c3d;
+    text-shadow: var(--text-3d-blue);
+    margin-bottom: 2px;
     word-break: break-word;
+    line-height: 1.1;
 }
 
 .summary-card small {
@@ -395,33 +645,54 @@ strong {
     color: var(--text-muted);
 }
 
-.dashboard-summary-grid {
-    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-    gap: 12px;
+/* Layout Baris 3D untuk Kartu Dashboard (Total Peserta & Total Keluarga) */
+.summary-card-3d-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
 }
 
-/* Warna Selaras Logo Davka pada Kartu Dashboard */
+.summary-card-3d-info {
+    min-width: 0;
+}
+
+.dashboard-summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+}
+
+/* Kartu 1: Total Peserta (Biru Royal Davka 3D) */
 .dashboard-summary-grid .summary-card:nth-child(1) {
     border-left-color: var(--primary);
-    background: linear-gradient(135deg, #ffffff 0%, #eef5ff 100%);
+    border-bottom-color: #93c5fd;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(0, 149, 255, 0.14) 0%, transparent 60%),
+        linear-gradient(145deg, #ffffff 0%, #ebf4ff 100%);
 }
 
 .dashboard-summary-grid .summary-card:nth-child(1) .stat-value {
     color: var(--primary);
+    text-shadow: var(--text-3d-blue);
 }
 
+/* Kartu 2: Total Keluarga (Oranye Swoop Davka 3D) */
 .dashboard-summary-grid .summary-card:nth-child(2) {
     border-left-color: var(--davka-orange);
-    background: linear-gradient(135deg, #ffffff 0%, #fff6ed 100%);
+    border-bottom-color: #fdba74;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(255, 107, 0, 0.14) 0%, transparent 60%),
+        linear-gradient(145deg, #ffffff 0%, #fff4e8 100%);
 }
 
 .dashboard-summary-grid .summary-card:nth-child(2) .stat-value {
     color: var(--davka-orange);
+    text-shadow: var(--text-3d-orange);
 }
 
 .summary-card-sm {
-    padding: 14px 16px;
-    border-left-width: 5px;
+    padding: 15px 16px;
+    border-left-width: 6px;
 }
 
 .summary-card-sm h3 {
@@ -430,14 +701,14 @@ strong {
 }
 
 .summary-card-sm .stat-value {
-    font-size: 22px;
+    font-size: 27px;
     margin-bottom: 0;
 }
 
-/* GRID RINGKASAN DETAIL PESERTA & KELUARGA (MODERN & KONTRAS) */
+/* GRID RINGKASAN DETAIL PESERTA & KELUARGA (GAMBAR 3 — 3D MODERN) */
 .detail-summary-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: 14px;
 }
 
 .detail-summary-grid .card {
@@ -445,124 +716,214 @@ strong {
 }
 
 .detail-summary-grid .summary-card {
-    padding: 15px 18px;
+    padding: 16px 18px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     background-color: #ffffff;
 }
 
+.detail-stat-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
 .detail-summary-grid .summary-card h3 {
-    font-size: 11.5px;
-    font-weight: 700;
-    color: #475569;
-    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #334155;
+    margin-bottom: 0;
     letter-spacing: 0.6px;
 }
 
 .detail-summary-grid .summary-card .stat-value {
-    font-size: 20px;
-    font-weight: 800;
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 900;
     margin-bottom: 0;
     line-height: 1.2;
 }
 
 .summary-card-tagihan {
     border-left-color: var(--primary);
-    background: linear-gradient(135deg, #ffffff 0%, #f0f6ff 100%) !important;
+    border-bottom-color: #93c5fd;
+    background: linear-gradient(135deg, #ffffff 0%, #ecf5ff 100%) !important;
+}
+.summary-card-tagihan .stat-value {
+    color: #061c3d;
+    text-shadow: var(--text-3d-blue);
 }
 
 .summary-card-dibayar {
     border-left-color: var(--success);
-    background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%) !important;
+    border-bottom-color: #6ee7b7;
+    background: linear-gradient(135deg, #ffffff 0%, #e8fcf4 100%) !important;
+}
+.summary-card-dibayar .stat-value {
+    text-shadow: var(--text-3d-green);
 }
 
 .summary-card-sisa {
     border-left-color: var(--danger);
-    background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%) !important;
+    border-bottom-color: #fca5a5;
+    background: linear-gradient(135deg, #ffffff 0%, #fff0f0 100%) !important;
+}
+.summary-card-sisa .stat-value {
+    text-shadow: var(--text-3d-red);
 }
 
 .summary-card-sisa.is-lebih {
     border-left-color: var(--davka-cyan);
-    background: linear-gradient(135deg, #ffffff 0%, #e6f4ff 100%) !important;
+    border-bottom-color: #7dd3fc;
+    background: linear-gradient(135deg, #ffffff 0%, #e6f5ff 100%) !important;
+}
+.summary-card-sisa.is-lebih .stat-value {
+    text-shadow: var(--text-3d-blue);
 }
 
-/* ITEM KATEGORI BIAYA DASHBOARD (INTERAKTIF & KEREN) */
+/* ==========================================================================
+   KARTU KATEGORI BIAYA DASHBOARD (DENGAN 3D ICON & EFEK TOMBOL TIMBUL)
+   ========================================================================== */
 .category-summary-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
 }
 
 .cat-sum-item {
-    background: linear-gradient(145deg, #ffffff 0%, #f6f9ff 100%);
-    padding: 13px 15px;
-    border-radius: 13px;
-    border: 1px solid #dce7f7;
-    border-left: 4px solid var(--primary);
+    background: linear-gradient(145deg, #ffffff 0%, #f4f9ff 100%);
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1.5px solid #d0e2f8;
+    border-left: 6px solid var(--primary);
+    border-bottom: 4px solid #aecbf5;
     display: flex;
     flex-direction: column;
+    gap: 12px;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     user-select: none;
-    box-shadow: 0 2px 6px rgba(0, 82, 204, 0.05);
+    box-shadow:
+        0 8px 18px -4px rgba(0, 71, 179, 0.10),
+        inset 0 1px 0 #ffffff;
     position: relative;
     overflow: hidden;
 }
 
 .cat-sum-item:nth-child(even) {
     border-left-color: var(--davka-orange);
+    border-bottom-color: #fdba74;
+    background: linear-gradient(145deg, #ffffff 0%, #fff8f2 100%);
 }
 
 .cat-sum-item:hover {
-    background: linear-gradient(145deg, #ffffff 0%, #ebf4ff 100%);
+    transform: translateY(-4px) scale(1.01);
     border-color: var(--davka-cyan);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px -5px rgba(0, 82, 204, 0.16);
+    box-shadow:
+        0 14px 26px -6px rgba(0, 71, 179, 0.20),
+        inset 0 1px 0 #ffffff;
+}
+
+.cat-sum-item:hover .icon-3d {
+    transform: scale(1.12) rotate(-6deg);
 }
 
 .cat-sum-item:active {
-    transform: translateY(0) scale(0.98);
+    transform: translateY(2px) scale(0.985);
+    border-bottom-width: 2px;
+}
+
+.cat-sum-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cat-sum-head-info {
+    flex: 1;
+    min-width: 0;
 }
 
 .cat-sum-label {
-    font-size: 11.5px;
-    color: #334155;
+    display: block;
+    font-family: var(--font-display);
+    font-size: 13.5px;
+    color: #0b2247;
     text-transform: uppercase;
-    font-weight: 800;
+    font-weight: 900;
     letter-spacing: 0.4px;
-    margin-bottom: 8px;
+    text-shadow: 0 1px 0 #ffffff, 0 2px 4px rgba(5, 19, 41, 0.10);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.cat-sum-item:hover .cat-sum-label {
+.cat-sum-sub {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    margin-top: 1px;
+}
+
+.cat-sum-arrow {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #eef6ff, #dbeafe);
+    border: 1px solid #bfdbfe;
+    border-bottom: 2px solid #93c5fd;
     color: var(--primary);
+    font-size: 16px;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.cat-sum-item:nth-child(even) .cat-sum-arrow {
+    background: linear-gradient(145deg, #fff5eb, #ffedd5);
+    border-color: #fed7aa;
+    border-bottom-color: #fdba74;
+    color: var(--davka-orange);
+}
+
+.cat-sum-item:hover .cat-sum-arrow {
+    transform: translateX(3px);
 }
 
 .cat-sum-detail {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(148, 163, 184, 0.35);
     gap: 8px;
 }
 
 .cat-sum-qty {
-    font-size: 11.5px;
+    font-family: var(--font-display);
+    font-size: 12px;
     color: #c2410c;
-    background-color: var(--davka-orange-light);
-    border: 1px solid rgba(255, 107, 0, 0.22);
-    padding: 2px 9px;
+    background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
+    border: 1px solid #fed7aa;
+    border-bottom: 2.5px solid #fdba74;
+    padding: 3px 11px;
     border-radius: 20px;
-    font-weight: 700;
+    font-weight: 800;
+    box-shadow: 0 2px 5px rgba(255, 107, 0, 0.12);
 }
 
 .cat-sum-value {
-    font-size: 15px;
-    font-weight: 800;
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 900;
     color: var(--primary);
+    text-shadow: var(--text-3d-blue);
 }
 
 .highlight-card {
@@ -572,28 +933,44 @@ strong {
 
 .stat-value-sm {
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
-/* BANNER HEADER DETAIL PESERTA & KELUARGA (MODERN DAVKA STYLE) */
+/* ==========================================================================
+   BANNER HEADER DETAIL PESERTA & KELUARGA (GAMBAR 3 — 3D HERO CARD)
+   ========================================================================== */
 .profile-header {
     padding: 22px;
-    background: linear-gradient(135deg, #ffffff 0%, #eef6ff 60%, #fff4eb 100%);
-    border: 1px solid #cde0fb;
-    border-top: 4px solid var(--primary);
+    background:
+        radial-gradient(circle at 95% 10%, rgba(255, 107, 0, 0.14) 0%, transparent 45%),
+        radial-gradient(circle at 5% 90%, rgba(0, 149, 255, 0.12) 0%, transparent 50%),
+        linear-gradient(135deg, #ffffff 0%, #eef6ff 58%, #fff5eb 100%);
+    border: 1.5px solid #c5dcfb;
+    border-top: 5px solid var(--primary);
+    border-bottom: 4.5px solid #9ec5fa;
     position: relative;
     box-shadow: var(--shadow-md);
 }
 
-.profile-header h2 {
-    font-size: 22px;
-    font-weight: 800;
-    color: #061a3a;
-    letter-spacing: 0.3px;
+.profile-hero-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.profile-hero-info h2 {
+    font-family: var(--font-display);
+    font-size: 25px;
+    font-weight: 900;
+    color: #051b3b;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-shadow: var(--text-3d-blue);
+    margin-bottom: 3px;
 }
 
 /* ==========================================================================
-   FORM & INPUT MODERN
+   FORM & INPUT MODERN 3D
    ========================================================================== */
 .form-group {
     margin-bottom: 15px;
@@ -602,18 +979,20 @@ strong {
 .form-group label {
     display: block;
     margin-bottom: 6px;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 13px;
-    color: #334155;
+    color: #1e293b;
 }
 
 .form-control {
     width: 100%;
     padding: 10px 14px;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 10px;
+    border: 1.5px solid #c5d6ec;
+    border-bottom: 3px solid #aec6e6;
+    border-radius: 12px;
     font-family: var(--font-family);
     font-size: 14px;
+    font-weight: 600;
     color: var(--text-main);
     transition: var(--transition);
     background-color: #ffffff;
@@ -621,12 +1000,13 @@ strong {
 }
 
 .form-control:hover:not(:disabled) {
-    border-color: #94a3b8;
+    border-color: #7da8e0;
 }
 
 .form-control:focus {
     outline: none;
     border-color: var(--primary);
+    border-bottom-color: var(--davka-orange);
     box-shadow: 0 0 0 3.5px var(--primary-glow);
     background-color: #ffffff;
 }
@@ -638,15 +1018,16 @@ strong {
 }
 
 .form-control-lg {
-    font-size: 18px;
+    font-family: var(--font-display);
+    font-size: 19px;
     padding: 12px 16px;
-    font-weight: 700;
+    font-weight: 800;
 }
 
 .input-sm {
     padding: 7px 12px;
     font-size: 13px;
-    border-radius: 8px;
+    border-radius: 10px;
 }
 
 textarea.form-control {
@@ -677,8 +1058,8 @@ textarea.form-control {
 }
 
 input[type="checkbox"] {
-    width: 17px;
-    height: 17px;
+    width: 18px;
+    height: 18px;
     cursor: pointer;
     accent-color: var(--primary);
 }
@@ -720,8 +1101,8 @@ input[type="checkbox"] {
     max-height: 220px;
     overflow-y: auto;
     background-color: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 12px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 14px;
     box-shadow: var(--shadow-lg);
     list-style: none;
     z-index: 2500;
@@ -735,6 +1116,7 @@ input[type="checkbox"] {
 .custom-dropdown-list li {
     padding: 11px 15px;
     font-size: 14px;
+    font-weight: 600;
     color: var(--text-main);
     border-bottom: 1px solid #f1f5f9;
     cursor: pointer;
@@ -749,12 +1131,12 @@ input[type="checkbox"] {
 .custom-dropdown-list li:active {
     background-color: var(--primary-light);
     color: var(--primary);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .custom-dropdown-list li.opt-new-family {
     color: var(--davka-orange);
-    font-weight: 700;
+    font-weight: 800;
     background-color: #fffaf5;
 }
 
@@ -771,8 +1153,8 @@ input[type="checkbox"] {
     margin-bottom: 12px;
     padding: 12px;
     background-color: #f8fbff;
-    border-radius: 10px;
-    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    border: 1.5px dashed #bfd6f6;
 }
 .dynamic-row .form-group {
     margin-bottom: 0;
@@ -793,27 +1175,31 @@ input[type="checkbox"] {
 }
 
 /* ==========================================================================
-   TOMBOL INTERAKTIF (BUTTONS) SELARAS LOGO DAVKA
+   TOMBOL INTERAKTIF 3D (3D TACTILE PUSH BUTTONS) SELARAS LOGO DAVKA
    ========================================================================== */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 9px 18px;
+    font-family: var(--font-display);
     font-size: 14px;
-    font-weight: 700;
-    border-radius: 10px;
+    font-weight: 800;
+    border-radius: 13px;
     border: 1.5px solid transparent;
+    border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+    border-bottom: 4px solid rgba(0, 0, 0, 0.25);
     cursor: pointer;
-    transition: var(--transition);
-    font-family: var(--font-family);
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     text-align: center;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.3px;
     user-select: none;
+    position: relative;
 }
 
 .btn:active:not(:disabled) {
-    transform: scale(0.97);
+    transform: translateY(2px) scale(0.98);
+    border-bottom-width: 2px;
 }
 
 .btn:disabled {
@@ -822,120 +1208,137 @@ input[type="checkbox"] {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #0052cc 0%, #0077ff 100%);
+    background: linear-gradient(135deg, #0047b3 0%, #0088ff 100%);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(0, 82, 204, 0.28);
+    border-bottom-color: #002b6b;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 14px rgba(0, 71, 179, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 .btn-primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #003d99 0%, #005ce6 100%);
-    box-shadow: 0 6px 16px rgba(0, 82, 204, 0.38);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #003d99 0%, #0066ff 100%);
+    box-shadow: 0 8px 18px rgba(0, 71, 179, 0.42);
+    transform: translateY(-2px);
 }
 
-/* Khusus Tombol ke-2 di Rincian Biaya (Input Biaya Keluarga) diberi Aksen Oranye Davka */
+/* Tombol Input Biaya Keluarga diberi Aksen 3D Oranye Davka */
 #btn-open-cost-family {
-    background: linear-gradient(135deg, #ff6b00 0%, #ff8800 100%);
-    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.28);
+    background: linear-gradient(135deg, #ff5e00 0%, #ff8c00 100%);
+    border-bottom-color: #b33e00;
+    box-shadow: 0 6px 14px rgba(255, 107, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 #btn-open-cost-family:hover:not(:disabled) {
-    background: linear-gradient(135deg, #e65c00 0%, #ff6b00 100%);
-    box-shadow: 0 6px 16px rgba(255, 107, 0, 0.38);
+    background: linear-gradient(135deg, #e05200 0%, #ff7700 100%);
+    box-shadow: 0 8px 18px rgba(255, 107, 0, 0.42);
 }
 
 .btn-secondary {
-    background: linear-gradient(135deg, #475569 0%, #64748b 100%);
+    background: linear-gradient(135deg, #334155 0%, #64748b 100%);
     color: #fff;
-    box-shadow: 0 3px 10px rgba(71, 85, 105, 0.22);
+    border-bottom-color: #1e293b;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 5px 12px rgba(51, 65, 85, 0.25);
 }
 .btn-secondary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #334155 0%, #475569 100%);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+    transform: translateY(-2px);
 }
 
-/* Tombol abu-abu identik btn-secondary khusus aksi cetak di dalam modal agar tidak memicu auto-close */
 .btn-print-gray {
-    background: linear-gradient(135deg, #475569 0%, #64748b 100%);
+    background: linear-gradient(135deg, #334155 0%, #64748b 100%);
     color: #fff;
-    box-shadow: 0 3px 10px rgba(71, 85, 105, 0.22);
+    border-bottom-color: #1e293b;
+    box-shadow: 0 5px 12px rgba(51, 65, 85, 0.25);
 }
 .btn-print-gray:hover:not(:disabled) {
-    background: linear-gradient(135deg, #334155 0%, #475569 100%);
+    background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
 }
 
 .btn-success {
     background: linear-gradient(135deg, #059669 0%, #10b981 100%);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.28);
+    border-bottom-color: #065f46;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 6px 14px rgba(16, 185, 129, 0.32);
 }
 .btn-success:hover:not(:disabled) {
     background: linear-gradient(135deg, #047857 0%, #059669 100%);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
 }
 
 .btn-danger {
     background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.26);
+    border-bottom-color: #991b1b;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 6px 14px rgba(239, 68, 68, 0.30);
 }
 .btn-danger:hover:not(:disabled) {
     background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
 }
 
 .btn-warning {
     background: linear-gradient(135deg, #ea580c 0%, #f59e0b 100%);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.28);
+    border-bottom-color: #9a3412;
+    box-shadow: 0 6px 14px rgba(245, 158, 11, 0.30);
 }
 .btn-warning:hover:not(:disabled) {
     background: linear-gradient(135deg, #c2410c 0%, #d97706 100%);
 }
 
 .btn-outline-primary {
-    background-color: #ffffff;
-    border-color: var(--primary);
+    background: linear-gradient(180deg, #ffffff 0%, #edf5ff 100%);
+    border: 1.5px solid var(--primary);
+    border-bottom: 3.5px solid #003d99;
     color: var(--primary);
-    box-shadow: 0 2px 6px rgba(0, 82, 204, 0.08);
+    box-shadow: 0 4px 10px rgba(0, 71, 179, 0.12);
 }
 .btn-outline-primary:hover:not(:disabled) {
     background: linear-gradient(135deg, var(--primary) 0%, var(--davka-cyan) 100%);
     border-color: transparent;
+    border-bottom: 3.5px solid #002b6b;
     color: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 82, 204, 0.25);
+    box-shadow: 0 6px 15px rgba(0, 71, 179, 0.28);
+    transform: translateY(-2px);
 }
 
 .btn-outline-secondary {
-    background-color: #ffffff;
-    border-color: #cbd5e1;
+    background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+    border: 1.5px solid #cbd5e1;
+    border-bottom: 3px solid #94a3b8;
     color: var(--secondary);
 }
 .btn-outline-secondary:hover:not(:disabled) {
-    background-color: #f1f5f9;
+    background: #e2e8f0;
     border-color: var(--secondary);
     color: #0f172a;
 }
 
 .btn-outline-danger {
-    background-color: #ffffff;
-    border-color: #fca5a5;
+    background: linear-gradient(180deg, #ffffff 0%, #fef2f2 100%);
+    border: 1.5px solid #fca5a5;
+    border-bottom: 3px solid #ef4444;
     color: var(--danger);
 }
 .btn-outline-danger:hover:not(:disabled) {
-    background-color: var(--danger);
+    background: var(--danger);
     border-color: var(--danger);
     color: #ffffff;
 }
 
 .btn-sm {
-    padding: 6px 12px;
+    padding: 6px 13px;
     font-size: 12px;
-    border-radius: 8px;
+    border-radius: 10px;
+    border-bottom-width: 3px;
 }
 
 .btn-lg {
     padding: 14px 22px;
     font-size: 15.5px;
-    border-radius: 12px;
+    border-radius: 15px;
+    border-bottom-width: 4.5px;
 }
 
 .w-100 {
@@ -943,12 +1346,14 @@ input[type="checkbox"] {
 }
 
 .btn-close {
-    background: #f1f5f9;
-    border: none;
-    width: 32px;
-    height: 32px;
+    background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
+    border: 1px solid #cbd5e1;
+    border-bottom: 2.5px solid #94a3b8;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     font-size: 20px;
+    font-weight: 800;
     line-height: 1;
     color: var(--text-muted);
     cursor: pointer;
@@ -958,7 +1363,8 @@ input[type="checkbox"] {
     transition: var(--transition);
 }
 .btn-close:hover {
-    background-color: var(--danger-light);
+    background: var(--danger-light);
+    border-color: #fca5a5;
     color: var(--danger);
     transform: rotate(90deg);
 }
@@ -970,7 +1376,7 @@ input[type="checkbox"] {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    border-radius: 10px;
+    border-radius: 12px;
 }
 
 .max-h-250 { max-height: 250px; overflow-y: auto; }
@@ -983,22 +1389,24 @@ input[type="checkbox"] {
 }
 
 .table th, .table td {
-    padding: 12px 15px;
+    padding: 13px 15px;
     text-align: left;
-    border-bottom: 1px solid #e8eff8;
+    border-bottom: 1px solid #e5effc;
 }
 
 .table th {
-    background: linear-gradient(180deg, #f0f6ff 0%, #e6effc 100%);
-    font-weight: 800;
-    color: #0b2545;
+    font-family: var(--font-display);
+    background: linear-gradient(180deg, #ecf4ff 0%, #dfecff 100%);
+    font-weight: 900;
+    color: #06224a;
     font-size: 12.5px;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.6px;
+    text-shadow: 0 1px 0 #ffffff;
     position: sticky;
     top: 0;
     z-index: 10;
-    border-bottom: 2px solid #cbd5e1;
+    border-bottom: 2.5px solid #b8d4fe;
 }
 
 .table tbody tr {
@@ -1006,7 +1414,7 @@ input[type="checkbox"] {
 }
 
 .table tbody tr:hover {
-    background-color: #f4f9ff;
+    background-color: #f2f8ff;
 }
 
 .table-sm th, .table-sm td {
@@ -1016,18 +1424,19 @@ input[type="checkbox"] {
 
 /* Baris Total pada Tabel Matriks Rincian Biaya Keluarga */
 .table tr.fam-cost-summary-row td {
-    background-color: #f0f6ff;
-    font-weight: 700;
-    color: #07162c;
+    background-color: #edf5ff;
+    font-weight: 800;
+    color: #061c3d;
     border-top: 2px solid #93c5fd;
 }
 
 .table tr.fam-cost-grand-row td {
-    background: linear-gradient(90deg, #e6f0ff 0%, #fff3e6 100%);
-    font-weight: 800;
+    background: linear-gradient(90deg, #e6f0ff 0%, #fff2e6 100%);
+    font-family: var(--font-display);
+    font-weight: 900;
     color: var(--primary);
-    border-top: 2px solid var(--primary);
-    font-size: 14px;
+    border-top: 2.5px solid var(--primary);
+    font-size: 14.5px;
 }
 
 /* ==========================================================================
@@ -1041,13 +1450,13 @@ input[type="checkbox"] {
     width: 100%;
     height: 100%;
     height: 100dvh;
-    background-color: rgba(7, 22, 44, 0.65);
+    background-color: rgba(5, 19, 41, 0.68);
     z-index: 2000;
     align-items: center;
     justify-content: center;
     padding: 20px;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 }
 
 .modal.show {
@@ -1064,8 +1473,9 @@ input[type="checkbox"] {
     max-height: 90dvh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 24px 48px -12px rgba(7, 22, 44, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 25px 50px -12px rgba(5, 19, 41, 0.42);
+    border: 1.5px solid #d0e2f8;
+    border-bottom: 5px solid #93c5fd;
     position: relative;
     animation: modalSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     overflow: hidden;
@@ -1087,7 +1497,7 @@ input[type="checkbox"] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
+    background: linear-gradient(135deg, #f5f9ff 0%, #eaf3ff 100%);
     border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
     position: relative;
 }
@@ -1098,15 +1508,17 @@ input[type="checkbox"] {
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 2px;
+    height: 2.5px;
     background: linear-gradient(90deg, var(--primary), var(--davka-orange), transparent);
 }
 
 .modal-header h3 {
+    font-family: var(--font-display);
     margin: 0;
-    font-size: 17px;
-    font-weight: 800;
-    color: #07162c;
+    font-size: 18px;
+    font-weight: 900;
+    color: #061c3d;
+    text-shadow: var(--text-3d-dark);
 }
 
 .modal-body {
@@ -1208,7 +1620,7 @@ input[type="checkbox"] {
 .doc-preview-title-row h3 {
     color: #ffffff;
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
     margin: 0;
 }
 
@@ -1333,6 +1745,7 @@ input[type="checkbox"] {
     background-color: #f1f5f9 !important;
     font-weight: 700 !important;
     position: static !important;
+    text-shadow: none !important;
 }
 
 .doc-preview-paper .text-success { color: #16a34a !important; }
@@ -1396,7 +1809,7 @@ input[type="checkbox"] {
 
 .text-right { text-align: right; }
 .text-center { text-align: center; }
-.text-bold { font-weight: 700; }
+.text-bold { font-weight: 800; }
 
 .text-primary { color: var(--primary); }
 .text-secondary { color: var(--secondary); }
@@ -1412,7 +1825,7 @@ input[type="checkbox"] {
 .border-danger { border-color: var(--danger); }
 .border-top { border-top: 1px solid var(--border-color); }
 .border-bottom { border-bottom: 1px solid var(--border-color); }
-.box-rounded { border-radius: 10px; border: 1px solid var(--border-color); }
+.box-rounded { border-radius: 12px; border: 1px solid var(--border-color); }
 
 .mt-5 { margin-top: 5px; }
 .mt-10 { margin-top: 10px; }
@@ -1433,99 +1846,110 @@ input[type="checkbox"] {
 .pl-15 { padding-left: 15px; }
 .gap-10 { gap: 10px; }
 
-/* Status Badge Modern */
+/* Status Badge 3D Pill Modern */
 .badge {
+    font-family: var(--font-display);
     display: inline-block;
-    padding: 5px 11px;
+    padding: 5px 13px;
     font-size: 11px;
-    font-weight: 800;
+    font-weight: 900;
     border-radius: 20px;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.7px;
+    box-shadow: 0 3px 6px rgba(5, 19, 41, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 .badge-success {
-    background-color: var(--success-light);
-    color: #047857;
-    border: 1px solid rgba(16, 185, 129, 0.25);
+    background: linear-gradient(180deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+    border-bottom: 2.5px solid #10b981;
 }
 .badge-danger {
-    background-color: var(--danger-light);
-    color: #b91c1c;
-    border: 1px solid rgba(239, 68, 68, 0.25);
+    background: linear-gradient(180deg, #fee2e2 0%, #fecaca 100%);
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+    border-bottom: 2.5px solid #ef4444;
 }
 .badge-warning {
-    background-color: var(--warning-light);
-    color: #b45309;
-    border: 1px solid rgba(245, 158, 11, 0.3);
+    background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    border: 1px solid #fcd34d;
+    border-bottom: 2.5px solid #f59e0b;
 }
 .badge-info {
-    background-color: var(--info-light);
-    color: #0052cc;
-    border: 1px solid rgba(0, 136, 255, 0.25);
+    background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%);
+    color: #0047b3;
+    border: 1px solid #7dd3fc;
+    border-bottom: 2.5px solid #0095ff;
 }
 .badge-secondary {
-    background-color: #f1f5f9;
+    background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
     color: #334155;
     border: 1px solid #cbd5e1;
+    border-bottom: 2.5px solid #94a3b8;
 }
 
-/* Tag Kategori Modern Interaktif */
+/* Tag Kategori 3D Modern Interaktif */
 .tag-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 9px;
 }
 .tag {
-    background: linear-gradient(135deg, #eef6ff 0%, #e0efff 100%);
+    font-family: var(--font-display);
+    background: linear-gradient(180deg, #f2f8ff 0%, #dcebff 100%);
     color: var(--primary);
-    border: 1px solid rgba(0, 82, 204, 0.2);
+    border: 1px solid #b8d4fe;
+    border-bottom: 3px solid #7daef7;
     padding: 7px 14px;
     border-radius: 20px;
     font-size: 12.5px;
-    font-weight: 700;
+    font-weight: 800;
     display: inline-flex;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 82, 204, 0.06);
+    box-shadow: 0 3px 7px rgba(0, 71, 179, 0.08);
     transition: var(--transition);
 }
 .tag:hover {
-    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    background: linear-gradient(180deg, #e0f0ff 0%, #c7e0ff 100%);
     border-color: var(--primary);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
 }
 .tag-btn-del {
     margin-left: 8px;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
-    color: var(--davka-orange);
-    background: rgba(255, 107, 0, 0.12);
+    color: #ffffff;
+    background: linear-gradient(135deg, #ff6b00, #ef4444);
     border: none;
     cursor: pointer;
-    font-weight: 800;
+    font-weight: 900;
     font-size: 13px;
     line-height: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
     transition: var(--transition);
 }
 .tag-btn-del:hover {
     background: var(--danger);
-    color: #ffffff;
+    transform: scale(1.12);
 }
 
 /* Alert Box */
 .alert {
     padding: 13px 16px;
-    border-radius: 12px;
+    border-radius: 14px;
     border: 1px solid transparent;
     font-size: 14px;
 }
 .alert-warning {
     background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
     border-color: #fcd34d;
-    border-left: 4px solid var(--davka-orange);
+    border-left: 5px solid var(--davka-orange);
+    border-bottom: 3px solid #f59e0b;
     color: #92400e;
 }
 
@@ -1543,13 +1967,15 @@ input[type="checkbox"] {
 }
 
 .toast {
+    font-family: var(--font-display);
     background-color: #0b1e3b;
     color: #fff;
     padding: 13px 20px;
-    border-radius: 12px;
+    border-radius: 14px;
+    border-bottom: 4px solid rgba(0, 0, 0, 0.3);
     box-shadow: var(--shadow-lg);
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 800;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1581,7 +2007,7 @@ input[type="checkbox"] {
     /* Layout */
     .sidebar {
         position: fixed;
-        left: -260px;
+        left: -268px;
         height: 100vh;
         height: 100dvh;
         box-shadow: var(--shadow-lg);
@@ -1597,12 +2023,18 @@ input[type="checkbox"] {
     }
 
     .topbar {
-        padding: 11px 16px;
+        padding: 10px 14px;
+    }
+
+    .topbar-brand-badge {
+        width: 36px;
+        height: 36px;
+        margin-right: 10px;
     }
 
     .topbar-title-main {
         font-size: 16.5px;
-        letter-spacing: 1.2px;
+        letter-spacing: 1px;
     }
     .topbar-title-sub {
         font-size: 9.5px;
@@ -1610,13 +2042,19 @@ input[type="checkbox"] {
     }
 
     .content-body {
-        padding: 15px;
+        padding: 14px;
     }
 
-    /* Ringkasan Tagihan, Dibayar, Sisa di Mobile */
+    /* Kartu Kategori Biaya di Mobile 1 Kolom Penuh seperti Gambar 1 */
+    .category-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* Ringkasan Tagihan, Dibayar, Sisa di Mobile (Gambar 3) */
     .detail-summary-grid {
         grid-template-columns: 1fr;
-        gap: 10px;
+        gap: 11px;
     }
     .detail-summary-grid .summary-card {
         flex-direction: row;
@@ -1624,13 +2062,23 @@ input[type="checkbox"] {
         align-items: center;
         padding: 14px 16px;
     }
+    .detail-stat-head {
+        margin-bottom: 0;
+    }
     .detail-summary-grid .summary-card h3 {
         margin-bottom: 0;
         font-size: 12px;
     }
     .detail-summary-grid .summary-card .stat-value {
-        font-size: 17.5px;
+        font-size: 18.5px;
         text-align: right;
+    }
+
+    .profile-hero-row {
+        gap: 13px;
+    }
+    .profile-hero-info h2 {
+        font-size: 21px;
     }
 
     /* Grid & Forms */
@@ -1701,7 +2149,7 @@ input[type="checkbox"] {
         margin-bottom: 5px;
     }
 
-    /* Tampilan Tombol Cetak Modal Ringkasan di Mobile Sesuai Gambar 2 */
+    /* Tampilan Tombol Cetak Modal Ringkasan di Mobile */
     .modal-actions.ringkasan-modal-actions {
         flex-direction: column;
         align-items: stretch;
@@ -1753,9 +2201,9 @@ input[type="checkbox"] {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(6, 18, 36, 0.55);
-        backdrop-filter: blur(2px);
-        -webkit-backdrop-filter: blur(2px);
+        background-color: rgba(4, 16, 34, 0.62);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
         z-index: 999;
     }
     .sidebar-overlay.active {
@@ -1879,6 +2327,7 @@ input[type="checkbox"] {
     color: #0f172a !important;
     font-weight: 700 !important;
     position: static !important;
+    text-shadow: none !important;
 }
 
 #report-output-container .text-right,
@@ -2075,6 +2524,7 @@ input[type="checkbox"] {
     .table th {
         background-color: #f1f5f9 !important;
         color: #000 !important;
+        text-shadow: none !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }

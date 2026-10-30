@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MODUL 1: DASHBOARD & DETAIL KATEGORI BIAYA
+   MODUL 1: DASHBOARD & DETAIL KATEGORI BIAYA (DENGAN 3D ICON ENGINE)
    ========================================================================== */
 let currentDetailCategory = null;
 
@@ -12,6 +12,45 @@ function getCategoryUnitName(cat) {
     if (catLower.includes('bus') || catLower.includes('transportasi')) return 'unit';
     if (catLower.includes('makan') || catLower.includes('konsumsi')) return 'porsi';
     return 'Item';
+}
+
+// Helper Visual: Menghasilkan 3D Icon & Tema Warna Selaras Logo Davka berdasarkan Nama Kategori
+function getCategory3DMeta(cat) {
+    if (!cat) {
+        return { icon: '📦', theme: 'icon-3d-blue' };
+    }
+    const catLower = cat.toLowerCase();
+    if (catLower.includes('kereta')) {
+        return { icon: '🚆', theme: 'icon-3d-blue' };
+    }
+    if (catLower.includes('pesawat') || catLower.includes('flight')) {
+        return { icon: '✈️', theme: 'icon-3d-cyan' };
+    }
+    if (catLower.includes('bus') || catLower.includes('transportasi') || catLower.includes('mobil') || catLower.includes('travel')) {
+        return { icon: '🚌', theme: 'icon-3d-orange' };
+    }
+    if (catLower.includes('penginapan') || catLower.includes('hotel') || catLower.includes('villa') || catLower.includes('kamar') || catLower.includes('homestay')) {
+        return { icon: '🏨', theme: 'icon-3d-cyan' };
+    }
+    if (catLower.includes('kaos') || catLower.includes('baju') || catLower.includes('seragam') || catLower.includes('jersey')) {
+        return { icon: '👕', theme: 'icon-3d-orange' };
+    }
+    if (catLower.includes('parkir') || catLower.includes('tol')) {
+        return { icon: '🛣️', theme: 'icon-3d-blue' };
+    }
+    if (catLower.includes('wisata') || catLower.includes('tiket')) {
+        return { icon: '🎟️', theme: 'icon-3d-orange' };
+    }
+    if (catLower.includes('konsumsi') || catLower.includes('makan') || catLower.includes('minum') || catLower.includes('snack') || catLower.includes('resto')) {
+        return { icon: '🍱', theme: 'icon-3d-green' };
+    }
+    if (catLower.includes('admin') || catLower.includes('dokumen') || catLower.includes('asuransi')) {
+        return { icon: '📋', theme: 'icon-3d-purple' };
+    }
+    if (catLower.includes('diskon') || catLower.includes('potongan') || catLower.includes('penyesuaian') || catLower.includes('promo')) {
+        return { icon: '🏷️', theme: 'icon-3d-red' };
+    }
+    return { icon: '💎', theme: 'icon-3d-blue' };
 }
 
 window.openCategoryDetail = function(categoryName) {
@@ -159,14 +198,23 @@ function renderDashboard() {
     if (usedCatArray.length === 0) {
         catContainer.innerHTML = '<p class="text-muted" style="grid-column: 1/-1;">Belum ada data rincian biaya peserta.</p>';
     } else {
-        usedCatArray.forEach(cat => {
+        usedCatArray.forEach((cat, idx) => {
             const unitName = getCategoryUnitName(cat);
+            const meta3D = getCategory3DMeta(cat);
+            const colorTheme = meta3D.theme || (idx % 2 === 0 ? 'icon-3d-blue' : 'icon-3d-orange');
+
             const itemDiv = document.createElement('div');
             itemDiv.className = 'cat-sum-item';
             itemDiv.setAttribute('role', 'button');
             itemDiv.setAttribute('tabindex', '0');
             itemDiv.innerHTML = `
-                <span class="cat-sum-label">${escapeHTML(cat)}</span>
+                <div class="cat-sum-top">
+                    <span class="icon-3d icon-3d-sm ${colorTheme}" aria-hidden="true">${meta3D.icon}</span>
+                    <div class="cat-sum-title-wrap">
+                        <span class="cat-sum-label">${escapeHTML(cat)}</span>
+                        <span class="cat-sum-sub">Ketuk untuk rincian &rarr;</span>
+                    </div>
+                </div>
                 <div class="cat-sum-detail mt-5">
                     <span class="cat-sum-qty">${categoryQtys[cat]} ${unitName}</span>
                     <span class="cat-sum-value">${formatRp(categoryTotals[cat])}</span>
@@ -174,6 +222,12 @@ function renderDashboard() {
             `;
             itemDiv.addEventListener('click', () => {
                 openCategoryDetail(cat);
+            });
+            itemDiv.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openCategoryDetail(cat);
+                }
             });
             catContainer.appendChild(itemDiv);
         });

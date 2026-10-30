@@ -6,7 +6,7 @@
     <title>Davka tour</title>
     
     <!-- PWA Meta Tags (Ziedan Style) -->
-    <meta name="theme-color" content="#0369a1">
+    <meta name="theme-color" content="#0044b3">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,7 +14,430 @@
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
 
+    <!-- Google Fonts: Outfit (3D Display & Angka) + Plus Jakarta Sans (UI Modern) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="style.css">
+
+    <!-- Tema Modern 3D Davka Travel (Terintegrasi agar langsung jalan 100%) -->
+    <style>
+        :root {
+            --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+            --davka-royal: #0044b3;
+            --davka-sky: #0095ff;
+            --davka-orange: #ff6b00;
+            --davka-orange-glow: #ff9d00;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: radial-gradient(circle at 10% 0%, #e0eeff 0%, #f1f6fd 48%, #fff6ec 100%) !important;
+        }
+
+        /* TIPOGRAFI 3D TIMBUL (3D EXTRUDED TEXT) */
+        h1, h2, h3, h4, .stat-value, .cat-sum-value, .topbar-title-main {
+            font-family: var(--font-display) !important;
+        }
+
+        /* PERBAIKAN: Ganti gradient & webkit-fill menjadi solid color + text-shadow murni agar stabil di HP */
+        .topbar-title-main {
+            font-size: 20px !important;
+            font-weight: 900 !important;
+            letter-spacing: 1.4px !important;
+            color: #0044b3 !important; 
+            text-shadow: 
+                0 1px 0px #ffffff, 
+                0 2px 0px #93c5fd, 
+                0 3px 0px #60a5fa, 
+                0 6px 10px rgba(0, 51, 128, 0.45) !important;
+        }
+
+        .topbar-title-sub {
+            font-family: var(--font-display) !important;
+            font-size: 11px !important;
+            font-weight: 900 !important;
+            letter-spacing: 3.2px !important;
+            color: #ff6b00 !important;
+            text-shadow: 0 1px 0 #ffffff, 0 2px 4px rgba(255, 107, 0, 0.28);
+        }
+
+        .topbar h1 {
+            font-family: var(--font-display) !important;
+            font-weight: 900 !important;
+            color: #061b3a !important;
+            text-shadow: 0 1px 0 #ffffff, 0 2px 0 #cbd5e1, 0 4px 8px rgba(0, 68, 179, 0.16);
+        }
+
+        /* KOMPONEN 3D CLAY / GLOSSY ICON BADGE */
+        .icon-3d {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            font-size: 21px;
+            line-height: 1;
+            position: relative;
+            flex-shrink: 0;
+            user-select: none;
+            background: linear-gradient(145deg, #0095ff 0%, #0044b3 100%);
+            color: #ffffff;
+            box-shadow:
+                0 6px 12px -2px rgba(0, 68, 179, 0.38),
+                0 3px 0 #002b75,
+                inset 0 2px 3px rgba(255, 255, 255, 0.65),
+                inset 0 -3px 5px rgba(0, 20, 60, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+        }
+
+        /* Kilau Kaca 3D di Bagian Atas Icon */
+        .icon-3d::before {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            right: 4px;
+            height: 44%;
+            border-radius: 10px 10px 6px 6px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.05) 100%);
+            pointer-events: none;
+        }
+
+        .icon-3d span, .icon-3d svg {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.28));
+        }
+
+        .icon-3d-sm {
+            width: 34px;
+            height: 34px;
+            border-radius: 11px;
+            font-size: 17px;
+        }
+
+        .icon-3d-lg {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            font-size: 25px;
+        }
+
+        /* Variasi Warna 3D Icon Sesuai Brand Davka */
+        .icon-3d-blue {
+            background: linear-gradient(145deg, #2bb0ff 0%, #0052cc 65%, #003380 100%);
+            box-shadow: 0 6px 14px rgba(0, 82, 204, 0.4), 0 3px 0 #002966, inset 0 2px 3px rgba(255, 255, 255, 0.7);
+        }
+
+        .icon-3d-orange {
+            background: linear-gradient(145deg, #ffaa33 0%, #ff6b00 65%, #cc4400 100%);
+            box-shadow: 0 6px 14px rgba(255, 107, 0, 0.42), 0 3px 0 #993300, inset 0 2px 3px rgba(255, 255, 255, 0.7);
+        }
+
+        .icon-3d-green {
+            background: linear-gradient(145deg, #34d399 0%, #059669 65%, #065f46 100%);
+            box-shadow: 0 6px 14px rgba(16, 185, 129, 0.4), 0 3px 0 #064e3b, inset 0 2px 3px rgba(255, 255, 255, 0.7);
+        }
+
+        .icon-3d-red {
+            background: linear-gradient(145deg, #fb7185 0%, #e11d48 65%, #9f1239 100%);
+            box-shadow: 0 6px 14px rgba(225, 29, 72, 0.4), 0 3px 0 #881337, inset 0 2px 3px rgba(255, 255, 255, 0.7);
+        }
+
+        .icon-3d-cyan {
+            background: linear-gradient(145deg, #38bdf8 0%, #0284c7 65%, #0369a1 100%);
+            box-shadow: 0 6px 14px rgba(2, 132, 199, 0.4), 0 3px 0 #075985, inset 0 2px 3px rgba(255, 255, 255, 0.7);
+        }
+
+        .icon-3d-purple {
+            background: linear-gradient(145deg, #a78bfa 0%, #7c3aed 65%, #5b21b6 100%);
+            box-shadow: 0 6px 14px rgba(124, 58, 237, 0.4), 0 3px 0 #4c1d95, inset 0 2px 3px rgba(255, 255, 255, 0.7);
+        }
+
+        /* SIDEBAR 3D BRANDING & NAVIGASI */
+        .sidebar {
+            background: linear-gradient(180deg, #041022 0%, #081d3d 50%, #051329 100%) !important;
+            box-shadow: 8px 0 30px rgba(4, 16, 34, 0.45) !important;
+        }
+
+        .sidebar-brand-3d {
+            width: 66px;
+            height: 66px;
+            margin: 0 auto 10px auto;
+            border-radius: 20px;
+            background: linear-gradient(145deg, #ffffff 0%, #e6f2ff 100%);
+            padding: 8px;
+            box-shadow:
+                0 8px 20px rgba(0, 149, 255, 0.45),
+                0 4px 0 #0052cc,
+                inset 0 2px 4px rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .sidebar-brand-3d:hover {
+            transform: translateY(-3px) rotate(-3deg) scale(1.05);
+        }
+
+        .sidebar-brand-3d img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0, 68, 179, 0.25));
+        }
+
+        .sidebar-header h2 {
+            font-size: 23px !important;
+            font-weight: 900 !important;
+            letter-spacing: 2.5px !important;
+            background: linear-gradient(180deg, #ffffff 0%, #93c5fd 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            filter: drop-shadow(0 3px 0 #002b75) drop-shadow(0 5px 10px rgba(0, 149, 255, 0.5)) !important;
+        }
+
+        .sidebar-header p {
+            font-family: var(--font-display) !important;
+            color: #ff8000 !important;
+            font-size: 11.5px !important;
+            font-weight: 900 !important;
+            letter-spacing: 4.5px !important;
+            text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6), 0 0 12px rgba(255, 107, 0, 0.65) !important;
+        }
+
+        .nav-link {
+            gap: 13px;
+            padding: 11px 14px !important;
+            border-radius: 14px !important;
+            font-weight: 700 !important;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            transform: translateX(5px) !important;
+        }
+
+        .nav-link:hover .icon-3d {
+            transform: scale(1.12) rotate(-5deg);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, rgba(0, 119, 255, 0.42) 0%, rgba(255, 107, 0, 0.25) 100%) !important;
+            border-left: 5px solid #ff6b00 !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.22);
+            box-shadow: 0 8px 18px rgba(0, 12, 32, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+            font-weight: 800 !important;
+            color: #ffffff !important;
+        }
+
+        /* KARTU 3D INTERAKTIF (DASHBOARD & DETAIL) */
+        .card {
+            border-radius: 18px !important;
+            border: 1px solid rgba(203, 218, 240, 0.85) !important;
+            box-shadow: 0 10px 24px -6px rgba(0, 68, 179, 0.1), 0 4px 0 rgba(191, 211, 238, 0.65) !important;
+        }
+
+        .summary-card {
+            border-radius: 18px !important;
+            padding: 16px 18px !important;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease !important;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-4px) !important;
+        }
+
+        .summary-card:active {
+            transform: translateY(1px) scale(0.98) !important;
+        }
+
+        .summary-card-3d-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .summary-card-3d-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .dashboard-summary-grid .summary-card:nth-child(1) {
+            background: linear-gradient(145deg, #ffffff 0%, #e6f2ff 100%) !important;
+            border-left: 6px solid #0052cc !important;
+            box-shadow: 0 10px 22px -6px rgba(0, 82, 204, 0.22), 0 4px 0 #b8d4fe !important;
+        }
+
+        .dashboard-summary-grid .summary-card:nth-child(2) {
+            background: linear-gradient(145deg, #ffffff 0%, #fff2e2 100%) !important;
+            border-left: 6px solid #ff6b00 !important;
+            box-shadow: 0 10px 22px -6px rgba(255, 107, 0, 0.22), 0 4px 0 #fed7aa !important;
+        }
+
+        .summary-card .stat-value {
+            font-size: 28px !important;
+            font-weight: 900 !important;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 0 #ffffff, 0 4px 8px rgba(0, 51, 128, 0.18);
+        }
+
+        .dashboard-summary-grid .summary-card:nth-child(2) .stat-value {
+            text-shadow: 0 2px 0 #ffffff, 0 4px 8px rgba(255, 107, 0, 0.22);
+        }
+
+        /* KARTU KATEGORI BIAYA DASHBOARD 3D */
+        .cat-sum-item {
+            background: linear-gradient(145deg, #ffffff 0%, #f2f7ff 100%) !important;
+            padding: 15px 16px !important;
+            border-radius: 16px !important;
+            border: 1px solid #d4e3fa !important;
+            border-left: 6px solid #0052cc !important;
+            box-shadow: 0 8px 18px -4px rgba(0, 68, 179, 0.12), 0 4px 0 #c7dcf9, inset 0 1px 0 #ffffff !important;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+
+        .cat-sum-item:nth-child(even) {
+            background: linear-gradient(145deg, #ffffff 0%, #fff8f1 100%) !important;
+            border-color: #fde2c8 !important;
+            border-left: 6px solid #ff6b00 !important;
+            box-shadow: 0 8px 18px -4px rgba(255, 107, 0, 0.12), 0 4px 0 #fbd3ac, inset 0 1px 0 #ffffff !important;
+        }
+
+        .cat-sum-item:hover {
+            transform: translateY(-4px) scale(1.01) !important;
+            box-shadow: 0 14px 26px -6px rgba(0, 82, 204, 0.24), 0 5px 0 #93c5fd !important;
+        }
+
+        .cat-sum-item:active {
+            transform: translateY(2px) scale(0.98) !important;
+        }
+
+        .cat-sum-top-row {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin-bottom: 10px;
+        }
+
+        .cat-sum-label {
+            font-family: var(--font-display) !important;
+            font-size: 13.5px !important;
+            font-weight: 800 !important;
+            color: #071936 !important;
+            margin-bottom: 0 !important;
+            text-shadow: 0 1px 0 #ffffff;
+            flex: 1;
+        }
+
+        .cat-sum-value {
+            font-size: 17px !important;
+            font-weight: 900 !important;
+            color: #0044b3 !important;
+            text-shadow: 0 1px 0 #ffffff, 0 2px 5px rgba(0, 68, 179, 0.16);
+        }
+
+        .cat-sum-item:nth-child(even) .cat-sum-value {
+            color: #d94e00 !important;
+        }
+
+        .cat-sum-qty {
+            font-family: var(--font-display) !important;
+            font-weight: 800 !important;
+            padding: 3px 11px !important;
+            box-shadow: 0 2px 4px rgba(255, 107, 0, 0.15), inset 0 1px 0 #ffffff;
+        }
+
+        /* BANNER PROFIL KELUARGA / PESERTA (CARSITI) 3D */
+        .profile-header {
+            background: linear-gradient(135deg, #ffffff 0%, #eaf3ff 52%, #fff1e4 100%) !important;
+            border: 1.5px solid #bfd8fb !important;
+            border-top: 5px solid #0052cc !important;
+            box-shadow: 0 12px 26px -6px rgba(0, 68, 179, 0.16), 0 5px 0 #b8d4fe !important;
+        }
+
+        .profile-header h2 {
+            font-size: 25px !important;
+            font-weight: 900 !important;
+            color: #051633 !important;
+            text-shadow: 0 2px 0 #ffffff, 0 3px 0 #cbd5e1, 0 6px 12px rgba(0, 68, 179, 0.2) !important;
+        }
+
+        .profile-title-3d-wrap {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 6px;
+        }
+
+        /* TOMBOL 3D PUSH INTERAKTIF */
+        .btn {
+            font-family: var(--font-display) !important;
+            font-weight: 800 !important;
+            border-radius: 12px !important;
+            letter-spacing: 0.3px !important;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, #0077ff 0%, #0044b3 100%) !important;
+            box-shadow: 0 6px 14px rgba(0, 82, 204, 0.35), 0 3px 0 #00296b, inset 0 1px 1px rgba(255, 255, 255, 0.45) !important;
+        }
+
+        .btn-outline-primary {
+            background: linear-gradient(180deg, #ffffff 0%, #f0f7ff 100%) !important;
+            border: 2px solid #0052cc !important;
+            color: #0044b3 !important;
+            box-shadow: 0 4px 10px rgba(0, 82, 204, 0.14), 0 3px 0 #93c5fd !important;
+        }
+
+        .btn-outline-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #0052cc 0%, #0095ff 100%) !important;
+            color: #ffffff !important;
+            border-color: transparent !important;
+            box-shadow: 0 6px 14px rgba(0, 82, 204, 0.35), 0 3px 0 #002b75 !important;
+        }
+
+        .btn-mobile-menu {
+            background: linear-gradient(145deg, #0077ff 0%, #0044b3 100%) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 5px 12px rgba(0, 68, 179, 0.35), 0 3px 0 #002666, inset 0 2px 2px rgba(255, 255, 255, 0.5) !important;
+        }
+
+        /* Penyesuaian Mobile untuk Detail Summary Grid (Tagihan, Dibayar, Sisa) */
+        @media (max-width: 768px) {
+            .detail-summary-grid .summary-card-3d-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+            }
+            .detail-summary-grid .summary-card-3d-left {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            .detail-summary-grid .summary-card .stat-value {
+                font-size: 19px !important;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Notifikasi / Toast Container -->
@@ -77,7 +500,6 @@
                 <p class="help-text mb-10 text-center">Pratinjau ringkasan di bawah ini siap dicetak atau disimpan menjadi gambar (JPG).</p>
                 
                 <!-- Area yang akan dirender menjadi gambar JPEG / Dicetak -->
-                <!-- REVISI: Inline style dihapus agar dikendalikan penuh oleh style.css -->
                 <div id="ringkasan-print-area">
                     <!-- Data disuntikkan via JS -->
                 </div>
@@ -275,22 +697,54 @@
         <!-- Overlay Sidebar Mobile -->
         <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-        <!-- Sidebar Navigasi -->
+        <!-- Sidebar Navigasi dengan 3D Logo & 3D Menu Icons -->
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
+                <div class="sidebar-brand-3d">
+                    <img src="logo.png" alt="Logo Davka Travel">
+                </div>
                 <h2>DAVKA TOUR</h2>
                 <p>MANAGEMENT</p>
             </div>
             <ul class="nav-list">
-                <li><a href="#" class="nav-link active" data-target="view-dashboard">Dashboard</a></li>
-                <li><a href="#" class="nav-link" data-target="view-participants">Peserta & Keluarga</a></li>
-                <li><a href="#" class="nav-link" data-target="view-costs">Rincian Biaya Peserta</a></li>
-                <li><a href="#" class="nav-link" data-target="view-payments">Pembayaran & Cicilan</a></li>
-                <li><a href="#" class="nav-link" data-target="view-expenses">Pengeluaran Operasional</a></li>
-                <li><a href="#" class="nav-link" data-target="view-reports">Laporan Keuangan</a></li>
+                <li>
+                    <a href="#" class="nav-link active" data-target="view-dashboard">
+                        <span class="icon-3d icon-3d-sm icon-3d-blue"><span>&#128202;</span></span>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-target="view-participants">
+                        <span class="icon-3d icon-3d-sm icon-3d-orange"><span>&#128101;</span></span>
+                        <span>Peserta &amp; Keluarga</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-target="view-costs">
+                        <span class="icon-3d icon-3d-sm icon-3d-cyan"><span>&#127991;&#65039;</span></span>
+                        <span>Rincian Biaya Peserta</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-target="view-payments">
+                        <span class="icon-3d icon-3d-sm icon-3d-green"><span>&#128179;</span></span>
+                        <span>Pembayaran &amp; Cicilan</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-target="view-expenses">
+                        <span class="icon-3d icon-3d-sm icon-3d-red"><span>&#128184;</span></span>
+                        <span>Pengeluaran Operasional</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-target="view-reports">
+                        <span class="icon-3d icon-3d-sm icon-3d-purple"><span>&#128200;</span></span>
+                        <span>Laporan Keuangan</span>
+                    </a>
+                </li>
             </ul>
         </nav>
-
         <!-- Area Konten Utama -->
         <main class="main-content">
             <header class="topbar">
@@ -307,12 +761,22 @@
                 <section id="view-dashboard" class="view-section active">
                     <div class="card-grid dashboard-summary-grid mb-15">
                         <div class="card summary-card summary-card-sm">
-                            <h3>Total Peserta</h3>
-                            <p id="dash-total-peserta" class="stat-value">0</p>
+                            <div class="summary-card-3d-row">
+                                <div class="summary-card-3d-info">
+                                    <h3>Total Peserta</h3>
+                                    <p id="dash-total-peserta" class="stat-value">0</p>
+                                </div>
+                                <div class="icon-3d icon-3d-lg icon-3d-blue"><span>&#129489;&#8205;&#129309;&#8205;&#129489;</span></div>
+                            </div>
                         </div>
                         <div class="card summary-card summary-card-sm">
-                            <h3>Total Keluarga</h3>
-                            <p id="dash-total-keluarga" class="stat-value">0</p>
+                            <div class="summary-card-3d-row">
+                                <div class="summary-card-3d-info">
+                                    <h3>Total Keluarga</h3>
+                                    <p id="dash-total-keluarga" class="stat-value">0</p>
+                                </div>
+                                <div class="icon-3d icon-3d-lg icon-3d-orange"><span>&#128106;</span></div>
+                            </div>
                         </div>
                     </div>
 
@@ -460,30 +924,48 @@
                     <div class="card profile-header mb-20">
                         <div class="flex-between align-start">
                             <div>
-                                <h2 id="detail-part-name">Nama Peserta</h2>
+                                <div class="profile-title-3d-wrap">
+                                    <span class="icon-3d icon-3d-blue"><span>&#128100;</span></span>
+                                    <h2 id="detail-part-name" class="mb-0">Nama Peserta</h2>
+                                </div>
                                 <p class="text-muted mb-5">Keluarga / Grup: <strong id="detail-part-family">Keluarga</strong></p>
                                 <div class="mt-10">
                                     <span class="badge" id="detail-part-status-badge">Status</span>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <button class="btn btn-outline-primary" id="btn-print-individual">Cetak Ringkasan Biaya Individu</button>
+                                <button class="btn btn-outline-primary" id="btn-print-individual">&#128424; Cetak Ringkasan Biaya Individu</button>
                             </div>
                         </div>
                     </div>
 
                     <div class="card-grid detail-summary-grid mb-20">
                         <div class="card summary-card summary-card-tagihan">
-                            <h3>Total Tagihan</h3>
-                            <p id="detail-total-tagihan" class="stat-value">Rp0</p>
+                            <div class="summary-card-3d-row">
+                                <div class="summary-card-3d-left">
+                                    <span class="icon-3d icon-3d-sm icon-3d-blue"><span>&#129534;</span></span>
+                                    <h3>Total Tagihan</h3>
+                                </div>
+                                <p id="detail-total-tagihan" class="stat-value">Rp0</p>
+                            </div>
                         </div>
                         <div class="card summary-card summary-card-dibayar">
-                            <h3>Total Dibayar</h3>
-                            <p id="detail-total-dibayar" class="stat-value text-success">Rp0</p>
+                            <div class="summary-card-3d-row">
+                                <div class="summary-card-3d-left">
+                                    <span class="icon-3d icon-3d-sm icon-3d-green"><span>&#9989;</span></span>
+                                    <h3>Total Dibayar</h3>
+                                </div>
+                                <p id="detail-total-dibayar" class="stat-value text-success">Rp0</p>
+                            </div>
                         </div>
                         <div class="card summary-card summary-card-sisa">
-                            <h3>Sisa Tagihan</h3>
-                            <p id="detail-sisa-tagihan" class="stat-value text-danger">Rp0</p>
+                            <div class="summary-card-3d-row">
+                                <div class="summary-card-3d-left">
+                                    <span class="icon-3d icon-3d-sm icon-3d-orange"><span>&#128176;</span></span>
+                                    <h3>Sisa Tagihan</h3>
+                                </div>
+                                <p id="detail-sisa-tagihan" class="stat-value text-danger">Rp0</p>
+                            </div>
                         </div>
                     </div>
 
@@ -537,36 +1019,54 @@
                     <div class="card profile-header mb-20">
                         <div class="flex-between align-start">
                             <div>
-                                <h2 id="detail-fam-name">Nama Keluarga</h2>
+                                <div class="profile-title-3d-wrap">
+                                    <span class="icon-3d icon-3d-orange"><span>&#128106;</span></span>
+                                    <h2 id="detail-fam-name" class="mb-0">Nama Keluarga</h2>
+                                </div>
                                 <p class="text-muted mb-5">Jumlah Anggota: <strong id="detail-fam-count">0 Orang</strong></p>
                                 <div class="mt-10">
                                     <span class="badge" id="detail-fam-status-badge">Status</span>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <button class="btn btn-outline-primary" id="btn-print-family">Cetak Ringkasan Biaya Keluarga</button>
+                                <button class="btn btn-outline-primary" id="btn-print-family">&#128424; Cetak Ringkasan Biaya Keluarga</button>
                             </div>
                         </div>
                     </div>
 
                     <div class="card-grid detail-summary-grid mb-20">
                         <div class="card summary-card summary-card-tagihan">
-                            <h3>Total Tagihan</h3>
-                            <p id="detail-fam-total-tagihan" class="stat-value">Rp0</p>
+                            <div class="summary-card-3d-row">
+                                <div class="summary-card-3d-left">
+                                    <span class="icon-3d icon-3d-sm icon-3d-blue"><span>&#129534;</span></span>
+                                    <h3>Total Tagihan</h3>
+                                </div>
+                                <p id="detail-fam-total-tagihan" class="stat-value">Rp0</p>
+                            </div>
                         </div>
                         <div class="card summary-card summary-card-dibayar">
-                            <h3>Total Dibayar</h3>
-                            <p id="detail-fam-total-dibayar" class="stat-value text-success">Rp0</p>
+                            <div class="summary-card-3d-row">
+                                <div class="summary-card-3d-left">
+                                    <span class="icon-3d icon-3d-sm icon-3d-green"><span>&#9989;</span></span>
+                                    <h3>Total Dibayar</h3>
+                                </div>
+                                <p id="detail-fam-total-dibayar" class="stat-value text-success">Rp0</p>
+                            </div>
                         </div>
                         <div class="card summary-card summary-card-sisa">
-                            <h3>Sisa Tagihan</h3>
-                            <p id="detail-fam-sisa-tagihan" class="stat-value text-danger">Rp0</p>
+                            <div class="summary-card-3d-row">
+                                <div class="summary-card-3d-left">
+                                    <span class="icon-3d icon-3d-sm icon-3d-cyan"><span>&#128142;</span></span>
+                                    <h3>Sisa Tagihan</h3>
+                                </div>
+                                <p id="detail-fam-sisa-tagihan" class="stat-value text-danger">Rp0</p>
+                            </div>
                         </div>
                     </div>
 
                     <div class="card mb-20">
                         <div class="card-header flex-between align-center">
-                            <h3>Daftar Anggota & Tagihan</h3>
+                            <h3>Daftar Anggota &amp; Tagihan</h3>
                         </div>
                         <div class="table-responsive">
                             <table class="table" id="table-detail-fam-members">
@@ -636,7 +1136,10 @@
                     <div class="card profile-header mb-20">
                         <div class="flex-between align-start">
                             <div>
-                                <h2 id="detail-cat-name">Nama Kategori</h2>
+                                <div class="profile-title-3d-wrap">
+                                    <span class="icon-3d icon-3d-cyan"><span>&#127991;&#65039;</span></span>
+                                    <h2 id="detail-cat-name" class="mb-0">Nama Kategori</h2>
+                                </div>
                                 <p class="text-muted mb-0">Daftar rincian peserta yang memiliki pembelian pada kategori ini.</p>
                             </div>
                             <div class="text-right">
@@ -647,16 +1150,31 @@
 
                     <div class="card-grid detail-summary-grid mb-20">
                         <div class="card summary-card summary-card-tagihan">
-                            <h3>Total Pembeli / Baris</h3>
-                            <p id="detail-cat-total-rows" class="stat-value">0 Orang</p>
+                            <div class="summary-card-3d-row">
+                                <div class="summary-card-3d-left">
+                                    <span class="icon-3d icon-3d-sm icon-3d-blue"><span>&#128101;</span></span>
+                                    <h3>Total Pembeli / Baris</h3>
+                                </div>
+                                <p id="detail-cat-total-rows" class="stat-value">0 Orang</p>
+                            </div>
                         </div>
                         <div class="card summary-card summary-card-dibayar">
-                            <h3>Total Item</h3>
-                            <p id="detail-cat-total-qty" class="stat-value text-primary">0 Item</p>
+                            <div class="summary-card-3d-row">
+                                <div class="summary-card-3d-left">
+                                    <span class="icon-3d icon-3d-sm icon-3d-orange"><span>&#128230;</span></span>
+                                    <h3>Total Item</h3>
+                                </div>
+                                <p id="detail-cat-total-qty" class="stat-value text-primary">0 Item</p>
+                            </div>
                         </div>
                         <div class="card summary-card summary-card-sisa is-lebih">
-                            <h3>Total Biaya Kategori</h3>
-                            <p id="detail-cat-total-amount" class="stat-value text-danger">Rp0</p>
+                            <div class="summary-card-3d-row">
+                                <div class="summary-card-3d-left">
+                                    <span class="icon-3d icon-3d-sm icon-3d-green"><span>&#128176;</span></span>
+                                    <h3>Total Biaya Kategori</h3>
+                                </div>
+                                <p id="detail-cat-total-amount" class="stat-value text-danger">Rp0</p>
+                            </div>
                         </div>
                     </div>
 
@@ -719,7 +1237,7 @@
                 <section id="view-payments" class="view-section">
                     <div class="card mb-20">
                         <div class="card-header flex-between align-center">
-                            <h3>Riwayat Penerimaan Kas & Pembayaran Peserta</h3>
+                            <h3>Riwayat Penerimaan Kas &amp; Pembayaran Peserta</h3>
                             <button class="btn btn-success" id="btn-add-payment">+ Catat Penerimaan Uang</button>
                         </div>
                         <div class="card-body">
@@ -849,7 +1367,7 @@
                                 </div>
                                 <div class="modal-actions">
                                     <button type="button" class="btn btn-secondary" id="btn-cancel-payment">Batal</button>
-                                    <button type="submit" class="btn btn-primary" id="btn-submit-payment">Simpan Transaksi & Alokasi</button>
+                                    <button type="submit" class="btn btn-primary" id="btn-submit-payment">Simpan Transaksi &amp; Alokasi</button>
                                 </div>
                             </form>
                         </div>
@@ -919,7 +1437,7 @@
                                                 <option value="Pembelian Kaos">Pembelian Kaos</option>
                                                 <option value="Tiket Wisata">Tiket Wisata</option>
                                                 <option value="Konsumsi/Makan Minum">Konsumsi/Makan Minum</option>
-                                                <option value="Parkir & Tol">Parkir & Tol</option>
+                                                <option value="Parkir & Tol">Parkir &amp; Tol</option>
                                                 <option value="Administrasi">Administrasi</option>
                                                 <option value="Lain-lain">Lain-lain</option>
                                             </select>
