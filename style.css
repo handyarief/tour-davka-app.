@@ -597,7 +597,6 @@ strong {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 15px;
 }
-
 /* ==========================================================================
    KARTU STATISTIK 3D (TOTAL PESERTA, TOTAL KELUARGA, TAGIHAN, DIBAYAR, SISA)
    ========================================================================== */
@@ -636,7 +635,7 @@ strong {
     color: #061c3d;
     text-shadow: var(--text-3d-blue);
     margin-bottom: 2px;
-    word-break: break-word;
+    white-space: nowrap;
     line-height: 1.1;
 }
 
@@ -655,6 +654,7 @@ strong {
 
 .summary-card-3d-info {
     min-width: 0;
+    flex: 1;
 }
 
 .dashboard-summary-grid {
@@ -744,6 +744,7 @@ strong {
     font-weight: 900;
     margin-bottom: 0;
     line-height: 1.2;
+    white-space: nowrap !important;
 }
 
 .summary-card-tagihan {
@@ -1370,7 +1371,7 @@ input[type="checkbox"] {
 }
 
 /* ==========================================================================
-   TABEL MODERN & RESPONSIF
+   TABEL MODERN & RESPONSIF + STYLING UKURAN KAOS RAPI (GAMBAR 1)
    ========================================================================== */
 .table-responsive {
     width: 100%;
@@ -1392,6 +1393,7 @@ input[type="checkbox"] {
     padding: 13px 15px;
     text-align: left;
     border-bottom: 1px solid #e5effc;
+    vertical-align: middle;
 }
 
 .table th {
@@ -1439,6 +1441,47 @@ input[type="checkbox"] {
     font-size: 14.5px;
 }
 
+/* Komponen Sel Nama & Badge Ukuran Baju Rapi Sejajar (Gambar 1) */
+.cat-buyer-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.cat-buyer-name {
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.25;
+}
+
+.shirt-size-badge {
+    font-family: var(--font-display);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 900;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%);
+    color: #0047b3;
+    border: 1px solid #7dd3fc;
+    border-bottom: 2.5px solid #0284c7;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(2, 132, 199, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.shirt-size-badge.is-empty {
+    background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+    color: #64748b;
+    border-color: #cbd5e1;
+    border-bottom-color: #94a3b8;
+    box-shadow: none;
+}
 /* ==========================================================================
    MODAL / DIALOG MODERN
    ========================================================================== */
@@ -1562,7 +1605,7 @@ input[type="checkbox"] {
 }
 
 /* ==========================================================================
-   MODAL PRATINJAU DOKUMEN (GAYA GAMBAR 3 SEBELUM DOWNLOAD JPG / CETAK BT)
+   MODAL PRATINJAU DOKUMEN (GAYA GAMBAR 3 — BEBAS TERPOTONG 100% UTUH)
    ========================================================================== */
 .modal.doc-preview-modal {
     padding: 0 !important;
@@ -1684,7 +1727,7 @@ input[type="checkbox"] {
 .doc-preview-viewport {
     flex: 1;
     overflow: auto;
-    padding: 36px 14px 24px 14px;
+    padding: 36px 12px 24px 12px;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -1696,6 +1739,8 @@ input[type="checkbox"] {
     justify-content: center;
     align-items: flex-start;
     width: 100%;
+    position: relative;
+    overflow: visible;
     transform-origin: top center;
 }
 
@@ -1703,14 +1748,27 @@ input[type="checkbox"] {
     background-color: #ffffff;
     color: #0f172a;
     padding: 28px 32px;
-    border-radius: 3px;
+    border-radius: 4px;
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
     position: relative;
-    overflow: hidden;
-    width: max-content;
-    min-width: 780px;
+    overflow: visible !important;
+    width: max-content !important;
+    max-width: none !important;
+    min-width: 720px;
     box-sizing: border-box;
     transform-origin: top center;
+}
+
+/* Pastikan .print-wrap di dalam pratinjau dokumen tidak pernah memotong tabel lebar */
+.doc-preview-paper .print-wrap,
+.doc-preview-paper .print-wrap.print-wrap-wide {
+    width: max-content !important;
+    min-width: 100% !important;
+    max-width: none !important;
+    padding: 4px !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    box-shadow: none !important;
 }
 
 .doc-preview-paper .print-only-show {
@@ -1725,15 +1783,21 @@ input[type="checkbox"] {
 .doc-preview-paper .table-responsive {
     overflow: visible !important;
     padding: 0 !important;
+    width: max-content !important;
+    min-width: 100% !important;
 }
 
-.doc-preview-paper .table {
+.doc-preview-paper .table,
+.doc-preview-paper .print-table {
     width: 100% !important;
     border-collapse: collapse !important;
+    table-layout: auto !important;
 }
 
 .doc-preview-paper .table th,
-.doc-preview-paper .table td {
+.doc-preview-paper .table td,
+.doc-preview-paper .print-table th,
+.doc-preview-paper .print-table td {
     padding: 8px 11px !important;
     font-size: 12px !important;
     border: 1px solid #cbd5e1 !important;
@@ -1741,7 +1805,8 @@ input[type="checkbox"] {
     color: #0f172a;
 }
 
-.doc-preview-paper .table th {
+.doc-preview-paper .table th,
+.doc-preview-paper .print-table th {
     background-color: #f1f5f9 !important;
     font-weight: 700 !important;
     position: static !important;
@@ -1997,7 +2062,7 @@ input[type="checkbox"] {
 }
 
 /* ==========================================================================
-   RESPONSIVE DESIGN (MOBILE OPTIMIZATION)
+   RESPONSIVE DESIGN (MOBILE OPTIMIZATION — PERBAIKAN GAMBAR 1 & GAMBAR 2)
    ========================================================================== */
 @media (max-width: 992px) {
     .form-grid-3 { grid-template-columns: 1fr 1fr; }
@@ -2045,13 +2110,42 @@ input[type="checkbox"] {
         padding: 14px;
     }
 
-    /* Kartu Kategori Biaya di Mobile 1 Kolom Penuh seperti Gambar 1 */
+    /* PERBAIKAN GAMBAR 2: Kartu Total Peserta & Total Keluarga Rapi Tidak Menabrak Icon 3D */
+    .dashboard-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+    }
+    .dashboard-summary-grid .summary-card {
+        padding: 13px 12px !important;
+    }
+    .dashboard-summary-grid .summary-card-3d-row {
+        gap: 8px !important;
+        align-items: center !important;
+    }
+    .dashboard-summary-grid .summary-card h3 {
+        font-size: 10.5px !important;
+        letter-spacing: 0.3px !important;
+        line-height: 1.25 !important;
+        margin-bottom: 4px !important;
+    }
+    .dashboard-summary-grid .summary-card .stat-value {
+        font-size: 24px !important;
+    }
+    .dashboard-summary-grid .summary-card .icon-3d-lg {
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 13px !important;
+        font-size: 20px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Kartu Kategori Biaya di Mobile 1 Kolom Penuh */
     .category-summary-grid {
         grid-template-columns: 1fr;
         gap: 12px;
     }
 
-    /* Ringkasan Tagihan, Dibayar, Sisa di Mobile (Gambar 3) */
+    /* PERBAIKAN GAMBAR 1: Ringkasan Detail Kategori / Peserta / Keluarga (Rp tidak patah ke bawah) */
     .detail-summary-grid {
         grid-template-columns: 1fr;
         gap: 11px;
@@ -2060,18 +2154,28 @@ input[type="checkbox"] {
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        padding: 14px 16px;
+        padding: 14px 16px !important;
     }
     .detail-stat-head {
         margin-bottom: 0;
     }
     .detail-summary-grid .summary-card h3 {
         margin-bottom: 0;
-        font-size: 12px;
+        font-size: 11.5px !important;
+        letter-spacing: 0.4px;
+        line-height: 1.25;
     }
     .detail-summary-grid .summary-card .stat-value {
-        font-size: 18.5px;
+        font-size: 18px !important;
         text-align: right;
+        white-space: nowrap !important;
+        flex-shrink: 0;
+    }
+
+    /* Tabel Detail Kategori di Mobile lebih rapi & kompak */
+    #table-detail-category th,
+    #table-detail-category td {
+        padding: 10px 10px;
     }
 
     .profile-hero-row {

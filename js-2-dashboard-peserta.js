@@ -129,38 +129,82 @@ function renderDetailCategory(categoryName) {
     const footerTotalEl = document.getElementById('detail-cat-footer-total');
     if (footerTotalEl) footerTotalEl.textContent = `${formatRp(totalAmount)} (${totalQty} ${unitName})`;
 
-    const tbody = document.querySelector('#table-detail-category tbody');
+    const tableEl = document.getElementById('table-detail-category');
+    if (!tableEl) return;
+    const thead = tableEl.querySelector('thead');
+    const tbody = tableEl.querySelector('tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
 
+    const isShirtCategory = categoryName.toLowerCase().includes('kaos') || categoryName.toLowerCase().includes('baju');
+
+    if (thead) {
+        if (isShirtCategory) {
+            thead.innerHTML = `
+                <tr>
+                    <th style="width: 45px;" class="text-center">No</th>
+                    <th>Nama</th>
+                    <th class="text-center">Ukuran Baju</th>
+                    <th>Keluarga</th>
+                    <th class="text-center">Item</th>
+                    <th class="text-right">Harga</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            `;
+        } else {
+            thead.innerHTML = `
+                <tr>
+                    <th style="width: 50px;" class="text-center">No</th>
+                    <th>Nama</th>
+                    <th>Keluarga</th>
+                    <th class="text-center">Item</th>
+                    <th class="text-right">Harga</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            `;
+        }
+    }
+
     if (catCosts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada peserta dengan pembelian pada kategori ini.</td></tr>';
+        const emptyCols = isShirtCategory ? 7 : 6;
+        tbody.innerHTML = `<tr><td colspan="${emptyCols}" class="text-center text-muted">Belum ada peserta dengan pembelian pada kategori ini.</td></tr>`;
         return;
     }
 
-    const isShirtCategory = categoryName.toLowerCase().includes('kaos');
-
     catCosts.forEach((item, idx) => {
         const tr = document.createElement('tr');
-        const shirtBadge = (isShirtCategory && item.shirt)
-            ? ` <span class="badge badge-info ml-5">Ukuran: ${escapeHTML(item.shirt)}</span>`
-            : '';
+        if (isShirtCategory) {
+            const sizeBadge = item.shirt
+                ? `<span class="shirt-size-badge">👕 ${escapeHTML(item.shirt)}</span>`
+                : `<span class="shirt-size-badge is-empty">-</span>`;
 
-        tr.innerHTML = `
-            <td>${idx + 1}</td>
-            <td><strong>${escapeHTML(item.name)}</strong>${shirtBadge}</td>
-            <td>${escapeHTML(item.family)}</td>
-            <td class="text-center"><strong>${item.qty} ${unitName}</strong></td>
-            <td class="text-right">${formatRp(item.price)}</td>
-            <td class="text-right"><strong class="text-primary">${formatRp(item.total)}</strong></td>
-        `;
+            tr.innerHTML = `
+                <td class="text-center">${idx + 1}</td>
+                <td><strong class="cat-buyer-name">${escapeHTML(item.name)}</strong></td>
+                <td class="text-center">${sizeBadge}</td>
+                <td>${escapeHTML(item.family)}</td>
+                <td class="text-center"><strong>${item.qty} ${unitName}</strong></td>
+                <td class="text-right">${formatRp(item.price)}</td>
+                <td class="text-right"><strong class="text-primary">${formatRp(item.total)}</strong></td>
+            `;
+        } else {
+            tr.innerHTML = `
+                <td class="text-center">${idx + 1}</td>
+                <td><strong class="cat-buyer-name">${escapeHTML(item.name)}</strong></td>
+                <td>${escapeHTML(item.family)}</td>
+                <td class="text-center"><strong>${item.qty} ${unitName}</strong></td>
+                <td class="text-right">${formatRp(item.price)}</td>
+                <td class="text-right"><strong class="text-primary">${formatRp(item.total)}</strong></td>
+            `;
+        }
         tbody.appendChild(tr);
     });
 
     const trTotal = document.createElement('tr');
     trTotal.className = 'fam-cost-grand-row';
+    const labelColSpan = isShirtCategory ? 4 : 3;
     trTotal.innerHTML = `
-        <td colspan="3" class="text-right">TOTAL KESELURUHAN</td>
+        <td colspan="${labelColSpan}" class="text-right">TOTAL KESELURUHAN</td>
         <td class="text-center">${totalQty} ${unitName}</td>
         <td class="text-right">-</td>
         <td class="text-right">${formatRp(totalAmount)}</td>
@@ -174,6 +218,12 @@ function renderDashboard() {
     
     document.getElementById('dash-total-peserta').textContent = activeParticipants.length;
     document.getElementById('dash-total-keluarga').textContent = families.length;
+
+    // Pastikan icon 3D kartu Total Keluarga menggunakan icon rumah/keluarga full-color & rapi
+    const famCardIcon = document.querySelector('.dashboard-summary-grid .summary-card:nth-child(2) .icon-3d span');
+    if (famCardIcon) {
+        famCardIcon.innerHTML = '&#127968;';
+    }
 
     let categoryTotals = {};
     let categoryQtys = {}; 
@@ -232,7 +282,6 @@ function renderDashboard() {
             catContainer.appendChild(itemDiv);
         });
     }
-
     /* ----------------------------------------------------------------------
        1. TABEL STATUS KELUARGA / GRUP
        ---------------------------------------------------------------------- */

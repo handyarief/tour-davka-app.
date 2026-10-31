@@ -67,19 +67,23 @@ function fitPreviewPaperToScreen() {
     paper.style.transform = 'none';
     scaler.style.height = 'auto';
 
-    // Hitung lebar aktual tabel terdalam agar kertas tidak memotong kolom kanan
-    let maxTableWidth = 760;
+    // Buka lebar elemen di dalam preview agar tabel matriks terbaca penuh secara akurat
+    paper.style.width = 'max-content';
+    paper.style.minWidth = '720px';
+    paper.style.maxWidth = 'none';
+
+    let maxTableWidth = 720;
     paper.querySelectorAll('table').forEach(tbl => {
         if (tbl.scrollWidth > maxTableWidth) {
             maxTableWidth = tbl.scrollWidth;
         }
     });
 
-    const fullPaperWidth = Math.max(maxTableWidth + 68, paper.scrollWidth);
+    const fullPaperWidth = Math.max(maxTableWidth + 64, paper.scrollWidth);
     paper.style.width = `${fullPaperWidth}px`;
     paper.style.minWidth = `${fullPaperWidth}px`;
 
-    const availableWidth = Math.max(viewport.clientWidth - 24, 280);
+    const availableWidth = Math.max(viewport.clientWidth - 20, 260);
     if (fullPaperWidth > availableWidth) {
         const scaleRatio = availableWidth / fullPaperWidth;
         paper.style.transform = `scale(${scaleRatio})`;
@@ -222,7 +226,7 @@ async function executeDownloadReportJpg(triggerBtn) {
                         clonedArea.style.border = 'none';
                         clonedArea.style.boxShadow = 'none';
                         clonedArea.style.position = 'relative';
-                        clonedArea.style.overflow = 'hidden';
+                        clonedArea.style.overflow = 'visible';
                         clonedArea.style.boxSizing = 'border-box';
                     }
                     const clonedHeader = clonedDoc.querySelector('#report-print-area .print-only-show');

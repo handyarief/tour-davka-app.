@@ -359,12 +359,11 @@ document.getElementById('form-edit-cost').addEventListener('submit', async (e) =
 document.getElementById('btn-add-cost-from-detail').addEventListener('click', () => {
     prepareIndividualCostForm(currentDetailId);
 });
-
 // Style injeksi CSS print dilengkapi Watermark Resmi Davka Tour
 const getPrintStyles = () => `
     <style>
-        .print-wrap { position: relative; overflow: hidden; width: 100%; max-width: 720px; margin: 0 auto; padding: 24px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ffffff; color: #1e293b; box-sizing: border-box; }
-        .print-wrap.print-wrap-wide { max-width: 100%; }
+        .print-wrap { position: relative; overflow: visible; width: max-content; min-width: 100%; max-width: none; margin: 0 auto; padding: 24px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ffffff; color: #1e293b; box-sizing: border-box; }
+        .print-wrap.print-wrap-wide { width: max-content; min-width: 100%; max-width: none; }
         .print-header, .print-info, .print-section-title, .print-table, .print-summary, .print-footer { position: relative; z-index: 1; }
         .print-header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px; }
         .print-header h2 { margin: 0; color: #0f172a; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
@@ -376,12 +375,12 @@ const getPrintStyles = () => `
         .print-section-title { font-weight: 700; font-size: 13.5px; color: #0f172a; margin: 16px 0 8px 0; text-transform: uppercase; letter-spacing: 0.3px; }
         .print-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12.5px; table-layout: auto; }
         .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; vertical-align: middle; }
-        .print-table th { background-color: rgba(241, 245, 249, 0.92); font-weight: 700; color: #0f172a; white-space: normal; line-height: 1.3; }
+        .print-table th { background-color: rgba(241, 245, 249, 0.92); font-weight: 700; color: #0f172a; white-space: nowrap; line-height: 1.3; }
         .print-table tr:nth-child(even) { background-color: rgba(248, 250, 252, 0.88); }
         .print-table tr.matrix-total-row td { background-color: rgba(241, 245, 249, 0.94) !important; font-weight: 700; color: #0f172a; border-top: 2px solid #94a3b8; }
         .print-table tr.matrix-grand-row td { background-color: rgba(224, 242, 254, 0.94) !important; font-weight: 800; color: #0369a1; font-size: 13.5px; border-top: 1px solid #94a3b8; }
         .print-table td.nowrap, .print-table th.nowrap { white-space: nowrap !important; }
-        .print-table th.cat-header { min-width: 85px; max-width: 130px; word-wrap: break-word; }
+        .print-table th.cat-header { min-width: 85px; white-space: nowrap; }
         .print-wrap .text-right { text-align: right !important; }
         .print-wrap .text-center { text-align: center !important; }
         .print-wrap .text-success { color: #16a34a !important; font-weight: 700; }
@@ -1015,7 +1014,7 @@ window.executeDownloadRingkasanJpg = async function(triggerBtn) {
                     maxInnerWidth = tbl.scrollWidth;
                 }
             });
-            const requiredWidth = Math.max(maxInnerWidth + 64, 760);
+            const requiredWidth = Math.max(maxInnerWidth + 68, 780);
 
             const canvas = await html2canvas(targetEl, {
                 scale: 2,
@@ -1023,7 +1022,7 @@ window.executeDownloadRingkasanJpg = async function(triggerBtn) {
                 useCORS: true,
                 logging: false,
                 width: requiredWidth,
-                windowWidth: requiredWidth + 100,
+                windowWidth: requiredWidth + 120,
                 onclone: (clonedDoc) => {
                     const clonedWrap = clonedDoc.querySelector('.print-wrap');
                     if (clonedWrap) {
@@ -1035,8 +1034,11 @@ window.executeDownloadRingkasanJpg = async function(triggerBtn) {
                         clonedWrap.style.boxShadow = 'none';
                         clonedWrap.style.transform = 'none';
                         clonedWrap.style.position = 'relative';
-                        clonedWrap.style.overflow = 'hidden';
+                        clonedWrap.style.overflow = 'visible';
                     }
+                    clonedDoc.querySelectorAll('.print-table').forEach(tbl => {
+                        tbl.style.width = '100%';
+                    });
                 }
             });
 
